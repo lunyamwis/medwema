@@ -1,0 +1,8 @@
+<!-- templates/clinic/patient_success.html -->
+{% extends "base.html" %}
+{% block content %}
+<div class="container text-center mt-5">
+  <h3 class="text-success">Patient registered successfully!</h3>
+  <a href="{% url 'register_patient' %}" class="btn btn-outline-primary mt-3">Register another</a>
+</div>
+{% endblock %}

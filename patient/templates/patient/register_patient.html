@@ -1,0 +1,19 @@
+<!-- templates/clinic/register_patient.html -->
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="card shadow-sm p-4 rounded-4">
+    <h3 class="mb-4 text-center">Patient Registration</h3>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% bootstrap_form form %}
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-primary w-100">Register</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
