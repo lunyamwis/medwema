@@ -1,7 +1,7 @@
 from django.db import models
 from authentication.models import User
 from clinicmanager.models import Clinic
-
+# starting
 
 
 class Doctor(models.Model):
