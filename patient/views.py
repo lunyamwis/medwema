@@ -40,9 +40,12 @@ def doctor_detail(request, pk):
 
 # List all patients
 def patient_list(request):
-    patients = Patient.objects.select_related('doctor').all()
-    return render(request, 'patient/patient_list.html', {'patients': patients})
-
+    query = request.GET.get('q')
+    if query:
+        patients = Patient.objects.filter(name__icontains=query)
+    else:
+        patients = Patient.objects.all()
+    return render(request, 'patient/patient_list.html', {'patients': patients, 'query': query})
 
 def patient_detail(request, pk):
     patient = get_object_or_404(Patient, pk=pk)

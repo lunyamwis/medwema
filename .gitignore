@@ -10,3 +10,4 @@ DEL
 *.sql
 *.bak
 env*
+.env
