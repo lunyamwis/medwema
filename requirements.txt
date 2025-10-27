@@ -26,6 +26,6 @@ gunicorn==21.2.0
 django-weasyprint==2.4.0
 django-widget-tweaks==1.5.0
 
-ipython==9.6.0
+ipython==8.37.0
 pandas==2.3.3
 numpy==2.3.4
