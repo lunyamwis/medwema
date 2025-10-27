@@ -25,9 +25,21 @@ SECRET_KEY = 'django-insecure-w327xjg37#0_ju6^&y38i6qz_7=k&shku$oxq=xu8etsp)78%$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '194.60.201.69',
+    'medwema.com',
+    'www.medwema.com',
+    'localhost',
+]
 
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://medwema.com',
+    'https://medwema.com',
+    'http://www.medwema.com',
+    'https://www.medwema.com',
+    'http://localhost',
+]
 # Application definition
 
 INSTALLED_APPS = [
