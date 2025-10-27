@@ -48,7 +48,7 @@ services:
     volumes:
       - letsencrypt:/etc/letsencrypt
       - web-static:/static/
-    command: certonly --non-interactive --agree-tos --nginx -m "tomek@boostedchat.com" -d "webhook.boostedchat.com"
+    command: certonly --non-interactive --agree-tos --nginx -m "lutherlunyamwi@gmail.com" -d "medwema.com"
 
   redis:
     restart: always
