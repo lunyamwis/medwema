@@ -11,46 +11,98 @@
 
 <div class="card shadow-sm">
   <div class="card-body">
+    <!-- Search Form -->
     <form method="get" class="mb-3 d-flex">
-        <input type="text" name="q" class="form-control me-2" placeholder="Search by name" value="{{ query }}">
-        <button type="submit" class="btn btn-primary">Search</button>
+      <input 
+        type="text" 
+        name="q" 
+        class="form-control me-2" 
+        placeholder="Search by name" 
+        value="{{ query }}">
+      <button type="submit" class="btn btn-primary">Search</button>
     </form>
-    {% if patients %}
-      <table class="table table-hover align-middle">
-        <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th>Name</th>
-            <th>Date Of Birth</th>
-            <th>Phone Number</th>
-            <th>Doctor</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for patient in patients %}
+
+    <!-- Patient Table -->
+    {% if page_obj %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
             <tr>
+              <th scope="col">#</th>
+              <th>Name</th>
+              <th>Date of Birth</th>
+              <th>Phone Number</th>
+              <th>Doctor</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for patient in page_obj %}
+              <tr>
                 <th scope="row">{{ forloop.counter }}</th>
                 <td>
-                    <a href="{% url 'patient_detail' patient.id %}">{{ patient.name }}</a>
+                  <a href="{% url 'patient_detail' patient.id %}" class="text-decoration-none fw-semibold">
+                    {{ patient.name }}
+                  </a>
                 </td>
-                <td>{{ patient.date_of_birth }}</td>
+                <td>{{ patient.date_of_birth|date:"M d, Y" }}</td>
                 <td>{{ patient.phone_number }}</td>
                 <td>
-                {% if patient.doctor %}
-                    <a href="{% url 'doctor_detail' patient.doctor.id %}">{{ patient.doctor.name }}</a>
-                {% else %}
+                  {% if patient.doctor %}
+                    <a href="{% url 'doctor_detail' patient.doctor.id %}" class="text-decoration-none">
+                      {{ patient.doctor.name }}
+                    </a>
+                  {% else %}
                     <span class="text-muted">Unassigned</span>
-                {% endif %}
+                  {% endif %}
                 </td>
                 <td>
-                    <a href="{% url 'patient_edit' patient.id %}" class="btn btn-outline-primary btn-sm">Edit</a>
+                  <a href="{% url 'patient_edit' patient.id %}" class="btn btn-outline-primary btn-sm">
+                    Edit
+                  </a>
                 </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
 
-            </tr>
+      <!-- Pagination Controls -->
+      {% if page_obj.has_other_pages %}
+      <nav aria-label="Patient pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                Previous
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+          {% endif %}
+
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+              </li>
+            {% endif %}
           {% endfor %}
-        </tbody>
-      </table>
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                Next
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
     {% else %}
       <p class="text-muted mb-0">No patients have been added yet.</p>
     {% endif %}

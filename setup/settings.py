@@ -31,6 +31,7 @@ ALLOWED_HOSTS = [
     'medwema.com',
     'www.medwema.com',
     'localhost',
+    '127.0.0.1'
 ]
 
 
@@ -40,6 +41,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://www.medwema.com',
     'https://www.medwema.com',
     'http://localhost',
+    'http://127.0.0.1'
 ]
 # Application definition
 
@@ -55,7 +57,21 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'patient',
     'django_bootstrap5',
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'authentication',
+    "widget_tweaks",
+    'clinicmanager',
+    'home',
 ]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+
+ACCOUNT_SIGNUP_FORM_CLASS = 'authentication.forms.CustomSignupForm'
+
+AUTH_USER_MODEL = 'authentication.User'
+
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -110,7 +126,7 @@ DATABASES = {
     }
 }
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/patients/'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -155,3 +171,10 @@ MEDIA_ROOT ='/usr/src/app/media'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')

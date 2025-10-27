@@ -29,6 +29,8 @@
             <th>Patient Name</th>
             <th>Age</th>
             <th>Condition</th>
+            <th>Actions</th>
+            <th>Medical Historical Consultations</th>
           </tr>
         </thead>
         <tbody>
@@ -38,6 +40,11 @@
               <td>{{ patient.name }}</td>
               <td>{{ patient.age }}</td>
               <td>{{ patient.condition }}</td>
+              <td>
+                <a href="{% url 'new_consultation' patient.id %}" class="btn btn-sm btn-outline-secondary">Consult</a>
+              </td>
+              <td>
+                <a href="{% url 'patient_consultations' patient.id %}" class="btn btn-sm btn-outline-primary">View Consultations</a>
             </tr>
           {% endfor %}
         </tbody>

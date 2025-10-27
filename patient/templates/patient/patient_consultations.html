@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h3>Consultations for {{ patient.name }}</h3>
+  <div class="mb-3">
+    <a href="{% url 'new_consultation' patient.id %}" class="btn btn-primary">New Consultation</a>
+  </div>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Doctor</th>
+        <th>Diagnosis</th>
+        <th>Management</th>
+        <th>Return Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in consultations %}
+      <tr>
+        <td>{{ c.date|date:"Y-m-d H:i" }}</td>
+        <td>{{ c.doctor }}</td>
+        <td>{{ c.diagnosis|truncatechars:60 }}</td>
+        <td>{{ c.management }}</td>
+        <td>{{ c.return_date }}</td>
+        <td>
+          <a href="{% url 'consultation_detail' c.id %}" class="btn btn-sm btn-outline-primary">View</a>
+          <a href="{% url 'consultation_pdf' c.id %}" class="btn btn-sm btn-outline-secondary">PDF</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6">No consultations yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

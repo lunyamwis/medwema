@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>New Consultation for {{ patient.name }}</h3>
+  <form method="post">
+    {% csrf_token %}
+    <div class="accordion" id="consultationAccordion">
+
+      <!-- Chief Complaints & History -->
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#section1">
+            Chief Complaints & History
+          </button>
+        </h2>
+        <div id="section1" class="accordion-collapse collapse show">
+          <div class="accordion-body">
+            {{ form.chief_complaints|as_crispy_field }}
+            {{ form.history_of_presenting_illness|as_crispy_field }}
+            {{ form.past_medical_history|as_crispy_field }}
+            {{ form.past_surgical_history|as_crispy_field }}
+            {{ form.drug_allergies|as_crispy_field }}
+            {{ form.current_medication|as_crispy_field }}
+            {{ form.comorbid_factors|as_crispy_field }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Vital Signs -->
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section2">
+            Vital Signs
+          </button>
+        </h2>
+        <div id="section2" class="accordion-collapse collapse">
+          <div class="accordion-body row">
+            <div class="col-md-4">{{ form.temperature|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.blood_pressure|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.pulse|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.spo2|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.respiration_rate|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.weight|as_crispy_field }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Examination -->
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section3">
+            Examination
+          </button>
+        </h2>
+        <div id="section3" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {{ form.general_examination|as_crispy_field }}
+            <div class="row">
+                <div class="col-md-4">{{ form.heent|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.cvs|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.pa|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.mss|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.rr|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.cms|as_crispy_field }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Investigations -->
+    <div class="accordion-item">
+    <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section4">
+        Investigations
+        </button>
+    </h2>
+    <div id="section4" class="accordion-collapse collapse">
+        <div class="accordion-body row">
+        <div class="col-md-6">{{ form.imaging|as_crispy_field }}</div>
+        <div class="col-md-6">{{ form.laboratory|as_crispy_field }}</div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Diagnosis & Management -->
+    <div class="accordion-item">
+    <h2 class="accordion-header">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section5">
+        Diagnosis & Management
+        </button>
+    </h2>
+    <div id="section5" class="accordion-collapse collapse">
+        <div class="accordion-body">
+        {{ form.diagnosis|as_crispy_field }}
+        {{ form.management|as_crispy_field }}
+        </div>
+    </div>
+    </div>
+
+
+      <!-- Medication -->
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section6">
+            Medication & Follow-Up
+          </button>
+        </h2>
+        <div id="section6" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {{ form.medication|as_crispy_field }}
+            {{ form.return_date|as_crispy_field }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="text-end mt-3">
+      <button type="submit" class="btn btn-primary btn-lg px-4">💾 Save Consultation</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

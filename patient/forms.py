@@ -1,8 +1,26 @@
 # clinic/forms.py
 from django import forms
-from .models import Patient
+from .models import Patient,Consultation
 
-#starting todays work here
+
+class ConsultationForm(forms.ModelForm):
+    class Meta:
+        model = Consultation
+        exclude = ['patient', 'doctor', 'date']
+        widgets = {
+            'return_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'chief_complaints': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'history_of_presenting_illness': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'diagnosis': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'medication': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'management': forms.Select(attrs={'class': 'form-select'}),
+            'imaging': forms.Select(attrs={'class': 'form-select'}),
+            'laboratory': forms.Select(attrs={'class': 'form-select'}),
+            **{f: forms.TextInput(attrs={'class': 'form-control'}) for f in [
+                'blood_pressure', 'temperature', 'pulse', 'spo2', 'respiration_rate', 'weight'
+            ]}
+        }
+
 
 class PatientForm(forms.ModelForm):
     class Meta:

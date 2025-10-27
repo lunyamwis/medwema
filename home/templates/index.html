@@ -1,0 +1,155 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medwema — Modern Clinic Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8fafc;
+    }
+    .navbar {
+      background: linear-gradient(90deg, #007bff, #00bcd4);
+    }
+    .navbar-brand {
+      font-weight: 700;
+      color: #fff !important;
+      font-size: 1.5rem;
+    }
+    .hero {
+      background: linear-gradient(90deg, #007bff, #00bcd4);
+      color: white;
+      text-align: center;
+      padding: 100px 20px;
+      border-bottom-left-radius: 80px;
+      border-bottom-right-radius: 80px;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+    }
+    .hero p {
+      font-size: 1.2rem;
+      margin-top: 1rem;
+      opacity: 0.9;
+    }
+    .btn-hero {
+      margin-top: 2rem;
+      background-color: white;
+      color: #007bff;
+      font-weight: 600;
+      padding: 12px 30px;
+      border-radius: 50px;
+      transition: all 0.3s ease;
+    }
+    .btn-hero:hover {
+      background-color: #f1f1f1;
+      transform: translateY(-3px);
+    }
+    .feature-icon {
+      font-size: 3rem;
+      color: #00bcd4;
+    }
+    .section-title {
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 2rem;
+    }
+    footer {
+      background-color: #0a0a23;
+      color: white;
+      text-align: center;
+      padding: 40px 0;
+      margin-top: 80px;
+    }
+    footer a {
+      color: #00bcd4;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+      <a class="navbar-brand" href="#">Medwema</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div id="navbarNav" class="collapse navbar-collapse justify-content-end">
+        <ul class="navbar-nav">
+          <li class="nav-item"><a href="#features" class="nav-link">Features</a></li>
+          <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
+          <li class="nav-item"><a href="{% url 'account_login' %}" class="nav-link">Login</a></li>
+          <li class="nav-item"><a href="{% url 'account_signup' %}" class="btn btn-light ms-3 fw-semibold px-3">Get Started</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1>Manage Your Clinic Seamlessly</h1>
+      <p>Empowering healthcare providers with digital efficiency — patient records, billing, and analytics all in one place.</p>
+      <a href="{% url 'account_signup' %}" class="btn btn-hero">Create Free Account</a>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-5">
+    <div class="container text-center">
+      <h2 class="section-title">Why Choose Medwema</h2>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="p-4 bg-white shadow rounded-4 h-100">
+            <div class="feature-icon mb-3">💊</div>
+            <h5 class="fw-bold">Smart Patient Management</h5>
+            <p>Track patient visits, medical history, and follow-ups effortlessly in real-time.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-4 bg-white shadow rounded-4 h-100">
+            <div class="feature-icon mb-3">📊</div>
+            <h5 class="fw-bold">Instant Analytics</h5>
+            <p>Visualize key metrics — consultations, income, and performance — from one dashboard.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-4 bg-white shadow rounded-4 h-100">
+            <div class="feature-icon mb-3">🧑‍⚕️</div>
+            <h5 class="fw-bold">Multi-Clinic Staff Access</h5>
+            <p>Allow each staff member to manage patient data relevant to their clinic securely.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="py-5 bg-light text-center">
+    <div class="container">
+      <h2 class="section-title">About Medwema</h2>
+      <p class="mx-auto" style="max-width: 700px;">
+        Medwema is an all-in-one digital health solution designed for small and medium-sized clinics in Africa. 
+        It simplifies clinic management — from patient registration to financial reporting — 
+        making healthcare more organized, connected, and efficient.
+      </p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p class="mb-2">&copy; {{ now|date:"Y" }} Medwema. All Rights Reserved.</p>
+      <small>Built with ❤️ by Lunyamwi Technologies | <a href="#">Privacy Policy</a></small>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

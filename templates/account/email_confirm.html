@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="text-center mt-5">
+  <h4>Email Confirmation</h4>
+  {% if confirmation %}
+    <p>Confirm your email: <strong>{{ confirmation.email_address.email }}</strong></p>
+    <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-success">Confirm</button>
+    </form>
+  {% else %}
+    <p class="text-danger">Invalid or expired confirmation link.</p>
+  {% endif %}
+</div>
+{% endblock %}

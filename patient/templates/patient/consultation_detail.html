@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center">
+    <h3>Consultation — {{ consultation.patient.name }}</h3>
+    <div>
+      <a class="btn btn-outline-secondary" href="{% url 'consultation_pdf' consultation.id %}">Export PDF</a>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <h5>Chief complaints</h5>
+    <p>{{ consultation.chief_complaints }}</p>
+
+    <h5>History</h5>
+    <p>{{ consultation.history_presenting_illness }}</p>
+
+    <h5>Vitals</h5>
+    <ul>
+      <li>Temp: {{ consultation.temperature }}</li>
+      <li>BP: {{ consultation.bp }}</li>
+      <li>Pulse: {{ consultation.pulse }}</li>
+      <li>SpO₂: {{ consultation.spo2 }}</li>
+      <li>RR: {{ consultation.respiration_rate }}</li>
+      <li>Weight: {{ consultation.weight }}</li>
+    </ul>
+
+    <h5>Examination</h5>
+    <p>General: {{ consultation.general_examination }}</p>
+    <p>HEENT: {{ consultation.heent }} | CVS: {{ consultation.cvs }} | PA: {{ consultation.pa }} | MSS: {{ consultation.mss }} | RR: {{ consultation.rr }} | CMS: {{ consultation.cms }}</p>
+
+    <h5>Investigations</h5>
+    <p>Imaging: {{ consultation.imaging }} | Laboratory: {{ consultation.laboratory }}</p>
+
+    <h5>Diagnosis & Management</h5>
+    <p>{{ consultation.diagnosis }}</p>
+    <p>Management: {{ consultation.management }}</p>
+
+    <h5>Medication</h5>
+    <p>{{ consultation.medication }}</p>
+
+    <h5>Return Date</h5>
+    <p>{{ consultation.return_date }}</p>
+  </div>
+</div>
+{% endblock %}
