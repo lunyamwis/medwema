@@ -10,7 +10,7 @@ python3 manage.py collectstatic --noinput
 # echo "<<<<<<<< Database Setup and Migrations Starts >>>>>>>>>"
 # # Run database migrations
 python3 manage.py makemigrations &
-python3 manage.py migrate_schemas &
+python3 manage.py migrate &
 
 # sleep 5
 # echo "<<<<<<< Initializing the Database >>>>>>>>>>"
