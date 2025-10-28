@@ -34,7 +34,7 @@ def register_patient(request):
         form = PatientForm(request.POST)
         if form.is_valid():
             patient = form.save(commit=False)
-            patient.clinic = request.user.clinic
+            patient.clinic = request.user.clinics.last()
             patient.save()
             return redirect("patient_success")
     else:
