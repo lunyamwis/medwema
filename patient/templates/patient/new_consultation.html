@@ -63,7 +63,7 @@
                 <div class="col-md-4">{{ form.pa|as_crispy_field }}</div>
                 <div class="col-md-4">{{ form.mss|as_crispy_field }}</div>
                 <div class="col-md-4">{{ form.rr|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.cms|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.cvs|as_crispy_field }}</div>
             </div>
           </div>
         </div>
@@ -79,7 +79,9 @@
     <div id="section4" class="accordion-collapse collapse">
         <div class="accordion-body row">
         <div class="col-md-6">{{ form.imaging|as_crispy_field }}</div>
+        <div class="col-md-6">{{ form.image_findings|as_crispy_field }}</div>
         <div class="col-md-6">{{ form.laboratory|as_crispy_field }}</div>
+        <div class="col-md-6">{{ form.lab_findings|as_crispy_field }}</div>
         </div>
     </div>
     </div>

@@ -97,11 +97,13 @@ class Consultation(models.Model):
     pa = models.CharField(max_length=100, blank=True, null=True)
     mss = models.CharField(max_length=100, blank=True, null=True)
     rr = models.CharField(max_length=100, blank=True, null=True)
-    cms = models.CharField(max_length=100, blank=True, null=True)
+    cvs = models.CharField(max_length=100, blank=True, null=True)
 
     # Investigations (dropdowns)
     imaging = models.CharField(max_length=50, choices=IMAGING_CHOICES, blank=True, null=True)
+    image_findings = models.TextField(blank=True, null=True)
     laboratory = models.CharField(max_length=50, choices=LAB_CHOICES, blank=True, null=True)
+    lab_findings = models.TextField(blank=True, null=True)
 
     # Diagnosis & Management
     diagnosis = models.TextField(blank=True, null=True)
