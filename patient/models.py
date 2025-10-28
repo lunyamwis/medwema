@@ -93,7 +93,7 @@ class Consultation(models.Model):
     # Examinations
     general_examination = models.TextField(blank=True, null=True)
     heent = models.CharField(max_length=100, blank=True, null=True)
-    cvs = models.CharField(max_length=100, blank=True, null=True)
+    cns = models.CharField(max_length=100, blank=True, null=True)
     pa = models.CharField(max_length=100, blank=True, null=True)
     mss = models.CharField(max_length=100, blank=True, null=True)
     rr = models.CharField(max_length=100, blank=True, null=True)

@@ -20,7 +20,12 @@ class ConsultationForm(forms.ModelForm):
                 'blood_pressure', 'temperature', 'pulse', 'spo2', 'respiration_rate', 'weight'
             ]}
         }
-
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field.label:
+                field.label = field.label.upper()
 
 class PatientForm(forms.ModelForm):
     class Meta:
