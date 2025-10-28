@@ -1,57 +1,192 @@
 {% extends 'base.html' %}
 {% load django_bootstrap5 %}
+{% load crispy_forms_tags %}
 
 {% block title %}{{ doctor.name }} - Details{% endblock %}
 
 {% block content %}
-<div class="mb-4">
-  <a href="{% url 'doctor_list' %}" class="btn btn-link text-decoration-none">&larr; Back to Doctors</a>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    .card {
+        border-radius: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .card-header {
+        background: linear-gradient(90deg, #0d6efd, #0dcaf0);
+        color: white;
+        font-weight: 600;
+        border-top-left-radius: 1rem;
+        border-top-right-radius: 1rem;
+    }
+    .search-input {
+        max-width: 400px;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    .tab-content {
+        background: #fff;
+        border-radius: 0 0 1rem 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+</style>
+
+<div class="container my-5">
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">{{ doctor.name }} — Details</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
+            <p><strong>Phone:</strong> {{ doctor.phone }}</p>
+            <p><strong>Email:</strong> {{ doctor.email }}</p>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs" id="doctorTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button" role="tab">
+                Assigned Patients
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="queue-tab" data-bs-toggle="tab" data-bs-target="#queue" type="button" role="tab">
+                Current Queue
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-3">
+        <!-- Assigned Patients -->
+        <div class="tab-pane fade show active" id="patients" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Patients Assigned to {{ doctor.name }}</h5>
+                <form method="get" class="d-flex">
+                    <input type="text" name="q" class="form-control form-control-sm search-input me-2"
+                           placeholder="Search patient..." value="{{ query }}">
+                    <button class="btn btn-sm btn-outline-primary" type="submit">Search</button>
+                </form>
+            </div>
+
+            {% if page_obj %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Patient Name</th>
+                                <th>Age</th>
+                                <th>Gender</th>
+                                <th>Condition</th>
+                                <th>Date Registered</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for patient in page_obj %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ patient.name }}</td>
+                                    <td>{{ patient.age }}</td>
+                                    <td>{{ patient.gender }}</td>
+                                    <td>{{ patient.condition }}</td>
+                                    <td>{{ patient.date_registered|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'add_to_queue' doctor.id patient.id %}"
+                                           class="btn btn-sm btn-success">Add to Queue</a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr><td colspan="7" class="text-center text-muted">No patients found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+                                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% else %}
+                <p class="text-muted text-center">No patients assigned yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Queue Section -->
+        <div class="tab-pane fade" id="queue" role="tabpanel">
+            <h5 class="mb-3">Current Queue for {{ doctor.name }}</h5>
+            {% if queue %}
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Patient</th>
+                            <th>Queue Number</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in queue %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ item.patient.name }}</td>
+                                <td>{{ item.queue_number }}</td>
+                                <td>
+                                    <span class="badge {% if item.status == 'waiting' %}bg-warning{% elif item.status == 'in_progress' %}bg-info{% else %}bg-success{% endif %}">
+                                        {{ item.status|title }}
+                                    </span>
+                                </td>
+                               <td>
+                                {% if item.status == "waiting" %}
+                                    <a href="{% url 'start_consultation' item.id %}" 
+                                      class="btn btn-sm btn-primary">
+                                      Start Consultation
+                                    </a>
+                                {% elif item.status == "in_progress" %}
+                                    <a href="{% url 'complete_consultation' item.id %}" 
+                                      class="btn btn-sm btn-success">
+                                      Mark Complete
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">Done</span>
+                                {% endif %}
+                            </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="text-muted text-center">No patients currently in the queue.</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
-<div class="card shadow-sm mb-4">
-  <div class="card-body">
-    <h3 class="fw-bold">{{ doctor.name }}</h3>
-    <p class="mb-1"><strong>Specialization:</strong> {{ doctor.specialization }}</p>
-    <p class="mb-1"><strong>Phone:</strong> {{ doctor.phone }}</p>
-    <p class="mb-1"><strong>Email:</strong> {{ doctor.email }}</p>
-  </div>
-</div>
-
-<h4 class="fw-semibold mb-3">Assigned Patients</h4>
-
-<div class="card shadow-sm">
-  <div class="card-body">
-    {% if doctor.patients.all %}
-      <table class="table table-hover align-middle">
-        <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th>Patient Name</th>
-            <th>Age</th>
-            <th>Condition</th>
-            <th>Actions</th>
-            <th>Medical Historical Consultations</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for patient in doctor.patients.all %}
-            <tr>
-              <th scope="row">{{ forloop.counter }}</th>
-              <td>{{ patient.name }}</td>
-              <td>{{ patient.age }}</td>
-              <td>{{ patient.condition }}</td>
-              <td>
-                <a href="{% url 'new_consultation' patient.id %}" class="btn btn-sm btn-outline-secondary">Consult</a>
-              </td>
-              <td>
-                <a href="{% url 'patient_consultations' patient.id %}" class="btn btn-sm btn-outline-primary">View Consultations</a>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p class="text-muted mb-0">No patients assigned to this doctor yet.</p>
-    {% endif %}
-  </div>
-</div>
 {% endblock %}

@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib import messages
-from .models import Doctor, Patient, Consultation
+from .models import Doctor, Patient, Consultation, Queue
 from .forms import PatientForm, ConsultationForm
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -46,12 +46,26 @@ def patient_success(request):
     return render(request, "patient/patient_success.html")
 
 
-
 def doctor_detail(request, pk):
-    doctor = Doctor.objects.get(pk=pk)
-    patients = doctor.patients.all()  # from related_name="patients"
-    return render(request, "patient/doctor_detail.html", {"doctor": doctor, "patients": patients})
+    doctor = get_object_or_404(Doctor, id=pk)
+    queue = Queue.objects.filter(doctor=doctor, status__in=["waiting", "in_progress"]).order_by("queue_number")
 
+    query = request.GET.get("q")
+    patients = doctor.patients.all()
+
+    if query:
+        patients = patients.filter(name__icontains=query)
+
+    paginator = Paginator(patients, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "patient/doctor_detail.html", {
+        "doctor": doctor,
+        "queue": queue,
+        "page_obj": page_obj,
+        "query": query,
+    })
 
 # List all doctors
 def doctor_list(request):
@@ -61,10 +75,6 @@ def doctor_list(request):
 
 
 
-# Show doctor details and assigned patients
-def doctor_detail(request, pk):
-    doctor = get_object_or_404(Doctor, pk=pk)
-    return render(request, 'patient/doctor_detail.html', {'doctor': doctor})
 
 
 
@@ -145,3 +155,50 @@ def consultation_pdf(request, consultation_id):
     response["Content-Disposition"] = f'attachment; filename="{filename}"'
     return response
 
+
+
+def add_to_queue(request, doctor_id, patient_id):
+    doctor = get_object_or_404(Doctor, id=doctor_id)
+    patient = get_object_or_404(Patient, id=patient_id)
+
+    # Prevent duplicates
+    if Queue.objects.filter(doctor=doctor, patient=patient, status='waiting').exists():
+        messages.warning(request, f"{patient.name} is already in Dr. {doctor.name}'s queue.")
+    else:
+        next_number = Queue.objects.filter(doctor=doctor).count() + 1
+        Queue.objects.create(doctor=doctor, patient=patient, queue_number=next_number)
+        messages.success(request, f"{patient.name} added to Dr. {doctor.name}'s queue.")
+
+    return redirect('patient_list')
+
+
+def add_to_queue_select(request, patient_id):
+    if request.method == "POST":
+        doctor_id = request.POST.get("doctor_id")
+        doctor = get_object_or_404(Doctor, id=doctor_id)
+        patient = get_object_or_404(Patient, id=patient_id)
+        patient.doctor = doctor
+        patient.save()
+
+        if Queue.objects.filter(doctor=doctor, patient=patient, status='waiting').exists():
+            messages.warning(request, f"{patient.name} is already in Dr. {doctor.name}'s queue.")
+        else:
+            next_number = Queue.objects.filter(doctor=doctor).count() + 1
+            Queue.objects.create(doctor=doctor, patient=patient, queue_number=next_number, clinic=patient.clinic)
+            messages.success(request, f"{patient.name} added to Dr. {doctor.name}'s queue.")
+
+    return redirect('patient_list')
+
+
+def start_consultation(request, queue_id):
+    queue_item = get_object_or_404(Queue, id=queue_id)
+    queue_item.start()
+
+    # Redirect to new consultation form for this patient
+    return redirect('new_consultation', patient_id=queue_item.patient.id)
+
+
+def complete_consultation(request, queue_id):
+    queue_item = get_object_or_404(Queue, id=queue_id)
+    queue_item.complete()
+    return redirect('doctor_detail', pk=queue_item.doctor.id)

@@ -1,6 +1,8 @@
 from django.db import models
 from authentication.models import User
 from clinicmanager.models import Clinic
+from django.utils import timezone
+
 # starting
 
 
@@ -115,3 +117,49 @@ class Consultation(models.Model):
 
     def __str__(self):
         return f"Consultation for {self.patient.name} on {self.date.strftime('%Y-%m-%d')}"
+
+
+
+
+class Queue(models.Model):
+    STATUS_CHOICES = [
+        ("waiting", "Waiting"),
+        ("in_progress", "In Progress"),
+        ("completed", "Completed"),
+        ("skipped", "Skipped"),
+    ]
+
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name="queues")
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name="queues")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="queues")
+    queue_number = models.PositiveIntegerField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="waiting")
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["created_at"]  # oldest first
+        unique_together = ("clinic", "doctor", "queue_number")  # avoid duplicate queue numbers
+
+    def save(self, *args, **kwargs):
+        if not self.queue_number:
+            last = Queue.objects.filter(doctor=self.doctor, clinic=self.clinic).order_by("-queue_number").first()
+            self.queue_number = last.queue_number + 1 if last else 1
+        super().save(*args, **kwargs)
+
+
+    def __str__(self):
+        return f"{self.patient.name} - {self.doctor.name} - #{self.queue_number} ({self.status})"
+
+    def start(self):
+        """Mark patient as being served."""
+        self.status = "in_progress"
+        self.started_at = timezone.now()
+        self.save()
+
+    def complete(self):
+        """Mark patient as served."""
+        self.status = "completed"
+        self.completed_at = timezone.now()
+        self.save()

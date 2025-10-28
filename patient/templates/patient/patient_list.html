@@ -7,6 +7,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h2 class="fw-bold">Patients</h2>
   <a href="{% url 'register_patient' %}" class="btn btn-success btn-sm">+ Add Patient</a>
+  <a href="/patients/doctors/" class="btn btn-info btn-sm">View Doctors</a>
 </div>
 
 <div class="card shadow-sm">
@@ -49,13 +50,24 @@
                 <td>{{ patient.phone_number }}</td>
                 <td>
                   {% if patient.doctor %}
-                    <a href="{% url 'doctor_detail' patient.doctor.id %}" class="text-decoration-none">
-                      {{ patient.doctor.name }}
-                    </a>
+                    <form method="post" action="{% url 'add_to_queue' patient.doctor.id patient.id %}">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-outline-success btn-sm">Add to Queue</button>
+                    </form>
                   {% else %}
-                    <span class="text-muted">Unassigned</span>
+                    <form method="post" action="{% url 'add_to_queue_select' patient.id %}">
+                      {% csrf_token %}
+                      <select name="doctor_id" class="form-select form-select-sm d-inline w-auto" required>
+                        <option value="">Select Doctor</option>
+                        {% for doctor in request.user.clinics.last.doctors.all %}
+                          <option value="{{ doctor.id }}">{{ doctor.name }}</option>
+                        {% endfor %}
+                      </select>
+                      <button type="submit" class="btn btn-outline-success btn-sm">Queue</button>
+                    </form>
                   {% endif %}
                 </td>
+
                 <td>
                   <a href="{% url 'patient_edit' patient.id %}" class="btn btn-outline-primary btn-sm">
                     Edit

@@ -14,4 +14,8 @@ urlpatterns = [
     path('patients/<int:patient_id>/consultations/', views.patient_consultations, name='patient_consultations'),
     path('consultations/<int:consultation_id>/', views.consultation_detail, name='consultation_detail'),
     path('consultations/<int:consultation_id>/pdf/', views.consultation_pdf, name='consultation_pdf'),
+    path('add-to-queue/<int:doctor_id>/<int:patient_id>/', views.add_to_queue, name='add_to_queue'),
+    path('add-to-queue-select/<int:patient_id>/', views.add_to_queue_select, name='add_to_queue_select'),
+    path('queue/<int:queue_id>/start/', views.start_consultation, name='start_consultation'),
+    path('queue/<int:queue_id>/complete/', views.complete_consultation, name='complete_consultation'),
 ]

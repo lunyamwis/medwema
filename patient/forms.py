@@ -7,6 +7,9 @@ class ConsultationForm(forms.ModelForm):
     class Meta:
         model = Consultation
         exclude = ['patient', 'doctor', 'date']
+        labels = {
+            'pa': 'PA/GENITALS',
+        }
         widgets = {
             'return_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'chief_complaints': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
@@ -20,7 +23,7 @@ class ConsultationForm(forms.ModelForm):
                 'blood_pressure', 'temperature', 'pulse', 'spo2', 'respiration_rate', 'weight'
             ]}
         }
-        
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
