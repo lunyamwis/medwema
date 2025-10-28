@@ -149,7 +149,7 @@
                             <th>Patient</th>
                             <th>Queue Number</th>
                             <th>Status</th>
-                            <th>Consult</th>
+                            <th>Consultation History</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -165,7 +165,7 @@
                                     </span>
                                 </td>
                               <td>
-                                <a href="{% url 'new_consultation' item.patient.id %}" class="btn btn-sm btn-secondary">Consult</a>
+                                <a href="{% url 'patient_consultations' item.patient.id %}" class="btn btn-sm btn-secondary">consultations</a>
                               </td>
                                <td>
                                 {% if item.status == "waiting" %}
