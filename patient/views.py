@@ -5,6 +5,7 @@ from django.contrib import messages
 from .models import Doctor, Patient, Consultation, Queue
 from .forms import PatientForm, ConsultationForm
 from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
@@ -77,7 +78,7 @@ def doctor_list(request):
 
 
 
-
+@login_required
 def patient_list(request):
     query = request.GET.get('q')
     page_number = request.GET.get('page')

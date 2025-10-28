@@ -115,6 +115,10 @@ class Consultation(models.Model):
     medication = models.TextField(blank=True, null=True)
     return_date = models.DateField(blank=True, null=True)
 
+    sexual_history = models.TextField(blank=True, null=True)
+    family_planning_history = models.TextField(blank=True, null=True)
+    vaccination_history = models.TextField(blank=True, null=True)
+
     def __str__(self):
         return f"Consultation for {self.patient.name} on {self.date.strftime('%Y-%m-%d')}"
 

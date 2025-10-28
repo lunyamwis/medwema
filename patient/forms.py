@@ -9,6 +9,9 @@ class ConsultationForm(forms.ModelForm):
         exclude = ['patient', 'doctor', 'date']
         labels = {
             'pa': 'PA/GENITALS',
+            'sexual_history': 'SEXUAL HISTORY',
+            'family_planning_history': 'FAMILY PLANNING HISTORY',
+            'vaccination_history': 'VACCINATION HISTORY',
         }
         widgets = {
             'return_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
@@ -19,9 +22,13 @@ class ConsultationForm(forms.ModelForm):
             'management': forms.Select(attrs={'class': 'form-select'}),
             'imaging': forms.Select(attrs={'class': 'form-select'}),
             'laboratory': forms.Select(attrs={'class': 'form-select'}),
+            'sexual_history': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'family_planning_history': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'vaccination_history': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
             **{f: forms.TextInput(attrs={'class': 'form-control'}) for f in [
                 'blood_pressure', 'temperature', 'pulse', 'spo2', 'respiration_rate', 'weight'
-            ]}
+            ]},
+        
         }
 
     def __init__(self, *args, **kwargs):
