@@ -165,7 +165,7 @@
                                     </span>
                                 </td>
                               <td>
-                                <a href="{% url 'new_consultation' patient.id %}" class="btn btn-sm btn-secondary">Consult</a>
+                                <a href="{% url 'new_consultation' item.patient.id %}" class="btn btn-sm btn-secondary">Consult</a>
                               </td>
                                <td>
                                 {% if item.status == "waiting" %}
