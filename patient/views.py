@@ -166,7 +166,7 @@ def add_to_queue(request, doctor_id, patient_id):
         messages.warning(request, f"{patient.name} is already in Dr. {doctor.name}'s queue.")
     else:
         next_number = Queue.objects.filter(doctor=doctor).count() + 1
-        Queue.objects.create(doctor=doctor, patient=patient, queue_number=next_number)
+        Queue.objects.create(doctor=doctor, patient=patient, queue_number=next_number, clinic=patient.clinic)
         messages.success(request, f"{patient.name} added to Dr. {doctor.name}'s queue.")
 
     return redirect('patient_list')
