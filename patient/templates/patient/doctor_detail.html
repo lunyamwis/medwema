@@ -83,7 +83,7 @@
                                 <th>Patient Name</th>
                                 <th>Age</th>
                                 <th>Gender</th>
-                                <th>Condition</th>
+                                <th>Historical Consultations</th>
                                 <th>Date Registered</th>
                                 <th>Actions</th>
                             </tr>
@@ -95,7 +95,9 @@
                                     <td>{{ patient.name }}</td>
                                     <td>{{ patient.age }}</td>
                                     <td>{{ patient.gender }}</td>
-                                    <td>{{ patient.condition }}</td>
+                                    <td>
+                                      <a href="{% url 'patient_consultations' patient.id %}" class="btn btn-sm btn-secondary">consultations</a>
+                                    </td>
                                     <td>{{ patient.date_registered|date:"M d, Y" }}</td>
                                     <td>
                                         <a href="{% url 'add_to_queue' doctor.id patient.id %}"
