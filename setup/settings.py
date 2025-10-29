@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'authentication',
     "widget_tweaks",
     'clinicmanager',
+    'emr',
     'home',
 ]
 
