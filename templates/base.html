@@ -53,6 +53,15 @@
 
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'patient_list' %}">Patients</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'dashboard' %}">Laboratory</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'doctor_list' %}">Doctors</a>
+          </li>
           {% if user.is_authenticated %}
             <li class="nav-item">
               <a class="nav-link" href="#">Hi, {{ user.first_name|default:user.username }}</a>
@@ -68,6 +77,7 @@
               <a class="nav-link" href="{% url 'account_signup' %}">Sign Up</a>
             </li>
           {% endif %}
+          
         </ul>
       </div>
     </div>

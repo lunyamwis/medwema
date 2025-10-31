@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container py-4">
+  <div class="card shadow border-0 rounded-4">
+    <div class="card-header bg-warning text-dark fw-bold">✏️ Edit Lab Results</div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <div id="formset-container">
+          {% for form in formset %}
+            <div class="card mb-3 border-0 shadow-sm formset-form">
+              <div class="card-body">
+                <div class="row g-3 align-items-end">
+                  <div class="col-md-4">{{ form.lab_test|as_crispy_field }}</div>
+                  <div class="col-md-4">{{ form.result_name|as_crispy_field }}</div>
+                  <div class="col-md-4">{{ form.result_value|as_crispy_field }}</div>
+                  <div class="col-md-3">{{ form.consultation|as_crispy_field }}</div>
+                  <div class="col-md-1 text-end">
+                    {% if formset.can_delete %}
+                      {{ form.DELETE }} <span class="text-danger small">Delete?</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="mt-4 text-end">
+          <button type="submit" class="btn btn-primary px-4">💾 Save Changes</button>
+          <a href="{% url 'dashboard' %}" class="btn btn-secondary ms-2">Back</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

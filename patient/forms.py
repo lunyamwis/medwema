@@ -2,6 +2,22 @@
 from django import forms
 from .models import Patient,Consultation
 
+from django.forms import inlineformset_factory
+from emr.models import  LabResult, LabTest
+
+class LabResultForm(forms.ModelForm):
+    class Meta:
+        model = LabResult
+        fields = ['lab_test', 'result_value']
+        widgets = {
+            'lab_test': forms.Select(attrs={'class': 'form-select'}),
+            'result_value': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter result value'}),
+        }
+
+LabResultFormSet = inlineformset_factory(
+    Consultation, LabResult, form=LabResultForm,
+    extra=1, can_delete=True
+)
 
 class ConsultationForm(forms.ModelForm):
     class Meta:

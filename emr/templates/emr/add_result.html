@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container py-5">
+  <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-header bg-gradient text-black fw-semibold fs-5" 
+         style="background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);">
+      🧪 Add Laboratory Results
+    </div>
+
+    <div class="card-body bg-light">
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {{ formset.management_form }}
+
+        <div id="formset-container">
+          {% for form in formset %}
+            <div class="formset-item border rounded-3 p-4 mb-4 bg-white shadow-sm">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0 text-primary fw-bold">
+                  Result {{ forloop.counter }}
+                </h6>
+                {% if formset.can_delete %}
+                  <button type="button" class="btn btn-outline-danger btn-sm remove-form">
+                    <i class="bi bi-x-circle"></i> Remove
+                  </button>
+                {% endif %}
+              </div>
+
+              <div class="row g-4">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Consultation</label>
+                  {{ form.consultation|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Lab Test</label>
+                  {{ form.lab_test|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Result Name</label>
+                  {{ form.result_name|as_crispy_field }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Result Value</label>
+                  {{ form.result_value|as_crispy_field }}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-4">
+          <button type="button" id="add-form" class="btn btn-outline-primary btn-lg">
+            ➕ Add Another Result
+          </button>
+          <button type="submit" class="btn btn-success btn-lg px-5">
+            💾 Save Draft
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap Icons (optional, for better visuals) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const formsetContainer = document.getElementById("formset-container");
+  const addBtn = document.getElementById("add-form");
+  const totalForms = document.getElementById("id_form-TOTAL_FORMS");
+
+  addBtn.addEventListener("click", function() {
+    const currentFormCount = parseInt(totalForms.value);
+    const firstForm = formsetContainer.children[0];
+    if (!firstForm) return;
+
+    // Clone and reset form fields
+    const newFormHtml = firstForm.outerHTML
+      .replaceAll(`form-0-`, `form-${currentFormCount}-`)
+      .replaceAll(/value=".*?"/g, 'value=""'); // clear old values
+
+    formsetContainer.insertAdjacentHTML("beforeend", newFormHtml);
+    totalForms.value = currentFormCount + 1;
+  });
+
+  formsetContainer.addEventListener("click", function(e) {
+    if (e.target.classList.contains("remove-form") || e.target.closest(".remove-form")) {
+      e.target.closest(".formset-item").remove();
+    }
+  });
+});
+</script>
+{% endblock %}

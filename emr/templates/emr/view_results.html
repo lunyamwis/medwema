@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+  <div class="card shadow border-0 rounded-4">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">🧪 Lab Results</h4>
+      <div>
+        <a href="{% url 'dashboard' %}" class="btn btn-light btn-sm">⬅️ Back</a>
+        <a href="{% url 'print_lab_results' consultation.id %}" target="_blank" class="btn btn-warning btn-sm">🖨️ Print</a>
+      </div>
+    </div>
+    <div class="card-body">
+      {% if consultation %}
+        <div class="mb-4">
+          <h5 class="text-primary fw-bold">Patient Details</h5>
+          <p class="mb-1"><strong>Name:</strong> {{ consultation.patient.name }}</p>
+          <p class="mb-1"><strong>Consultation Date:</strong> {{ consultation.date|date:"Y-m-d H:i" }}</p>
+          <p class="mb-1"><strong>Doctor:</strong> {{ consultation.doctor.get_full_name }}</p>
+        </div>
+      {% endif %}
+
+      {% if results %}
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Test Name</th>
+                <th>Result Value</th>
+                <th>Reference Range</th>
+                <th>Performed By</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for result in results %}
+              <tr>
+                <td>{{ result.lab_test.name }}</td>
+                <td>{{ result.result_value }}</td>
+                <td>{{ result.lab_test.reference_range }}</td>
+                <td>{{ result.performed_by.get_full_name }}</td>
+                <td>{{ result.result_date|date:"Y-m-d" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="alert alert-info">No results found for this consultation.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

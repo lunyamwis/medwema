@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3>Edit Consultation for {{ patient.name }}</h3>
+  <form method="post">
+    {% csrf_token %}
+    <div class="accordion" id="consultationAccordion">
+
+      <!-- Chief Complaints & History -->
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#section1">
+            Chief Complaints & History
+          </button>
+        </h2>
+        <div id="section1" class="accordion-collapse collapse show">
+          <div class="accordion-body">
+            {{ form.chief_complaints|as_crispy_field }}
+            {{ form.history_of_presenting_illness|as_crispy_field }}
+            {{ form.past_medical_history|as_crispy_field }}
+            {{ form.past_surgical_history|as_crispy_field }}
+            {{ form.drug_allergies|as_crispy_field }}
+            {{ form.current_medication|as_crispy_field }}
+            {{ form.comorbid_factors|as_crispy_field }}
+            <hr>
+            <h5 class="mt-3 mb-3 text-primary">Additional History</h5>
+            {{ form.sexual_history|as_crispy_field }}
+            {{ form.family_planning_history|as_crispy_field }}
+            {{ form.vaccination_history|as_crispy_field }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Vital Signs -->
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section2">
+            Vital Signs
+          </button>
+        </h2>
+        <div id="section2" class="accordion-collapse collapse">
+          <div class="accordion-body row">
+            <div class="col-md-4">{{ form.temperature|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.blood_pressure|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.pulse|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.spo2|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.respiration_rate|as_crispy_field }}</div>
+            <div class="col-md-4">{{ form.weight|as_crispy_field }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Examination -->
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section3">
+            Examination
+          </button>
+        </h2>
+        <div id="section3" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {{ form.general_examination|as_crispy_field }}
+            <div class="row">
+                <div class="col-md-4">{{ form.heent|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.cns|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.pa|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.mss|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.rr|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.cvs|as_crispy_field }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Investigations -->
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section4">
+            Investigations
+          </button>
+        </h2>
+        <div id="section4" class="accordion-collapse collapse">
+          <div class="accordion-body row">
+            <div class="col-md-6">{{ form.imaging|as_crispy_field }}</div>
+            <div class="col-md-6">{{ form.image_findings|as_crispy_field }}</div>
+            <div class="col-md-6">{{ form.laboratory|as_crispy_field }}</div>
+            <div class="col-md-6">{{ form.lab_findings|as_crispy_field }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add New Lab Test Modal -->
+      <div class="modal fade" id="addLabTestModal" tabindex="-1" aria-labelledby="addLabTestModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <form id="addLabTestForm" method="post" action="{% url 'add_lab_test' %}">
+              {% csrf_token %}
+              <div class="modal-header">
+                <h5 class="modal-title" id="addLabTestModalLabel">Add New Lab Test</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label for="labTestName" class="form-label">Test Name</label>
+                  <input type="text" name="name" id="labTestName" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                  <label for="labTestDesc" class="form-label">Description</label>
+                  <textarea name="description" id="labTestDesc" class="form-control" rows="3"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Save</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lab Results -->
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sectionLab">
+            Laboratory Results
+          </button>
+        </h2>
+        <div id="sectionLab" class="accordion-collapse collapse">
+          <div class="accordion-body" id="lab-results-container">
+            {{ formset.management_form }}
+            {% for lab_form in formset.forms %}
+              <div class="card mb-3 p-3 border rounded shadow-sm">
+                <div class="card-body">
+                  <div class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                      <label class="form-label fw-semibold text-secondary">Lab Test</label>
+                      <div class="input-group">
+                        {{ lab_form.lab_test }}
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addLabTestModal">
+                          <i class="bi bi-plus-circle"></i> Add
+                        </button>
+                      </div>
+                    </div>
+                    {% if lab_form.result_name %}
+                    <div class="col-md-3">
+                      <label class="form-label fw-semibold text-secondary">Result Name</label>
+                      {{ lab_form.result_name }}
+                    </div>
+                    {% endif %}
+                    <div class="col-md-4">
+                      <label class="form-label fw-semibold text-secondary">Result Value</label>
+                      {{ lab_form.result_value }}
+                    </div>
+                  </div>
+                </div>
+                {% if formset.can_delete %}
+                  <div class="text-end">{{ lab_form.DELETE }}</div>
+                {% endif %}
+              </div>
+            {% endfor %}
+            <button type="button" class="btn btn-outline-primary" id="add-lab-result">➕ Add Another Lab Result</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diagnosis & Management -->
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section5">
+            Diagnosis & Management
+          </button>
+        </h2>
+        <div id="section5" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {{ form.diagnosis|as_crispy_field }}
+            {{ form.management|as_crispy_field }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Medication & Follow-Up -->
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section6">
+            Medication & Follow-Up
+          </button>
+        </h2>
+        <div id="section6" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            {{ form.medication|as_crispy_field }}
+            {{ form.return_date|as_crispy_field }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="text-end mt-3">
+      <button type="submit" class="btn btn-success btn-lg px-4">💾 Save Changes</button>
+      <a href="{% url 'patient_detail' patient.id %}" class="btn btn-outline-secondary btn-lg px-4 ms-2">Cancel</a>
+    </div>
+  </form>
+</div>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<script>
+// --- same JS as your new consultation page ---
+function getCookie(name) {
+  const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return v ? v.pop() : '';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  const addLabForm = document.getElementById('addLabTestForm');
+  if (addLabForm) {
+    addLabForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const csrftoken = getCookie('csrftoken');
+      const resp = await fetch(addLabForm.action, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken },
+        body: new FormData(addLabForm)
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        const select = document.querySelector('select[name$="-lab_test"]');
+        const opt = new Option(data.name, data.id, true, true);
+        select.add(opt);
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addLabTestModal'));
+        modal.hide();
+        addLabForm.reset();
+      }
+    });
+  }
+
+  // --- Add another formset row ---
+  const addBtn = document.getElementById('add-lab-result');
+  const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+  const container = document.getElementById('lab-results-container');
+
+  if (addBtn && totalForms && container) {
+    addBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      let formCount = parseInt(totalForms.value);
+      const newFormHtml = container.children[0].outerHTML.replace(/-\d+-/g, `-${formCount}-`);
+      container.insertAdjacentHTML('beforeend', newFormHtml);
+      totalForms.value = formCount + 1;
+    });
+  }
+});
+</script>
+{% endblock %}

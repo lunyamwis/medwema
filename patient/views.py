@@ -3,31 +3,89 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.contrib import messages
 from .models import Doctor, Patient, Consultation, Queue
-from .forms import PatientForm, ConsultationForm
+from emr.models import LabTest  
+from django.http import JsonResponse
+from .forms import PatientForm, ConsultationForm, LabResultFormSet
 from django.http import HttpResponse
+from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
+from django.views.decorators.csrf import csrf_exempt
 
 
 def new_consultation(request, patient_id):
     patient = get_object_or_404(Patient, id=patient_id)
-    if request.method == "POST":
+
+    if request.method == 'POST':
         form = ConsultationForm(request.POST)
-        if form.is_valid():
+        formset = LabResultFormSet(request.POST, prefix='lab_results')
+
+        if form.is_valid() and formset.is_valid():
             consultation = form.save(commit=False)
             consultation.patient = patient
             consultation.doctor = patient.doctor
             consultation.save()
-            return redirect('doctor_detail', pk=patient.doctor.id)
+
+            formset.instance = consultation
+            formset.save()
+
+            messages.success(request, 'Consultation and lab results saved successfully.')
+            return redirect('patient_detail', pk=patient.id)
+        else:
+            messages.error(request, 'Please fix errors in the form.')
     else:
         form = ConsultationForm()
+        formset = LabResultFormSet(prefix='lab_results')
 
     return render(request, 'patient/new_consultation.html', {
         'form': form,
+        'formset': formset,
         'patient': patient
     })
+
+
+
+def edit_consultation(request, patient_id, consultation_id):
+    consultation = get_object_or_404(Consultation, id=consultation_id)
+    patient = consultation.patient
+
+    if request.method == 'POST':
+        form = ConsultationForm(request.POST, instance=consultation)
+        formset = LabResultFormSet(request.POST, instance=consultation, prefix='lab_results')
+
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            messages.success(request, 'Consultation and lab results updated successfully.')
+            return redirect('patient_detail', pk=patient.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = ConsultationForm(instance=consultation)
+        formset = LabResultFormSet(instance=consultation, prefix='lab_results')
+
+    return render(request, 'patient/edit_consultation.html', {
+        'form': form,
+        'formset': formset,
+        'patient': patient,
+        'consultation': consultation
+    })
+
+
+@csrf_exempt
+def add_lab_test(request):
+    """AJAX endpoint to add a new Lab Test."""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description', '')
+        if not name:
+            return JsonResponse({'error': 'Name is required'}, status=400)
+
+        lab_test = LabTest.objects.create(name=name, description=description)
+        return JsonResponse({'id': lab_test.id, 'name': lab_test.name})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
 def register_patient(request):

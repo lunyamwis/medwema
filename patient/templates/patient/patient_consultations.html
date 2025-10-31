@@ -27,6 +27,7 @@
         <td>{{ c.return_date }}</td>
         <td>
           <a href="{% url 'consultation_detail' c.id %}" class="btn btn-sm btn-outline-primary">View</a>
+          <a href="{% url 'edit_consultation' patient.id c.id %}" class="btn btn-sm btn-outline-success">Continue</a>
           <a href="{% url 'consultation_pdf' c.id %}" class="btn btn-sm btn-outline-secondary">PDF</a>
         </td>
       </tr>
