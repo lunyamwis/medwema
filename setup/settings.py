@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'clinicmanager',
     'emr',
     'home',
+    'django_select2',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -182,3 +183,17 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 1 week
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# CACHES = {
+#     # … default cache config and others
+#     "select2": {
+#         "BACKEND": "django_redis.cache.RedisCache",
+#         "LOCATION": "redis://127.0.0.1:6379/2",
+#         "OPTIONS": {
+#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#         }
+#     }
+# }
+
+# # Tell select2 which cache configuration to use:
+# SELECT2_CACHE_BACKEND = "select2"

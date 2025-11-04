@@ -14,65 +14,43 @@ from weasyprint import HTML
 
 from django.views.decorators.csrf import csrf_exempt
 
-
 def new_consultation(request, patient_id):
     patient = get_object_or_404(Patient, id=patient_id)
-
-    if request.method == 'POST':
+    if request.method == "POST":
         form = ConsultationForm(request.POST)
-        formset = LabResultFormSet(request.POST, prefix='lab_results')
-
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid():
             consultation = form.save(commit=False)
             consultation.patient = patient
             consultation.doctor = patient.doctor
             consultation.save()
-
-            formset.instance = consultation
-            formset.save()
-
-            messages.success(request, 'Consultation and lab results saved successfully.')
-            return redirect('patient_detail', pk=patient.id)
-        else:
-            messages.error(request, 'Please fix errors in the form.')
+            return redirect('doctor_detail', pk=patient.doctor.id)
     else:
         form = ConsultationForm()
-        formset = LabResultFormSet(prefix='lab_results')
 
     return render(request, 'patient/new_consultation.html', {
         'form': form,
-        'formset': formset,
         'patient': patient
     })
 
 
-
 def edit_consultation(request, patient_id, consultation_id):
-    consultation = get_object_or_404(Consultation, id=consultation_id)
-    patient = consultation.patient
+    patient = get_object_or_404(Patient, id=patient_id)
+    consultation = get_object_or_404(Consultation, id=consultation_id, patient=patient)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = ConsultationForm(request.POST, instance=consultation)
-        formset = LabResultFormSet(request.POST, instance=consultation, prefix='lab_results')
-
-        if form.is_valid() and formset.is_valid():
+        if form.is_valid():
             form.save()
-            formset.save()
-            messages.success(request, 'Consultation and lab results updated successfully.')
-            return redirect('patient_detail', pk=patient.id)
-        else:
-            messages.error(request, 'Please correct the errors below.')
+            messages.success(request, "Consultation updated successfully.")
+            return redirect('consultation_detail', consultation_id=consultation.id)
     else:
         form = ConsultationForm(instance=consultation)
-        formset = LabResultFormSet(instance=consultation, prefix='lab_results')
 
     return render(request, 'patient/edit_consultation.html', {
         'form': form,
-        'formset': formset,
         'patient': patient,
         'consultation': consultation
     })
-
 
 @csrf_exempt
 def add_lab_test(request):
@@ -107,7 +85,8 @@ def patient_success(request):
 
 def doctor_detail(request, pk):
     doctor = get_object_or_404(Doctor, id=pk)
-    queue = Queue.objects.filter(doctor=doctor, status__in=["waiting", "in_progress"]).order_by("queue_number")
+    queue = Queue.objects.filter(doctor=doctor, status__in=["waiting", "in_progress", "fromLab"]).order_by("queue_number")
+    lab_tests = LabTest.objects.filter(lab__lab_type="Internal")
 
     query = request.GET.get("q")
     patients = doctor.patients.all()
@@ -124,6 +103,7 @@ def doctor_detail(request, pk):
         "queue": queue,
         "page_obj": page_obj,
         "query": query,
+        "lab_tests": lab_tests,
     })
 
 # List all doctors

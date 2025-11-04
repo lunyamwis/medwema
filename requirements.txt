@@ -27,6 +27,7 @@ gunicorn==21.2.0
 # django
 django-weasyprint==2.4.0
 django-widget-tweaks==1.5.0
+django-select2==8.4.3
 
 # shell
 ipython==8.37.0

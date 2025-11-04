@@ -131,6 +131,8 @@ class Queue(models.Model):
         ("in_progress", "In Progress"),
         ("completed", "Completed"),
         ("skipped", "Skipped"),
+        ("inlab", "In Lab"),
+        ("fromLab", "From Lab"),
     ]
 
     clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name="queues")

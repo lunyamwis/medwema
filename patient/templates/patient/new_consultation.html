@@ -64,11 +64,11 @@
             {{ form.general_examination|as_crispy_field }}
             <div class="row">
                 <div class="col-md-4">{{ form.heent|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.cns|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.cvs|as_crispy_field }}</div>
                 <div class="col-md-4">{{ form.pa|as_crispy_field }}</div>
                 <div class="col-md-4">{{ form.mss|as_crispy_field }}</div>
                 <div class="col-md-4">{{ form.rr|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.cvs|as_crispy_field }}</div>
+                <div class="col-md-4">{{ form.cns|as_crispy_field }}</div>
             </div>
           </div>
         </div>
@@ -84,97 +84,10 @@
     <div id="section4" class="accordion-collapse collapse">
         <div class="accordion-body row">
         <div class="col-md-6">{{ form.imaging|as_crispy_field }}</div>
-        <div class="col-md-6">{{ form.image_findings|as_crispy_field }}</div>
         <div class="col-md-6">{{ form.laboratory|as_crispy_field }}</div>
-        <div class="col-md-6">{{ form.lab_findings|as_crispy_field }}</div>
         </div>
     </div>
     </div>
-
-    <!-- Lab Test Modal-->
-     <!-- Add New Lab Test Modal -->
-    <div class="modal fade" id="addLabTestModal" tabindex="-1" aria-labelledby="addLabTestModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <form id="addLabTestForm" method="post" action="{% url 'add_lab_test' %}">
-            {% csrf_token %}
-            <div class="modal-header">
-              <h5 class="modal-title" id="addLabTestModalLabel">Add New Lab Test</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <label for="labTestName" class="form-label">Test Name</label>
-                <input type="text" name="name" id="labTestName" class="form-control" required>
-              </div>
-              <div class="mb-3">
-                <label for="labTestDesc" class="form-label">Description</label>
-                <textarea name="description" id="labTestDesc" class="form-control" rows="3"></textarea>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="submit" class="btn btn-primary">Save</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- Lab Results -->
-  <div class="accordion-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sectionLab">
-        Laboratory Results
-      </button>
-    </h2>
-    <div id="sectionLab" class="accordion-collapse collapse">
-      <div class="accordion-body">
-        {{ formset.management_form }}
-        {% for lab_form in formset.forms %}
-          <div class="card mb-3 p-3 border rounded shadow-sm">
-            <div class="card shadow-sm border-0 mb-3">
-              <div class="card-body">
-                <div class="row g-3 align-items-end">
-
-                  <!-- Lab Test Dropdown -->
-                  <div class="col-md-5">
-                    <label class="form-label fw-semibold text-secondary">Lab Test</label>
-                    <div class="input-group">
-                      {{ lab_form.lab_test }}
-                      <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addLabTestModal">
-                        <i class="bi bi-plus-circle"></i> Add
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Result Name (optional, if added) -->
-                  {% if lab_form.result_name %}
-                  <div class="col-md-3">
-                    <label class="form-label fw-semibold text-secondary">Result Name</label>
-                    {{ lab_form.result_name }}
-                  </div>
-                  {% endif %}
-
-                  <!-- Result Value -->
-                  <div class="col-md-4">
-                    <label class="form-label fw-semibold text-secondary">Result Value</label>
-                    {{ lab_form.result_value }}
-                  </div>
-
-                </div>
-              </div>
-            </div>
-
-            {% if lab_form.instance.pk %}
-              <div class="text-end">{{ lab_form.DELETE }}</div>
-            {% endif %}
-          </div>
-        {% endfor %}
-        <button type="button" class="btn btn-outline-primary" id="add-lab-result">➕ Add Another Lab Result</button>
-      </div>
-    </div>
-  </div>
 
     <!-- Diagnosis & Management -->
     <div class="accordion-item">
@@ -213,128 +126,5 @@
       <button type="submit" class="btn btn-primary btn-lg px-4">💾 Save Consultation</button>
     </div>
   </form>
-
 </div>
-{% block extra_scripts %}
-<script>
-// helper to get cookie (for CSRF)
-function getCookie(name) {
-  const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-  return v ? v.pop() : '';
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-  console.log('DOMContentLoaded fired — script running');
-
-  // ----- Modal add lab test handling -----
-  const addLabForm = document.getElementById('addLabTestForm');
-  if (addLabForm) {
-    addLabForm.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      console.log('Submitting addLabTestForm via fetch');
-
-      const url = addLabForm.action;
-      const formData = new FormData(addLabForm);
-
-      // Use CSRF either from cookie or form hidden input
-      const csrftoken = getCookie('csrftoken') || (addLabForm.querySelector('[name=csrfmiddlewaretoken]') && addLabForm.querySelector('[name=csrfmiddlewaretoken]').value);
-
-      try {
-        const resp = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': csrftoken
-          },
-          body: formData,
-          credentials: 'same-origin'
-        });
-
-        console.log('Network response status:', resp.status);
-
-        if (resp.ok) {
-          const data = await resp.json();
-          console.log('Server returned JSON:', data);
-
-          // Try multiple selectors to find the appropriate select element
-          const select = document.querySelector('select[name$="-lab_test"], select[name="lab_test"], select[id^="id_lab_test"]');
-          if (!select) {
-            console.warn('Could not find lab_test select to update. Check selector.');
-          } else {
-            // Add option and select it
-            const opt = new Option(data.name, data.id, true, true);
-            select.add(opt);
-            // trigger change event
-            select.dispatchEvent(new Event('change', { bubbles: true }));
-            console.log('Added new option to select:', data.name);
-          }
-
-          // hide modal
-          const modalEl = document.getElementById('addLabTestModal');
-          const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
-          modalInstance.hide();
-          addLabForm.reset();
-        } else {
-          const text = await resp.text();
-          console.error('Server returned error response:', resp.status, text);
-          alert('Error saving lab test (see console/network).');
-        }
-      } catch (err) {
-        console.error('Fetch error:', err);
-        alert('Network error while saving lab test. See console.');
-      }
-    });
-  } else {
-    console.warn('#addLabTestForm not found on page');
-  }
-
-  // ----- Formset add another logic (using empty_form template) -----
-  const addBtn = document.getElementById('add-lab-result');
-  const totalFormsInput = document.querySelector('#id_' + '{{ formset.prefix }}-TOTAL_FORMS' || '#id_lab_results-TOTAL_FORMS');
-  // fallback attempt if the above is not available
-  const totalForms = document.querySelector('#id_lab_results-TOTAL_FORMS') || document.querySelector('[name$="-TOTAL_FORMS"]');
-
-  const emptyTemplateEl = document.getElementById('empty-form-template');
-  const container = document.getElementById('lab-results-container');
-
-  if (!emptyTemplateEl) {
-    console.warn('empty-form-template not found. Your formset.empty_form must be present.');
-  }
-
-  if (addBtn && totalForms && emptyTemplateEl && container) {
-    addBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      let formCount = parseInt(totalForms.value);
-      console.log('Adding new formset entry. current count =', formCount);
-
-      // get escaped template text and unescape it into HTML
-      const escaped = emptyTemplateEl.innerHTML;
-      // unescape (we used escapejs earlier) -> remove wrapping quotes & decode entities
-      // simplified approach: create a temporary div and set innerHTML to the text (it is already escaped)
-      const temp = document.createElement('div');
-      temp.innerHTML = escaped;
-      // template HTML string may contain __prefix__ placeholders
-      let newFormHtml = temp.innerHTML.replace(/__prefix__/g, formCount);
-
-      // ensure the new block has the class lab-result-form so further clones work the same
-      // wrap in container div
-      const wrapper = document.createElement('div');
-      wrapper.className = 'lab-result-form card mb-3 p-3';
-      wrapper.innerHTML = newFormHtml;
-
-      container.appendChild(wrapper);
-
-      totalForms.value = formCount + 1;
-      console.log('New form added. new count =', totalForms.value);
-    });
-  } else {
-    console.warn('Formset add button or required elements missing:', { addBtn, totalForms, emptyTemplateEl, container });
-  }
-
-});
-</script>
-{% endblock %}
-
-
-
 {% endblock %}

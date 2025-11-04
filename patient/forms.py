@@ -3,6 +3,7 @@ from django import forms
 from .models import Patient,Consultation
 
 from django.forms import inlineformset_factory
+from django_select2.forms import Select2Widget
 from emr.models import  LabResult, LabTest
 
 class LabResultForm(forms.ModelForm):
@@ -10,7 +11,7 @@ class LabResultForm(forms.ModelForm):
         model = LabResult
         fields = ['lab_test', 'result_value']
         widgets = {
-            'lab_test': forms.Select(attrs={'class': 'form-select'}),
+            'lab_test': Select2Widget(attrs={'class': 'form-select', 'data-placeholder': 'Select a lab test...'}),
             'result_value': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter result value'}),
         }
 

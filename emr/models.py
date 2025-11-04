@@ -1,5 +1,11 @@
 from django.db import models
-from patient.models import Consultation
+from django.db import models
+from django.utils import timezone
+from patient.models import Consultation, Patient
+from clinicmanager.models import Clinic
+
+
+
 
 
 class Lab(models.Model):
@@ -60,7 +66,7 @@ class LabResult(models.Model):
     result_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.consultation.patient.name} - {self.lab_test.name}"
+        return f"{self.consultation} - {self.lab_test}"
 
     def is_abnormal(self):
         """
@@ -77,3 +83,51 @@ class LabResult(models.Model):
         if self.lab_test.reference_max is not None and val > self.lab_test.reference_max:
             return True
         return False
+
+
+# emr/models.py (or a new file like lab_queue/models.py)
+
+
+class LabQueue(models.Model):
+    STATUS_CHOICES = [
+        ("waiting", "Waiting"),
+        ("in_progress", "In Progress"),
+        ("completed", "Completed"),
+        ("skipped", "Skipped"),
+    ]
+
+    clinic = models.ForeignKey(Clinic, on_delete=models.CASCADE, related_name="lab_queues")
+    lab = models.ForeignKey(Lab, on_delete=models.CASCADE, related_name="lab_queues", null=True, blank=True)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="lab_queues")
+    consultation = models.ForeignKey(Consultation, on_delete=models.SET_NULL, null=True, blank=True, related_name="lab_queues")
+    lab_test = models.ForeignKey(LabTest, on_delete=models.SET_NULL, null=True, blank=True, related_name="lab_queues")
+
+    queue_number = models.PositiveIntegerField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="waiting")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["created_at"]
+        unique_together = ("clinic", "lab", "queue_number")
+
+    def save(self, *args, **kwargs):
+        if not self.queue_number:
+            last = LabQueue.objects.filter(clinic=self.clinic, lab=self.lab).order_by("-queue_number").first()
+            self.queue_number = last.queue_number + 1 if last else 1
+        super().save(*args, **kwargs)
+
+    def start(self):
+        self.status = "in_progress"
+        self.started_at = timezone.now()
+        self.save()
+
+    def complete(self):
+        self.status = "completed"
+        self.completed_at = timezone.now()
+        self.save()
+
+    def __str__(self):
+        return f"{self.patient.name} - {self.lab_test.name if self.lab_test else 'N/A'} - #{self.queue_number}"

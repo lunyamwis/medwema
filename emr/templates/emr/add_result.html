@@ -1,95 +1,189 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+
 {% block content %}
-<div class="container py-5">
-  <div class="card shadow-lg border-0 rounded-4">
-    <div class="card-header bg-gradient text-black fw-semibold fs-5" 
-         style="background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);">
-      🧪 Add Laboratory Results
-    </div>
+<div class="container mt-4">
+  <h3 class="mb-3">Add Lab Results</h3>
 
-    <div class="card-body bg-light">
-      <form method="post" novalidate>
-        {% csrf_token %}
-        {{ formset.management_form }}
+  <form method="post" id="lab-results-form">
+    {% csrf_token %}
+    {{ formset.management_form }}
 
-        <div id="formset-container">
-          {% for form in formset %}
-            <div class="formset-item border rounded-3 p-4 mb-4 bg-white shadow-sm">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0 text-primary fw-bold">
-                  Result {{ forloop.counter }}
-                </h6>
-                {% if formset.can_delete %}
-                  <button type="button" class="btn btn-outline-danger btn-sm remove-form">
-                    <i class="bi bi-x-circle"></i> Remove
-                  </button>
-                {% endif %}
-              </div>
+    <div id="formset-container">
+      {% for form in formset %}
+      <div class="formset-item border rounded p-3 mb-3 shadow-sm position-relative">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0 text-primary fw-semibold">Result {{ forloop.counter }}</h5>
+          {% if formset.can_delete %}
+          <button type="button" class="btn btn-outline-danger btn-sm remove-form">
+            <i class="bi bi-x-circle"></i> Remove
+          </button>
+          {% endif %}
+        </div>
 
-              <div class="row g-4">
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Consultation</label>
-                  {{ form.consultation|as_crispy_field }}
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Lab Test</label>
-                  {{ form.lab_test|as_crispy_field }}
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Result Name</label>
-                  {{ form.result_name|as_crispy_field }}
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label fw-semibold">Result Value</label>
-                  {{ form.result_value|as_crispy_field }}
-                </div>
-              </div>
+        <div class="row g-3">
+          <!-- Consultation -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Consultation</label>
+
+            <!-- Custom dropdown -->
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary w-100 dropdown-toggle consultation-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Select Consultation
+              </button>
+              <ul class="dropdown-menu w-100 p-2">
+                <input type="text" class="form-control mb-2 consultation-search" placeholder="Search Consultation...">
+                {% for c in consultations %}
+                <li>
+                  <a class="dropdown-item consultation-option" data-value="{{ c.id }}">
+                    {{ c.patient.name }} (ID: {{ c.id }})
+                  </a>
+                </li>
+                {% endfor %}
+              </ul>
             </div>
-          {% endfor %}
-        </div>
 
-        <div class="d-flex justify-content-between align-items-center mt-4">
-          <button type="button" id="add-form" class="btn btn-outline-primary btn-lg">
-            ➕ Add Another Result
-          </button>
-          <button type="submit" class="btn btn-success btn-lg px-5">
-            💾 Save Draft
-          </button>
+            <!-- Hidden Django field -->
+            <div class="d-none">
+              {{ form.consultation }}
+            </div>
+          </div>
+
+          <!-- Lab Test -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Lab Test</label>
+
+            <div class="dropdown">
+              <button class="btn btn-outline-secondary w-100 dropdown-toggle labtest-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Select Lab Test
+              </button>
+              <ul class="dropdown-menu w-100 p-2">
+                <input type="text" class="form-control mb-2 labtest-search" placeholder="Search Lab Test...">
+                {% for t in lab_tests %}
+                <li>
+                  <a class="dropdown-item labtest-option" data-value="{{ t.id }}">{{ t.name }}</a>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+
+            <div class="d-none">
+              {{ form.lab_test }}
+            </div>
+          </div>
+
+          <!-- Result Name -->
+          <div class="col-md-6">
+            {{ form.result_name|as_crispy_field }}
+          </div>
+
+          <!-- Result Value -->
+          <div class="col-md-6">
+            {{ form.result_value|as_crispy_field }}
+          </div>
+
         </div>
-      </form>
+      </div>
+      {% endfor %}
     </div>
-  </div>
+
+    <div class="d-flex justify-content-between mt-4">
+      <button type="button" id="add-form" class="btn btn-outline-primary">➕ Add Another Result</button>
+      <button type="submit" class="btn btn-success px-5">💾 Save All Results</button>
+    </div>
+  </form>
 </div>
 
-<!-- Bootstrap Icons (optional, for better visuals) -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
+{% block extra_scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-  const formsetContainer = document.getElementById("formset-container");
-  const addBtn = document.getElementById("add-form");
+  const formContainer = document.getElementById("formset-container");
   const totalForms = document.getElementById("id_form-TOTAL_FORMS");
+  const addFormBtn = document.getElementById("add-form");
 
-  addBtn.addEventListener("click", function() {
-    const currentFormCount = parseInt(totalForms.value);
-    const firstForm = formsetContainer.children[0];
-    if (!firstForm) return;
+  // Reindex forms
+  function reindexForms() {
+    const items = formContainer.querySelectorAll(".formset-item");
+    items.forEach((item, index) => {
+      item.querySelectorAll("[name]").forEach(el => {
+        if (el.name.match(/^form-\d+-/)) {
+          el.name = el.name.replace(/form-(\d+)-/, `form-${index}-`);
+          el.id = el.id.replace(/form-(\d+)-/, `form-${index}-`);
+        }
+      });
+      const header = item.querySelector("h5");
+      if (header) header.textContent = `Result ${index + 1}`;
+    });
+    totalForms.value = items.length;
+  }
 
-    // Clone and reset form fields
-    const newFormHtml = firstForm.outerHTML
-      .replaceAll(`form-0-`, `form-${currentFormCount}-`)
-      .replaceAll(/value=".*?"/g, 'value=""'); // clear old values
+  // Add new form
+  addFormBtn.addEventListener("click", () => {
+    const items = formContainer.querySelectorAll(".formset-item");
+    if (items.length === 0) return;
 
-    formsetContainer.insertAdjacentHTML("beforeend", newFormHtml);
-    totalForms.value = currentFormCount + 1;
+    const newItem = items[items.length - 1].cloneNode(true);
+    newItem.querySelectorAll("input, textarea, select").forEach(el => {
+      if (el.type !== "hidden") el.value = "";
+    });
+    newItem.querySelectorAll(".consultation-btn").forEach(btn => btn.textContent = "Select Consultation");
+    newItem.querySelectorAll(".labtest-btn").forEach(btn => btn.textContent = "Select Lab Test");
+    formContainer.appendChild(newItem);
+    reindexForms();
   });
 
-  formsetContainer.addEventListener("click", function(e) {
-    if (e.target.classList.contains("remove-form") || e.target.closest(".remove-form")) {
-      e.target.closest(".formset-item").remove();
+  // Remove form
+  formContainer.addEventListener("click", (e) => {
+    if (e.target.closest(".remove-form")) {
+      const item = e.target.closest(".formset-item");
+      if (formContainer.querySelectorAll(".formset-item").length > 1) {
+        item.remove();
+        reindexForms();
+      } else {
+        alert("At least one result form must remain.");
+      }
     }
   });
+
+  // Dropdown selections
+  document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("consultation-option")) {
+      const dropdown = e.target.closest(".dropdown");
+      const btn = dropdown.querySelector(".consultation-btn");
+      const hiddenSelect = dropdown.closest(".formset-item").querySelector('[name$="-consultation"]');
+      btn.textContent = e.target.textContent.trim();
+      hiddenSelect.value = e.target.dataset.value;
+      bootstrap.Dropdown.getInstance(btn)?.hide();
+    }
+
+    if (e.target.classList.contains("labtest-option")) {
+      const dropdown = e.target.closest(".dropdown");
+      const btn = dropdown.querySelector(".labtest-btn");
+      const hiddenSelect = dropdown.closest(".formset-item").querySelector('[name$="-lab_test"]');
+      btn.textContent = e.target.textContent.trim();
+      hiddenSelect.value = e.target.dataset.value;
+      bootstrap.Dropdown.getInstance(btn)?.hide();
+    }
+  });
+
+  // Search filtering
+  document.addEventListener("input", function(e) {
+    if (e.target.classList.contains("consultation-search")) {
+      const term = e.target.value.toLowerCase();
+      const options = e.target.closest("ul").querySelectorAll(".consultation-option");
+      options.forEach(opt => opt.style.display = opt.textContent.toLowerCase().includes(term) ? "" : "none");
+    }
+    if (e.target.classList.contains("labtest-search")) {
+      const term = e.target.value.toLowerCase();
+      const options = e.target.closest("ul").querySelectorAll(".labtest-option");
+      options.forEach(opt => opt.style.display = opt.textContent.toLowerCase().includes(term) ? "" : "none");
+    }
+  });
+
+  reindexForms();
 });
 </script>
+{% endblock %}
 {% endblock %}
