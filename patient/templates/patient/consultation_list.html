@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Consultations{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold text-primary mb-0">
+          <i class="bi bi-people-fill me-2"></i>Consultations
+        </h4>
+      </div>
+
+      <!-- Search -->
+      <form method="get" class="row g-2 mb-4">
+        <div class="col-md-4">
+          <input 
+            type="text" 
+            name="q" 
+            value="{{ request.GET.q }}" 
+            class="form-control" 
+            placeholder="Search by patient name or doctor..."
+          >
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-outline-primary w-100">
+            <i class="bi bi-search"></i> Search
+          </button>
+        </div>
+      </form>
+
+      <!-- Table -->
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Patient</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for consultation in consultations %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ consultation.patient.name }}</td>
+                <td>{{ consultation.created_at|date:"M d, Y H:i" }}</td>
+                <td>
+                  {% if consultation.patient.queues.last.status == 'pending' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                  {% elif consultation.patient.queues.last.status == 'completed' %}
+                    <span class="badge bg-success">Completed</span>
+                  {% elif consultation.patient.queues.last.status == 'inlab' %}
+                    <span class="badge bg-info text-dark">Sent to Lab</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Unknown</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <a href="{% url 'consultation_detail' consultation.id %}" 
+                       class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{% url 'consultation_edit' consultation.patient.id consultation.id %}" 
+                       class="btn btn-sm btn-outline-secondary">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'consultation_pdf' consultation.id %}" 
+                       class="btn btn-sm btn-outline-secondary">
+                      <i class="bi bi-file-earmark-pdf"></i>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                  No consultations found.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+      <nav>
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                Previous
+              </a>
+            </li>
+          {% endif %}
+
+          {% for i in paginator.page_range %}
+            <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+              <a class="page-link" href="?page={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                {{ i }}
+              </a>
+            </li>
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                Next
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

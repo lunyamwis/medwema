@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h3>Inventory Dashboard</h3>
+  <h5>Low stock</h5>
+  <ul>
+    {% for item in low_stock_items %}
+      <li><a href="{% url 'item_detail' item.pk %}">{{ item.name }}</a> — total: {{ item.total_stock }} (reorder level: {{ item.reorder_level }})</li>
+    {% empty %}
+      <li>No low stock items</li>
+    {% endfor %}
+  </ul>
+
+  <h5>Recent movements</h5>
+  <table class="table">
+    <thead><tr><th>When</th><th>Type</th><th>Item</th><th>Qty</th></tr></thead>
+    <tbody>
+      {% for m in recent_movements %}
+        <tr><td>{{ m.created_at }}</td><td>{{ m.get_movement_type_display }}</td><td>{{ m.item.name }}</td><td>{{ m.quantity }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-3">
+  <h3>{{ item.name }}</h3>
+  <p>SKU: {{ item.sku }} | Barcode: {{ item.barcode }} | Unit: {{ item.unit }}</p>
+  <h5>Stocks</h5>
+  <table class="table">
+    <thead><tr><th>Location</th><th>Quantity</th></tr></thead>
+    <tbody>
+      {% for s in stocks %}
+        <tr><td>{{ s.location.name }}</td><td>{{ s.quantity }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <h5>Movements</h5>
+  <table class="table">
+    <thead><tr><th>When</th><th>Type</th><th>Qty</th><th>Notes</th></tr></thead>
+    <tbody>
+      {% for m in movements %}
+        <tr><td>{{ m.created_at }}</td><td>{{ m.get_movement_type_display }}</td><td>{{ m.quantity }}</td><td>{{ m.notes }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

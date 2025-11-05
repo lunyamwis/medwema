@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="card shadow border-0 rounded-4">
+    <div class="card-header bg-success text-white fw-bold fs-5">
+      ✅ Confirm Goods Received for PO #{{ po.id }}
+    </div>
+    <div class="card-body bg-light">
+      <p><strong>Supplier:</strong> {{ po.supplier }}</p>
+      <p><strong>Date Ordered:</strong> {{ po.date_ordered|date:"M d, Y" }}</p>
+
+      <table class="table table-striped">
+        <thead class="table-light">
+          <tr><th>Item</th><th>Ordered</th><th>Received</th></tr>
+        </thead>
+        <tbody>
+          {% for item in po.items.all %}
+            <tr>
+              <td>{{ item.product.name }}</td>
+              <td>{{ item.quantity_ordered }}</td>
+              <td>
+                <input type="number" name="received_{{ item.id }}" class="form-control form-control-sm" value="{{ item.quantity_ordered }}">
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="d-flex justify-content-between mt-3">
+          <a href="{% url 'po_list' %}" class="btn btn-outline-secondary">Cancel</a>
+          <button type="submit" class="btn btn-success">Confirm Receipt</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

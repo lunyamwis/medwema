@@ -62,7 +62,7 @@ def add_lab_result(request):
                 instance.save()
 
             messages.success(request, "Lab results added successfully.")
-            return redirect('dashboard')
+            return redirect('lab_dashboard')
     else:
         formset = LabResultFormSet(queryset=LabResult.objects.none())
 
@@ -104,7 +104,7 @@ def edit_lab_results(request, consultation_id):
                 obj.delete()
 
             messages.success(request, f"Lab results for {consultation.patient.name} updated successfully.")
-            return redirect('dashboard')
+            return redirect('lab_dashboard')
         else:
             print(formset.errors)
             messages.error(request, "Please correct the errors below.")

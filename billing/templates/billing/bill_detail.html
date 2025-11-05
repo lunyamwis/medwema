@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h4>Bill #{{ bill.id }} - {{ bill.patient.name }}</h4>
+<table class="table">
+  <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
+  <tbody>
+    {% for i in bill.items.all %}
+      <tr>
+        <td>{{ i.description }}</td>
+        <td>{{ i.quantity }}</td>
+        <td>{{ i.unit_price }}</td>
+        <td>{{ i.total }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p class="fw-bold">Total: {{ bill.total_amount }}</p>
+{% if not bill.is_paid %}
+  <a href="{% url 'initiate_payment' bill.id %}" class="btn btn-primary">Pay Now</a>
+{% endif %}
+
+{% endblock %}

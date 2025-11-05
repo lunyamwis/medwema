@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-header bg-warning fw-bold fs-5 text-dark">
+      💊 Record Item Consumption
+    </div>
+    <div class="card-body bg-light">
+      <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+
+        <div class="d-flex justify-content-end mt-4">
+          <button type="submit" class="btn btn-success px-4">✅ Record Consumption</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

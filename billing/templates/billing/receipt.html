@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Receipt #{{ bill.id }}</title>
+    <style>
+      @media print {
+        @page {
+          size: 80mm auto;
+          margin: 5mm;
+        }
+      }
+      body {
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      .center {
+        text-align: center;
+      }
+      .bold {
+        font-weight: bold;
+      }
+      hr {
+        border: none;
+        border-top: 1px dashed #000;
+        margin: 4px 0;
+      }
+    </style>
+  </head>
+  <body onload="window.print(); setTimeout(() => window.close(), 500);">
+    <div class="center bold">{{ bill.clinic.name }}</div>
+    <div class="center">Receipt #{{ bill.id }}</div>
+    <div class="center">Date: {{ bill.created_at|date:"Y-m-d H:i" }}</div>
+    <hr />
+    <div>Patient: {{ bill.patient.name }}</div>
+    <hr />
+    {% for item in bill.items.all %}
+      <div>
+        {{ item.description }} x{{ item.quantity }} - {{ item.total|floatformat:2 }}
+      </div>
+    {% endfor %}
+    <hr />
+    <div class="bold">TOTAL: {{ bill.total_amount|floatformat:2 }}</div>
+    <hr />
+    <div>Payment Method: Cash</div>
+    <div class="center">Thank you and get well soon!</div>
+  </body>
+</html>

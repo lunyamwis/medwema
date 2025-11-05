@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h3>💰 Billing Dashboard</h3>
+  <a href="{% url 'revenue_report' %}" class="btn btn-outline-secondary mb-3">View Revenue Report</a>
+
+  <h5>Unpaid Bills</h5>
+  <table class="table table-striped">
+    <thead>
+      <tr><th>Bill #</th><th>Patient</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for bill in unpaid_bills %}
+      <tr>
+        <td>{{ bill.id }}</td>
+        <td>{{ bill.patient }}</td>
+        <td>{{ bill.total_amount }}</td>
+        <td><span class="badge bg-danger">{{ bill.status }}</span></td>
+        <td>
+            <a href="{% url 'initiate_payment' bill.id %}" class="btn btn-sm btn-primary">Pay via Paystack</a>
+            {% if not bill.is_paid %}
+            <a href="{% url 'mark_bill_paid' bill.id %}" class="btn btn-sm btn-success">
+                Pay via Cash
+            </a>
+            {% else %}
+            <a href="{% url 'print_receipt' bill.id %}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                Print Receipt
+            </a>
+            {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

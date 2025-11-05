@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-3">
+  <h3>Items</h3>
+  <form method="get" class="mb-2">
+    <input name="q" class="form-control form-control-sm" placeholder="Search items..." value="{{ request.GET.q }}">
+  </form>
+  <table class="table">
+    <thead><tr><th>#</th><th>Name</th><th>SKU</th><th>Barcode</th><th>Total</th><th></th></tr></thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ forloop.counter }}</td>
+        <td><a href="{% url 'item_detail' item.pk %}">{{ item.name }}</a></td>
+        <td>{{ item.sku }}</td>
+        <td>{{ item.barcode }}</td>
+        <td>{{ item.total_stock }}</td>
+        <td><a class="btn btn-sm btn-outline-primary" href="{% url 'item_detail' item.pk %}">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -83,6 +83,14 @@ def patient_success(request):
     return render(request, "patient/patient_success.html")
 
 
+def consultation_list(request):
+    consultations = Consultation.objects.select_related("patient", "doctor").order_by("-date")
+    paginator = Paginator(consultations, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(request, "patient/consultation_list.html", {"page_obj": page_obj})
+
+
 def doctor_detail(request, pk):
     doctor = get_object_or_404(Doctor, id=pk)
     queue = Queue.objects.filter(doctor=doctor, status__in=["waiting", "in_progress", "fromLab"]).order_by("queue_number")

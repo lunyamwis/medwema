@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="card shadow-lg border-0 rounded-4">
+    <div class="card-header bg-info text-white fw-bold fs-5">
+      🧠 Create Prescription for {{ consultation.patient.name }}
+    </div>
+    <div class="card-body bg-light">
+      <form method="post" novalidate id="prescriptionForm">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        
+        <div id="form-container">
+          {% for form in formset %}
+            <div class="border p-3 mb-3 bg-white rounded shadow-sm position-relative prescription-form">
+              <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 remove-form">
+                <i class="bi bi-x-circle"></i> Remove
+              </button>
+              {{ form|crispy }}
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+          <button type="button" id="add-form" class="btn btn-outline-primary">
+            ➕ Add Drug
+          </button>
+          <button type="submit" class="btn btn-success px-4">
+            💾 Save Prescription
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  const addFormBtn = document.getElementById("add-form");
+  const totalForms = document.getElementById("id_form-TOTAL_FORMS");
+  const formContainer = document.getElementById("form-container");
+
+  // Add a new form
+  addFormBtn.addEventListener("click", function(){
+    const formCount = parseInt(totalForms.value);
+    const newForm = formContainer.querySelector(".prescription-form").cloneNode(true);
+
+    // Replace form index
+    newForm.innerHTML = newForm.innerHTML.replaceAll(`form-0-`, `form-${formCount}-`);
+    
+    // Clear input values
+    newForm.querySelectorAll("input, select, textarea").forEach(el => {
+      el.value = "";
+    });
+
+    // Reattach remove listener
+    newForm.querySelector(".remove-form").addEventListener("click", function(){
+      newForm.remove();
+      updateFormIndexes();
+    });
+
+    formContainer.appendChild(newForm);
+    totalForms.value = formCount + 1;
+  });
+
+  // Remove form
+  formContainer.addEventListener("click", function(e){
+    if (e.target.closest(".remove-form")) {
+      e.target.closest(".prescription-form").remove();
+      updateFormIndexes();
+    }
+  });
+
+  // Update Django formset indexes dynamically
+  function updateFormIndexes() {
+    const forms = document.querySelectorAll(".prescription-form");
+    totalForms.value = forms.length;
+    forms.forEach((formEl, i) => {
+      formEl.querySelectorAll("input, select, textarea, label").forEach(el => {
+        if (el.name) el.name = el.name.replace(/form-\d+-/, `form-${i}-`);
+        if (el.id) el.id = el.id.replace(/id_form-\d+-/, `id_form-${i}-`);
+        if (el.htmlFor) el.htmlFor = el.htmlFor.replace(/id_form-\d+-/, `id_form-${i}-`);
+      });
+    });
+  }
+});
+</script>
+{% endblock %}
+{% endblock %}

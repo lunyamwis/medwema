@@ -29,6 +29,7 @@
           <a href="{% url 'consultation_detail' c.id %}" class="btn btn-sm btn-outline-primary">View</a>
           <a href="{% url 'edit_consultation' patient.id c.id %}" class="btn btn-sm btn-outline-success">Continue</a>
           <a href="{% url 'consultation_pdf' c.id %}" class="btn btn-sm btn-outline-secondary">PDF</a>
+          <a href="{% url 'add_prescription' c.id %}" class="btn btn-sm btn-outline-primary">📝 Add Prescription</a>
         </td>
       </tr>
       {% empty %}

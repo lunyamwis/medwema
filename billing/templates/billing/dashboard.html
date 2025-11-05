@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h3>Billing Dashboard</h3>
+  <a href="{% url 'revenue_report' %}" class="btn btn-outline-secondary mb-3">View Revenue Report</a>
+  <h5>Unpaid Bills</h5>
+  <table class="table">
+    <tr><th>Patient</th><th>Amount</th><th>Actions</th></tr>
+    {% for bill in unpaid_bills %}
+    <tr>
+      <td>{{ bill.patient.name }}</td>
+    <td>{{ bill.total_amount }}</td>
+    <td>
+      <a href="{% url 'mark_bill_paid' bill.id %}" class="btn btn-sm btn-success">Pay</a>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h4>Today's Revenue: {{ total_revenue_today }}</h4>
+<table class="table">
+  <tr><th>Patient</th><th>Amount</th><th>Date</th></tr>
+  {% for payment in todays_payments %}
+  <tr>
+    <td>{{ payment.bill.patient.name }}</td>
+    <td>{{ payment.amount }}</td>
+    <td>{{ payment.paid_at|date:"Y-m-d H:i" }}</td>
+  </tr>
+  {% endfor %}
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h4>Scan Barcode</h4>
+  <div class="mb-3">
+    <input id="barcodeInput" class="form-control form-control-lg" placeholder="Scan barcode with scanner..." autofocus>
+  </div>
+
+  <div id="scanResult" class="card p-3 d-none"></div>
+</div>
+
+<script>
+const input = document.getElementById('barcodeInput');
+const result = document.getElementById('scanResult');
+
+input.addEventListener('keydown', function(e){
+  if (e.key === 'Enter') {
+    const code = input.value.trim();
+    if (!code) return;
+    // call API to look up item by barcode
+    fetch(`/api/inventory/items/?search=${encodeURIComponent(code)}`)
+      .then(r=>r.json())
+      .then(data=>{
+        // DRF items endpoint returns results in data.results if pagination enabled,
+        // or plain list if not. Handle both.
+        const items = data.results || data;
+        if (items.length) {
+          const it = items[0];
+          result.innerHTML = `<h5>${it.name}</h5><p>SKU: ${it.sku || '-'}, Unit: ${it.unit}</p>`;
+          result.classList.remove('d-none');
+        } else {
+          result.innerHTML = `<div class="text-danger">Item not found for barcode: ${code}</div>`;
+          result.classList.remove('d-none');
+        }
+      });
+    input.value = '';
+  }
+});
+
+// keep focus on input
+document.addEventListener('click', ()=>input.focus());
+</script>
+{% endblock %}

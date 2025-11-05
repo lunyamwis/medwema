@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h3>📊 Revenue Report</h3>
+  <form method="get" class="row g-3 mb-3">
+    <div class="col-md-4">
+      <input type="date" name="start" value="{{ start_date }}" class="form-control">
+    </div>
+    <div class="col-md-4">
+      <input type="date" name="end" value="{{ end_date }}" class="form-control">
+    </div>
+    <div class="col-md-4">
+      <button type="submit" class="btn btn-primary w-100">Filter</button>
+    </div>
+  </form>
+
+  <h5>Total Revenue: <span class="text-success fw-bold">{{ total_revenue }}</span></h5>
+
+  <table class="table table-striped mt-3">
+    <thead><tr><th>Reference</th><th>Bill</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td>{{ p.reference }}</td>
+        <td>{{ p.bill.id }}</td>
+        <td>{{ p.amount }}</td>
+        <td>{{ p.status }}</td>
+        <td>{{ p.paid_at }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

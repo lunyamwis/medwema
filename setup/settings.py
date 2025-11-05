@@ -65,6 +65,12 @@ INSTALLED_APPS = [
     'emr',
     'home',
     'django_select2',
+    'inventory',
+    'rest_framework',
+    'django_filters',
+    'simple_history',
+    'billing',
+    'prescription',
 ]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -85,6 +91,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
 ]
+MIDDLEWARE += ['simple_history.middleware.HistoryRequestMiddleware']
+
 
 ROOT_URLCONF = 'setup.urls'
 
@@ -183,6 +191,12 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 1 week
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+
+# Paystack config
+PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY')  # set in env or settings
+PAYSTACK_BASE_URL = 'https://api.paystack.co'
+
 
 # CACHES = {
 #     # … default cache config and others
