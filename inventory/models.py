@@ -39,11 +39,11 @@ class ItemCategory(models.Model):
         return self.name
 
 
-# ... keep Supplier, Location, ItemCategory, Item, Stock, StockMovement, PurchaseOrder, PurchaseOrderLine from prior code ...
 
 class Item(models.Model):
     sku = models.CharField(max_length=64, unique=True, blank=True, null=True)
     name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
     category = models.ForeignKey(ItemCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='items')
     unit = models.CharField(max_length=50, default='pcs')
     barcode = models.CharField(max_length=128, blank=True, null=True, db_index=True)
@@ -107,6 +107,7 @@ class PurchaseOrder(models.Model):
 
     def __str__(self):
         return f"PO {self.number} - {self.supplier or 'No supplier'}"
+
 
 class PurchaseOrderLine(models.Model):
     po = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='lines')
