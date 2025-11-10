@@ -24,7 +24,9 @@ Pillow==10.4.0
 # app server
 gunicorn==21.2.0
 
+
 # django
+djangorestframework==3.16.1
 django-weasyprint==2.4.0
 django-widget-tweaks==1.5.0
 django-select2==8.4.3
