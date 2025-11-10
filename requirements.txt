@@ -41,4 +41,4 @@ pandas==2.3.3
 numpy==2.2.6
 
 # web
-requests==2.34.0
+requests==2.32.5
