@@ -36,7 +36,7 @@
                 {% for c in consultations %}
                 <li>
                   <a class="dropdown-item consultation-option" data-value="{{ c.id }}">
-                    {{ c.patient.name }} (ID: {{ c.id }})
+                    {{ c.patient.name }} (ID: {{ c.date }})
                   </a>
                 </li>
                 {% endfor %}
