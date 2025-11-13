@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Laboratory Dashboard{% endblock %}
 {% block content %}
 
 <div class="container py-4">
@@ -8,6 +11,13 @@
     <a href="{% url 'add_result' %}" class="btn btn-primary">Perform Test</a>
   </div>
   <hr/>
+
+  <button id="enable-notifications" class="btn btn-sm btn-outline-primary mb-3">
+    Enable Lab Alerts 🔔
+  </button>
+
+
+  <audio id="notification-sound" src="{% static 'sounds/notification-ding-dong-432437.mp3' %}" preload="auto"></audio>
 
   <!-- Tabs Navigation -->
   <ul class="nav nav-tabs" id="labTabs" role="tablist">
@@ -167,5 +177,37 @@
   </div>
 
 </div>
+{% block extra_scripts %}
+<script>
+var lastQueueCount = {{ lab_queue|length }};
+console.log("Initial lab queue count:", lastQueueCount);
 
+// Polling function for new patients
+function checkNewPatients() {
+    fetch("{% url 'lab_queue_count_api' %}")
+        .then(res => res.json())
+        .then(data => {
+            console.log("Fetched lab queue count:", data.count);
+            console.log("Last known lab queue count:", lastQueueCount);
+            if (data.count > lastQueueCount) {
+                const audio = document.getElementById('notification-sound');
+                audio.play().catch(err => console.log('Audio blocked until user interacts with page'));
+                lastQueueCount = data.count;
+            }
+        })
+        .catch(err => console.error(err));
+}
+
+// Poll every 5 seconds
+setInterval(checkNewPatients, 7000);
+
+// Unlock audio on user interaction
+document.getElementById('enable-notifications').addEventListener('click', function() {
+    const audio = document.getElementById('notification-sound');
+    audio.play().catch(err => console.log(err));
+    this.style.display = 'none'; // hide button
+});
+</script>
+
+{% endblock %}
 {% endblock %}

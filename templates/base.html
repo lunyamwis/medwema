@@ -201,7 +201,7 @@
 
 
     <a href="{% url 'patient_list' %}"><i class="bi bi-speedometer2"></i> <span class="nav-text">Dashboard</span></a>
-
+    {% if user.is_staff %}
     <a data-bs-toggle="collapse" href="#patientsMenu"><i class="bi bi-person-badge"></i> <span class="nav-text">Patients</span></a>
     <div class="collapse" id="patientsMenu">
       <div class="collapse-inner">
@@ -209,6 +209,7 @@
         <a href="{% url 'register_patient' %}">Add Patient</a>
       </div>
     </div>
+    
 
     <a data-bs-toggle="collapse" href="#labMenu"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-flask" viewBox="0 0 16 16">
   <path d="M4.5 0a.5.5 0 0 0 0 1H5v5.36L.503 13.717A1.5 1.5 0 0 0 1.783 16h12.434a1.5 1.5 0 0 0 1.28-2.282L11 6.359V1h.5a.5.5 0 0 0 0-1zM10 2H9a.5.5 0 0 0 0 1h1v1H9a.5.5 0 0 0 0 1h1v1H9a.5.5 0 0 0 0 1h1.22l.61 1H10a.5.5 0 1 0 0 1h1.442l.611 1H11a.5.5 0 1 0 0 1h1.664l.611 1H12a.5.5 0 1 0 0 1h1.886l.758 1.24a.5.5 0 0 1-.427.76H1.783a.5.5 0 0 1-.427-.76l4.57-7.48A.5.5 0 0 0 6 6.5V1h4z"/>
@@ -236,7 +237,8 @@
         <a href="{% url 'revenue_report' %}">Revenue Report</a>
       </div>
     </div>
-
+    {% endif %}
+    {% if user.is_superuser %}   
     <a data-bs-toggle="collapse" href="#doctorMenu"><i class="bi bi-heart-pulse"></i> <span class="nav-text">Doctors</span></a>
     <div class="collapse" id="doctorMenu">
       <div class="collapse-inner">
@@ -244,6 +246,7 @@
         <a href="{% url 'consultation_list' %}">Consultations</a>
       </div>
     </div>
+    {% endif %}
 
     {% if user.is_authenticated %}
       <a href="#"><i class="bi bi-person-circle"></i> <span class="nav-text">Hi, {{ user.first_name|default:user.username }}</span></a>

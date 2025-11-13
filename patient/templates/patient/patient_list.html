@@ -1,9 +1,15 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load django_bootstrap5 %}
 
 {% block title %}Patients - Clinic Manager{% endblock %}
 
 {% block content %}
+<button id="enable-notifications" class="btn btn-sm btn-outline-primary mb-3">
+  Enable Lab Alerts 🔔
+</button>
+<audio id="notification-sound" src="{% static 'sounds/notification-ding-dong-432437.mp3' %}" preload="auto"></audio>
+
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h2 class="fw-bold">Patients</h2>
   <a href="{% url 'register_patient' %}" class="btn btn-success btn-sm">+ Add Patient</a>
@@ -119,4 +125,40 @@
     {% endif %}
   </div>
 </div>
+
+{% block extra_scripts %}
+<script>
+
+var lastQueueCount = {{ completed|length }};
+console.log("Initial patient complete count:", lastQueueCount);
+
+// Polling function for new patients
+function checkNewPatients() {
+    fetch("{% url 'patient_complete_count_api' %}")
+        .then(res => res.json())
+        .then(data => {
+            console.log("Fetched patient complete count:", data.count);
+            console.log("Last known patient complete count:", lastQueueCount);
+            if (data.count > lastQueueCount) {
+                const audio = document.getElementById('notification-sound');
+                audio.play().catch(err => console.log('Audio blocked until user interacts with page'));
+                lastQueueCount = data.count;
+            }
+        })
+        .catch(err => console.error(err));
+}
+
+// Poll every 5 seconds
+setInterval(checkNewPatients, 7000);
+document.getElementById('enable-notifications').addEventListener('click', function() {
+    const audio = document.getElementById('notification-sound');
+    audio.play().catch(err => console.log(err));
+    this.style.display = 'none'; // hide button after click
+});
+
+</script>
+
+{% endblock %}
+
+
 {% endblock %}

@@ -264,3 +264,10 @@ def send_to_lab(request, consultation_id):
     # Fallback for GET requests
     messages.error(request, "Invalid request method.")
     return redirect('doctor_detail', pk=consultation.doctor.id)
+
+
+
+def lab_queue_count_api(request):
+    count = LabQueue.objects.filter(status='in_progress').count()
+    print(f"Lab queue count requested, current count: {count}")
+    return JsonResponse({'count': count})

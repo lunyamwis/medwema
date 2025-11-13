@@ -122,7 +122,10 @@ def doctor_list(request):
 
 
 
-
+def patient_queue_count_api(request):
+    count = Queue.objects.filter(status__in=['in_progress','waiting']).count()
+    print(f"Patient queue count requested, current count: {count}")
+    return JsonResponse({'count': count})
 
 @login_required
 def patient_list(request):
@@ -134,6 +137,7 @@ def patient_list(request):
     if query:
         patients = patients.filter(name__icontains=query)
 
+    completed = Queue.objects.filter(status__in=['completed']).count()
     # Paginate results — 10 per page
     paginator = Paginator(patients.order_by('-date_registered'), 10)
     page_obj = paginator.get_page(page_number)
@@ -141,6 +145,7 @@ def patient_list(request):
     context = {
         'page_obj': page_obj,
         'query': query,
+        'completed': completed,
     }
     return render(request, 'patient/patient_list.html', context)
 
@@ -249,3 +254,9 @@ def complete_consultation(request, queue_id):
     queue_item = get_object_or_404(Queue, id=queue_id)
     queue_item.complete()
     return redirect('doctor_detail', pk=queue_item.doctor.id)
+
+
+def patient_complete_count_api(request):
+    count = Queue.objects.filter(status__in=['completed']).count()
+    print(f"Patient queue complete count requested, current count: {count}")
+    return JsonResponse({'count': count})

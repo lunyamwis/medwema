@@ -12,6 +12,7 @@ class Clinic(models.Model):
         User, related_name="clinics", blank=True, help_text="Clinic staff members"
     )
     date_created = models.DateTimeField(auto_now_add=True)
+    paystack_subaccount_id = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.name

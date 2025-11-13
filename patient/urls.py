@@ -21,4 +21,6 @@ urlpatterns = [
     path('add-to-queue-select/<int:patient_id>/', views.add_to_queue_select, name='add_to_queue_select'),
     path('queue/<int:queue_id>/start/', views.start_consultation, name='start_consultation'),
     path('queue/<int:queue_id>/complete/', views.complete_consultation, name='complete_consultation'),
+    path('api/patient-queue-count/', views.patient_queue_count_api, name='patient_queue_count_api'),
+    path('api/patient-complete-count/', views.patient_complete_count_api, name='patient_complete_count_api'),
 ]

@@ -31,7 +31,8 @@ ALLOWED_HOSTS = [
     'medwema.com',
     'www.medwema.com',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    '50a2923067d8.ngrok-free.app'
 ]
 
 
@@ -41,11 +42,13 @@ CSRF_TRUSTED_ORIGINS = [
     'http://www.medwema.com',
     'https://www.medwema.com',
     'http://localhost',
-    'http://127.0.0.1'
+    'http://127.0.0.1',
+    'https://50a2923067d8.ngrok-free.app'
 ]
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -71,7 +74,15 @@ INSTALLED_APPS = [
     'simple_history',
     'billing',
     'prescription',
+    'channels',
+    'webpush',
 ]
+
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": "BKkYQ3DbVGHMRMzFgyGrGf1ebwD-2E93DtkTdL7T7n-wZbV2dub4WP4NxZuGlLSYw4Q2WXnp2uUXAgLYP6Ky3CQ",
+    "VAPID_PRIVATE_KEY": "9YKXRr1BLMc8C9Oboy0BrogEZqJxvl3AuQURPJEkfG4",
+    "VAPID_ADMIN_EMAIL": "lutherlunyamwi@gmail.com"
+}
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 
@@ -80,6 +91,8 @@ ACCOUNT_SIGNUP_FORM_CLASS = 'authentication.forms.CustomSignupForm'
 AUTH_USER_MODEL = 'authentication.User'
 
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+ASGI_APPLICATION = 'setup.asgi.application'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -176,6 +189,9 @@ STATIC_URL = 'static/'
 STATIC_ROOT = '/usr/src/app/static'
 MEDIA_URL = "/media/"
 MEDIA_ROOT ='/usr/src/app/media'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -196,6 +212,12 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 # Paystack config
 PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY')  # set in env or settings
 PAYSTACK_BASE_URL = 'https://api.paystack.co'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
 
 
 # CACHES = {
