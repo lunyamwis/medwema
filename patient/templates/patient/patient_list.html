@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load django_bootstrap5 %}
+{% load webpush_notifications %}
 
 {% block title %}Patients - Clinic Manager{% endblock %}
 
@@ -8,6 +9,7 @@
 <button id="enable-notifications" class="btn btn-sm btn-outline-primary mb-3">
   Enable Lab Alerts 🔔
 </button>
+
 <audio id="notification-sound" src="{% static 'sounds/notification-ding-dong-432437.mp3' %}" preload="auto"></audio>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -127,6 +129,135 @@
 </div>
 
 {% block extra_scripts %}
+
+
+<script src="{% static 'webpush/webpush.js' %}"></script>
+<script src="{% static 'js/service-worker.js' %}"></script>
+<script>
+
+(async () => {
+  if (!('serviceWorker' in navigator)) return;
+
+  
+  // Fetch VAPID public key from Django endpoint
+  let vapidPublicKey;
+  try {
+    const res = await fetch('/notifications/generate-vapid/');
+    const data =  await res.json();
+    console.log(data.public_key)
+    vapidPublicKey = data.public_key;
+    console.log('Fetched VAPID key:', vapidPublicKey);
+  } catch (err) {
+    console.error('Failed to fetch VAPID key:', err);
+    return;
+  }
+
+  
+
+
+
+
+
+  const VAPID_PUBLIC_KEY = vapidPublicKey
+
+  function urlBase64ToUint8Array(base64String) {
+      const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+      const base64 = (base64String + padding)
+          .replace(/-/g, "+")
+          .replace(/_/g, "/");
+
+      const rawData = atob(base64);
+      const outputArray = new Uint8Array(rawData.length);
+
+      for (let i = 0; i < rawData.length; ++i) {
+          outputArray[i] = rawData.charCodeAt(i);
+      }
+      return outputArray;
+  }
+
+  // Ask for notification permission
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+      console.log("Notification permission denied.");
+      return;
+  }
+
+  // Register service worker
+  const registration = await navigator.serviceWorker.register("{% static 'js/service-worker.js' %}");
+  console.log("Service worker registered:", registration);
+
+  // Subscribe
+  const subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+  });
+
+  console.log("%cSUBSCRIPTION OBJECT:", "color: green; font-weight: bold;");
+  console.log(JSON.stringify(subscription, null, 2));
+
+  // Add audio element dynamically
+  const audio = new Audio("/static/sounds/notification-ding-dong-432437.mp3");
+  audio.preload = "auto";
+
+  // Listen for messages from the service worker
+  navigator.serviceWorker.addEventListener("message", (event) => {
+      if (event.data.playSound) {
+          audio.play().catch(err => console.log("Audio play blocked:", err));
+      }
+  });
+
+
+
+
+
+
+
+
+// Extract JSON subscription (has keys)
+const subJSON = subscription.toJSON();
+
+console.log("SUB JSON:", JSON.stringify(subJSON, null, 2));
+
+// Validate keys
+if (!subJSON.keys || !subJSON.keys.p256dh || !subJSON.keys.auth) {
+    throw new Error('Subscription keys are missing');
+}
+
+// Prepare payload for Django
+const payload = {
+    subscription: {
+        endpoint: subJSON.endpoint,
+        expirationTime: subJSON.expirationTime,
+        keys: subJSON.keys
+    },
+    browser: navigator.userAgent.includes("Chrome") ? "chrome" : "firefox",
+    user_agent: navigator.userAgent,
+    status_type: "subscribe",
+    group: ""
+};
+
+const response = await fetch("/webpush/save_information", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+    },
+    body: JSON.stringify(payload)
+});
+
+if (!response.ok) {
+    const err = await response.text();
+    console.error("Error response body:", err);
+    throw new Error("Subscription saving failed");
+}
+
+console.log("Push subscription saved");
+  
+
+
+})();
+</script>
+
 <script>
 
 var lastQueueCount = {{ completed|length }};
@@ -149,7 +280,7 @@ function checkNewPatients() {
 }
 
 // Poll every 5 seconds
-setInterval(checkNewPatients, 7000);
+// setInterval(checkNewPatients, 7000);
 document.getElementById('enable-notifications').addEventListener('click', function() {
     const audio = document.getElementById('notification-sound');
     audio.play().catch(err => console.log(err));

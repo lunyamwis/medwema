@@ -1,21 +1,31 @@
 self.addEventListener('push', function(event) {
-  const data = event.data.json();
+  let data = {};
+  try {
+    data = event.data.json();
+  } catch (err) {
+    data = { body: event.data.text() || 'New Lab Notification', head: 'Lab Alert', url: '/' };
+  }
+
   const options = {
     body: data.body,
     data: data,
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.head || 'Lab Notification', options)
-  );
+    (async () => {
+      await self.registration.showNotification(data.head || 'Lab Notification', options);
 
-  // Tell client to play sound
-  self.clients.matchAll().then(clients => {
-    clients.forEach(client => client.postMessage({ playSound: true }));
-  });
+      // Tell all open clients to play the sound
+      console.log("not reaching here")
+      const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      clients.forEach(client => client.postMessage({ playSound: true }));
+    })()
+  );
 });
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data.url || '/'));
+  event.waitUntil(
+    clients.openWindow(event.notification.data.url || '/')
+  );
 });

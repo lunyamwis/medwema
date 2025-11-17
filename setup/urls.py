@@ -30,6 +30,7 @@ urlpatterns = [
     path('billing/', include('billing.urls')),
     path('prescriptions/', include('prescription.urls')),
     path('webpush/', include('webpush.urls')),
+    path('notifications/',include('notification.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

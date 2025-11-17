@@ -76,12 +76,13 @@ INSTALLED_APPS = [
     'prescription',
     'channels',
     'webpush',
+    'notification',
 ]
 
 WEBPUSH_SETTINGS = {
-    "VAPID_PUBLIC_KEY": "BKkYQ3DbVGHMRMzFgyGrGf1ebwD-2E93DtkTdL7T7n-wZbV2dub4WP4NxZuGlLSYw4Q2WXnp2uUXAgLYP6Ky3CQ",
-    "VAPID_PRIVATE_KEY": "9YKXRr1BLMc8C9Oboy0BrogEZqJxvl3AuQURPJEkfG4",
-    "VAPID_ADMIN_EMAIL": "lutherlunyamwi@gmail.com"
+    "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY"),
+    "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY"),
+    "VAPID_ADMIN_EMAIL": os.getenv("VAPID_ADMIN_EMAIL"),
 }
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"

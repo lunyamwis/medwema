@@ -16,6 +16,8 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=30, choices=ROLE_CHOICES, default="receptionist")
     phone_number = models.CharField(max_length=30, blank=True, null=True)
+    vapid_public_key = models.CharField(max_length=500, null=True, blank=True)
+    vapid_private_key = models.CharField(max_length=255, null=True, blank=True)
     # any other global profile fields here
 
     def is_doctor(self):
