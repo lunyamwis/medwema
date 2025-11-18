@@ -87,7 +87,7 @@ class ClinicBankDetails(models.Model):
     clinic = models.ForeignKey(
         Clinic, on_delete=models.CASCADE, related_name='bank_details'
     )
-    bank_name = models.IntegerField(choices=BANKS, max_length=5)
+    bank_name = models.IntegerField(choices=BANKS)
     account_number = models.CharField(max_length=100)
     paybill_number = models.CharField(max_length=70, blank=True, null=True)
     till_number = models.CharField(max_length=70, blank=True, null=True)
