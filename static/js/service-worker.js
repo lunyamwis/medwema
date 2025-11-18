@@ -9,7 +9,15 @@ self.addEventListener('push', function(event) {
   const options = {
     body: data.body,
     data: data,
+    vibrate: [200, 100, 200],
+    renotify: true,
+    requireInteraction: true,
+    tag: "persistent-notification",
   };
+  self.clients.matchAll({ includeUncontrolled: true }).then(clients => {
+      clients.forEach(c => c.postMessage({ hello: "world" }));
+  });
+
 
   event.waitUntil(
     (async () => {
@@ -28,4 +36,13 @@ self.addEventListener('notificationclick', function(event) {
   event.waitUntil(
     clients.openWindow(event.notification.data.url || '/')
   );
+});
+
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(self.skipWaiting()); // activates SW immediately
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim()); // take control of all clients immediately
 });

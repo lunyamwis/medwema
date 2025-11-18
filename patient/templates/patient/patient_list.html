@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load i18n %}
 {% load static %}
 {% load django_bootstrap5 %}
 {% load webpush_notifications %}
@@ -6,6 +7,7 @@
 {% block title %}Patients - Clinic Manager{% endblock %}
 
 {% block content %}
+
 <button id="enable-notifications" class="btn btn-sm btn-outline-primary mb-3">
   Enable Lab Alerts 🔔
 </button>
@@ -130,8 +132,7 @@
 
 {% block extra_scripts %}
 
-
-<script src="{% static 'webpush/webpush.js' %}"></script>
+<script src="{% url 'javascript-catalog' %}"></script>
 <script src="{% static 'js/service-worker.js' %}"></script>
 <script>
 
@@ -194,13 +195,13 @@
 
   console.log("%cSUBSCRIPTION OBJECT:", "color: green; font-weight: bold;");
   console.log(JSON.stringify(subscription, null, 2));
-
   // Add audio element dynamically
   const audio = new Audio("/static/sounds/notification-ding-dong-432437.mp3");
   audio.preload = "auto";
 
   // Listen for messages from the service worker
   navigator.serviceWorker.addEventListener("message", (event) => {
+      console.log("Message from service worker:", event.data);
       if (event.data.playSound) {
           audio.play().catch(err => console.log("Audio play blocked:", err));
       }
@@ -259,34 +260,27 @@ console.log("Push subscription saved");
 </script>
 
 <script>
+var wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+var wsHost = window.location.host;
+var wsUrl = `${wsProtocol}://${wsHost}/ws/patients/`;
 
-var lastQueueCount = {{ completed|length }};
-console.log("Initial patient complete count:", lastQueueCount);
+var socket = new WebSocket(wsUrl);
 
-// Polling function for new patients
-function checkNewPatients() {
-    fetch("{% url 'patient_complete_count_api' %}")
-        .then(res => res.json())
-        .then(data => {
-            console.log("Fetched patient complete count:", data.count);
-            console.log("Last known patient complete count:", lastQueueCount);
-            if (data.count > lastQueueCount) {
-                const audio = document.getElementById('notification-sound');
-                audio.play().catch(err => console.log('Audio blocked until user interacts with page'));
-                lastQueueCount = data.count;
-            }
-        })
-        .catch(err => console.error(err));
-}
-
-// Poll every 5 seconds
-// setInterval(checkNewPatients, 7000);
-document.getElementById('enable-notifications').addEventListener('click', function() {
-    const audio = document.getElementById('notification-sound');
-    audio.play().catch(err => console.log(err));
-    this.style.display = 'none'; // hide button after click
-});
-
+socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    console.log("New patient alert:", data.message);
+    // Play audio
+   
+};
+socket.onopen = function(event) {
+    console.log("WebSocket connection established.");
+};
+socket.onclose = function(event) {
+    console.log("WebSocket connection closed.");
+};
+socket.onerror = function(error) {
+    console.error("WebSocket error:", error);
+};
 </script>
 
 {% endblock %}

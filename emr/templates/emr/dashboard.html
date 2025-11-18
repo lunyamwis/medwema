@@ -179,27 +179,22 @@
 </div>
 {% block extra_scripts %}
 <script>
-var lastQueueCount = {{ lab_queue|length }};
-console.log("Initial lab queue count:", lastQueueCount);
-
-// Polling function for new patients
-function checkNewPatients() {
-    fetch("{% url 'lab_queue_count_api' %}")
-        .then(res => res.json())
-        .then(data => {
-            console.log("Fetched lab queue count:", data.count);
-            console.log("Last known lab queue count:", lastQueueCount);
-            if (data.count > lastQueueCount) {
-                const audio = document.getElementById('notification-sound');
-                audio.play().catch(err => console.log('Audio blocked until user interacts with page'));
-                lastQueueCount = data.count;
-            }
-        })
-        .catch(err => console.error(err));
-}
 
 // Poll every 5 seconds
 // setInterval(checkNewPatients, 7000);
+// const socket = new WebSocket("ws://localhost:8000/ws/lab-queue/");
+var wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+var wsHost = window.location.host;
+var wsUrl = `${wsProtocol}://${wsHost}/ws/lab-queue/`;
+
+var socket = new WebSocket(wsUrl);
+
+socket.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    console.log("New patient alert:", data.message);
+    // Play audio
+    
+};
 
 // Unlock audio on user interaction
 document.getElementById('enable-notifications').addEventListener('click', function() {

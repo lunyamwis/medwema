@@ -275,35 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-    var lastQueueCount = {{ queue|length }};
-    console.log("Initial patient queue count:", lastQueueCount);
-
-    // Polling function for new patients
-    function checkNewPatients() {
-        fetch("{% url 'patient_queue_count_api' %}")
-            .then(res => res.json())
-            .then(data => {
-                console.log("Fetched patient queue count:", data.count);
-                console.log("Last known patient queue count:", lastQueueCount);
-                if (data.count > lastQueueCount) {
-                    const audio = document.getElementById('notification-sound');
-                    audio.play().catch(err => console.log('Audio blocked until user interacts with page'));
-                    lastQueueCount = data.count;
-                }
-            })
-            .catch(err => console.error(err));
-    }
-
-    // Poll every 5 seconds
-    // setInterval(checkNewPatients, 7000);
-
-    // Unlock audio on user interaction
-    document.getElementById('enable-notifications').addEventListener('click', function() {
-        const audio = document.getElementById('notification-sound');
-        audio.play().catch(err => console.log(err));
-        this.style.display = 'none'; // hide button
-    });
-
+    
 });
 
 
