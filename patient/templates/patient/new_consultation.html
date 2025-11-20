@@ -4,6 +4,7 @@
 {% block content %}
 <div class="container mt-4">
   <h3>New Consultation for {{ patient.name }}</h3>
+  <p>Incase you want to send this patient to the lab please <a href="{% url 'doctor_detail' patient.doctor.id %}">click here</a> after finishing to fill in the most necessary fields in the consultation form. Thank you.</p>
   <form method="post">
     {% csrf_token %}
     <div class="accordion" id="consultationAccordion">
@@ -81,6 +82,7 @@
         Investigations
         </button>
     </h2>
+    
     <div id="section4" class="accordion-collapse collapse">
         <div class="accordion-body row">
         <div class="col-md-6">{{ form.imaging|as_crispy_field }}</div>

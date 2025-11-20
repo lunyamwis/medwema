@@ -147,12 +147,40 @@ def lab_dashboard(request):
     if search_query:
         results_qs = results_qs.filter(consultation__patient__name__icontains=search_query)
 
+
+
+    historical_results_qs = LabResult.objects.all()
+
+    patient_query = request.GET.get('patient', '')
+    lab_test_query = request.GET.get('lab_test', '')
+
+    if patient_query and lab_test_query:
+        historical_results_qs = historical_results_qs.filter(
+            consultation__patient__name__icontains=patient_query,
+            lab_test__name__icontains=lab_test_query
+        )
+    elif patient_query:
+        historical_results_qs = historical_results_qs.filter(
+            consultation__patient__name__icontains=patient_query
+        )
+    elif lab_test_query:
+        historical_results_qs = historical_results_qs.filter(
+            lab_test__name__icontains=lab_test_query
+        )
+
+    historical_results_qs = historical_results_qs.distinct()
+
     paginator = Paginator(results_qs, 10)
     page_obj = paginator.get_page(request.GET.get("page"))
+    historical_paginator = Paginator(historical_results_qs, 10)
+    historical_page_obj = historical_paginator.get_page(request.GET.get("historical_page"))
 
     return render(request, "emr/dashboard.html", {
         "page_obj": page_obj,
+        "historical_page_obj": historical_page_obj,
         "search_query": search_query,
+        "patient": patient_query,
+        "lab_test": lab_test_query,
         "lab_queue": lab_queue,
     })
 
