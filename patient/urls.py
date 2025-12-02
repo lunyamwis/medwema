@@ -23,4 +23,5 @@ urlpatterns = [
     path('queue/<int:queue_id>/complete/', views.complete_consultation, name='complete_consultation'),
     path('api/patient-queue-count/', views.patient_queue_count_api, name='patient_queue_count_api'),
     path('api/patient-complete-count/', views.patient_complete_count_api, name='patient_complete_count_api'),
+    path('pipeline-notification/', views.pipeline_notification, name='pipeline_notification'),
 ]

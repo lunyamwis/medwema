@@ -260,3 +260,9 @@ def patient_complete_count_api(request):
     count = Queue.objects.filter(status__in=['completed']).count()
     print(f"Patient queue complete count requested, current count: {count}")
     return JsonResponse({'count': count})
+
+
+
+
+def pipeline_notification(request):
+    return render(request, 'patient/pipeline_notification.html')

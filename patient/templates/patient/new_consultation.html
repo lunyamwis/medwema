@@ -129,4 +129,74 @@
     </div>
   </form>
 </div>
+<h1>Speech color changer</h1>
+
+<p class="hints"></p>
+
+<button class="start">Start recognition</button>
+<p>
+  Enter some text in the input below and press return or the "play" button
+  to hear it. change voices using the dropdown menu.
+</p>
+
+<p class="output"><em>...diagnostic messages</em></p>
+
+<button id="btnLoad">Load Voices (user gesture required in some browsers)</button>
+<a href="{% url 'pipeline_notification' %}">Notify</a>
+{% block extra_scripts %}
+  <script>
+    // Custom JavaScript can be added here
+    var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+    var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+    var colors = ['red', 'blue', 'green', 'orange', 'purple'];
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    const diagnostic = document.querySelector(".output");
+    const bg = document.querySelector("html");
+    const hints = document.querySelector(".hints");
+    const startBtn = document.querySelector(".start");
+    
+    let colorHTML = "";
+    colors.forEach(function(color) {
+      colorHTML += `<span style="background-color:${color};">${color}</span> `;
+    });
+    hints.innerHTML = `Click the "Start" button and say a color to change the background color of the app. Try saying: ${colorHTML}`;
+    startBtn.onclick = function() {
+      recognition.start();
+      console.log("Ready to receive a color command.");
+    };
+    recognition.onresult = function(event) {
+      const color = event.results[0][0].transcript.toLowerCase().trim();
+      diagnostic.textContent = `Result received: ${color}.`;
+      if (colors.includes(color)) {
+        bg.style.backgroundColor = color;
+        diagnostic.textContent += `\nBackground color changed to ${color}!`;
+      } else {
+        diagnostic.textContent += `\nColor not recognized. Please try again.`;
+      }
+      console.log(`Confidence: ${event.results[0][0].confidence}`);
+    };
+    recognition.onspeechend = function() {
+      recognition.stop();
+    };
+    recognition.onerror = function(event) {
+      diagnostic.textContent = `Error occurred in recognition: ${event.error}`;
+    };
+
+
+    const inputTxt = document.querySelector(".txt");
+    const voiceSelect = document.querySelector("select");
+
+    const pitch = document.querySelector("#pitch");
+    const pitchValue = document.querySelector(".pitch-value");
+    const rate = document.querySelector("#rate");
+    const rateValue = document.querySelector(".rate-value");
+
+    
+  </script>
+{% endblock %}
 {% endblock %}
