@@ -1,5 +1,6 @@
 # patient/views.py
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db import transaction
 from django.core.paginator import Paginator
 from django.contrib import messages
 from .models import Doctor, Patient, Consultation, Queue
@@ -10,6 +11,7 @@ from django.http import HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.template.loader import render_to_string
+from billing.models import Bill, Payment
 from weasyprint import HTML
 
 from django.views.decorators.csrf import csrf_exempt
@@ -216,10 +218,39 @@ def add_to_queue(request, doctor_id, patient_id):
     # Prevent duplicates
     if Queue.objects.filter(doctor=doctor, patient=patient, status='waiting').exists():
         messages.warning(request, f"{patient.name} is already in Dr. {doctor.name}'s queue.")
+        return redirect('patient_list')
+
+    # Determine the consultation fee based on previous bills
+    previous_bills_count = Bill.objects.filter(patient=patient).count()
+    if previous_bills_count == 0:
+        consultation_fee = 1500  # first time
     else:
+        consultation_fee = 1300  # second time or more
+
+    # Wrap billing + queue addition in a transaction
+    with transaction.atomic():
+        # Create a Bill, set consultation=None if not available yet
+        bill = Bill.objects.create(
+            patient=patient,
+            consultation=None,  # No consultation linked yet
+            clinic=patient.clinic,
+            total_amount=consultation_fee,
+            is_paid=False
+        )
+
+        # Add patient to the queue
         next_number = Queue.objects.filter(doctor=doctor).count() + 1
-        Queue.objects.create(doctor=doctor, patient=patient, queue_number=next_number, clinic=patient.clinic)
-        messages.success(request, f"{patient.name} added to Dr. {doctor.name}'s queue.")
+        Queue.objects.create(
+            doctor=doctor,
+            patient=patient,
+            queue_number=next_number,
+            clinic=patient.clinic
+        )
+
+    messages.success(
+        request,
+        f"{patient.name} has been billed {consultation_fee} and added to Dr. {doctor.name}'s queue."
+    )
 
     return redirect('patient_list')
 
