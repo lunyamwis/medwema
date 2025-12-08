@@ -11,3 +11,7 @@ DEL
 *.bak
 env*
 .env
+token.json
+schema.json
+credentials.json
+results.csv

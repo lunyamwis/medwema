@@ -43,6 +43,7 @@ class LabTest(models.Model):
     reference_min = models.CharField(max_length=100, null=True, blank=True, help_text="Lower limit of normal range")
     reference_max = models.CharField(max_length=100, null=True, blank=True, help_text="Upper limit of normal range")
     reference_text = models.CharField(max_length=255, null=True, blank=True, help_text="For textual or complex ranges (e.g., Negative, Non-reactive, Normal)")
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -15,6 +15,7 @@ from patient.models import Patient, Consultation, Queue
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
+from billing.models import Bill, Payment
 
 
 from django.views.decorators.http import require_GET
@@ -270,6 +271,19 @@ def send_to_lab(request, consultation_id):
         # Create one LabQueue per selected test
         for lab_test_id in selected_lab_tests:
             lab_test = get_object_or_404(LabTest, id=lab_test_id)
+            
+            try:
+                Bill.objects.create(
+                    patient=patient,
+                    consultation=consultation,
+                    clinic=clinic,
+                    total_amount=lab_test.price,
+                    is_paid=False,
+                    created_at=timezone.now(),
+                )
+            except Exception as e:
+                messages.error(request, f"Error creating bill for {lab_test.name}: {str(e)}")
+                
             LabQueue.objects.create(
                 clinic=clinic,
                 patient=patient,
@@ -286,7 +300,7 @@ def send_to_lab(request, consultation_id):
             status__in=["waiting", "in_progress"]
         ).update(status="inlab")
 
-        messages.success(request, f"✅ {patient.name} has been sent to the lab for selected tests.")
+        messages.success(request, f"✅ {patient.name} has been sent to the lab for selected tests successfully, with billing generated.")
         return redirect('doctor_detail', pk=consultation.doctor.id)
 
     # Fallback for GET requests

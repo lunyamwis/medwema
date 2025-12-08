@@ -48,6 +48,7 @@ class Item(models.Model):
     unit = models.CharField(max_length=50, default='pcs')
     barcode = models.CharField(max_length=128, blank=True, null=True, db_index=True)
     reorder_level = models.PositiveIntegerField(default=10)
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     preferred_supplier = models.ForeignKey(Supplier, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     history = HistoricalRecords()
