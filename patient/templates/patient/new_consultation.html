@@ -5,6 +5,7 @@
 <div class="container mt-4">
   <h3>New Consultation for {{ patient.name }}</h3>
   <p>Incase you want to send this patient to the lab please <a href="{% url 'doctor_detail' patient.doctor.id %}">click here</a> after finishing to fill in the most necessary fields in the consultation form. Thank you.</p>
+  
   <form method="post">
     {% csrf_token %}
     <div class="accordion" id="consultationAccordion">
@@ -129,11 +130,12 @@
     </div>
   </form>
 </div>
-<h1>Speech Consultation Recorder</h1>
-
+<p>For faster documentation, you can use the speech consultation recorder below.</p>
+<h4>Speech Consultation Recorder</h4>
 <p class="hints"></p>
 <div class="output"></div>
-<button class="start">Start recognition</button>
+<button class="start btn-secondary btn-sm">Start recognition</button>
+<hr>
 {% block extra_scripts %}
 <script>
 let fullTranscript = '';  // Accumulate speech here
