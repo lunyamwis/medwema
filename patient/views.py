@@ -1,4 +1,7 @@
 # patient/views.py
+import json
+import os
+from openai import OpenAI
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import transaction
 from django.core.paginator import Paginator
@@ -15,6 +18,65 @@ from billing.models import Bill, Payment
 from weasyprint import HTML
 
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+
+client = OpenAI()
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def speech_to_consultation(request, patient_id):
+    """
+    Endpoint to convert speech text to consultation notes using OpenAI.
+    Expects JSON payload with 'transcript' field.
+    """
+    data = json.loads(request.body)
+    transcript = data.get('transcript', '')
+
+    if not transcript:
+        return JsonResponse({'error': 'Transcript is required'}, status=400)
+
+    with open('consultation_schema.json', 'r') as f:
+        schema_above = json.load(f)
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": f"Extract consultation data from speech transcript into JSON schema. Only return valid JSON matching this exact schema:{json.dumps(schema_above)}. Focus on medical details from speech."},
+                {"role": "user", "content": f"Extract from: {transcript}"}
+            ],
+            temperature=0.1,
+            response_format={"type": "json_object"}  # Ensure the response is in JSON object format
+        )
+
+        consultation_data = json.loads(response.choices[0].message.content)
+        print(f"Extracted consultation data: {consultation_data}")
+        patient = get_object_or_404(Patient, id=patient_id)
+        doctor = patient.doctor
+        consultation = None
+        try:
+            consultation = Consultation.objects.create(**consultation_data.get('clinical_details', {}),
+                **consultation_data.get('vitals', {}),
+                **consultation_data.get('examinations', {}),
+                **consultation_data.get('investigations', {}),
+                **consultation_data.get('diagnosis_management', {}),
+                patient=patient,
+                doctor=doctor
+            )
+            print("Consultation created successfully.")
+        except Exception as e:
+            print("Error creating consultation:", e)
+        
+        return JsonResponse({
+            'success': True,
+            'consultation_id': consultation.id if consultation else None,
+            'message': 'Consultation created from speech'
+        })
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
 
 def new_consultation(request, patient_id):
     patient = get_object_or_404(Patient, id=patient_id)

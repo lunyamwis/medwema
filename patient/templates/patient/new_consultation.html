@@ -129,74 +129,91 @@
     </div>
   </form>
 </div>
-<h1>Speech color changer</h1>
+<h1>Speech Consultation Recorder</h1>
 
 <p class="hints"></p>
-
+<div class="output"></div>
 <button class="start">Start recognition</button>
-<p>
-  Enter some text in the input below and press return or the "play" button
-  to hear it. change voices using the dropdown menu.
-</p>
-
-<p class="output"><em>...diagnostic messages</em></p>
-
-<button id="btnLoad">Load Voices (user gesture required in some browsers)</button>
-<a href="{% url 'pipeline_notification' %}">Notify</a>
 {% block extra_scripts %}
-  <script>
-    // Custom JavaScript can be added here
-    var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-    var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
-    var colors = ['red', 'blue', 'green', 'orange', 'purple'];
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
+<script>
+let fullTranscript = '';  // Accumulate speech here
 
-    const diagnostic = document.querySelector(".output");
-    const bg = document.querySelector("html");
-    const hints = document.querySelector(".hints");
-    const startBtn = document.querySelector(".start");
+var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+var recognition = new SpeechRecognition();
+recognition.continuous = true;
+recognition.interimResults = true;
+recognition.lang = 'en-US';
+
+const diagnostic = document.querySelector(".output");
+const startBtn = document.querySelector(".start");
+const patientId = "{{ patient.id }}";
+
+// Accumulate ALL speech during session
+recognition.onresult = function(event) {
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+            fullTranscript += ' ' + transcript;
+            diagnostic.textContent = `Listening... (${fullTranscript.length} chars)`;
+        }
+    }
+};
+
+// START button
+startBtn.onclick = function() {
+    fullTranscript = '';  // Reset transcript
+    recognition.start();
+    startBtn.textContent = 'Listening... 🔴';
+    startBtn.disabled = true;
     
-    let colorHTML = "";
-    colors.forEach(function(color) {
-      colorHTML += `<span style="background-color:${color};">${color}</span> `;
-    });
-    hints.innerHTML = `Click the "Start" button and say a color to change the background color of the app. Try saying: ${colorHTML}`;
-    startBtn.onclick = function() {
-      recognition.start();
-      console.log("Ready to receive a color command.");
-    };
-    recognition.onresult = function(event) {
-      const color = event.results[0][0].transcript.toLowerCase().trim();
-      diagnostic.textContent = `Result received: ${color}.`;
-      if (colors.includes(color)) {
-        bg.style.backgroundColor = color;
-        diagnostic.textContent += `\nBackground color changed to ${color}!`;
-      } else {
-        diagnostic.textContent += `\nColor not recognized. Please try again.`;
-      }
-      console.log(`Confidence: ${event.results[0][0].confidence}`);
-    };
-    recognition.onspeechend = function() {
-      recognition.stop();
-    };
-    recognition.onerror = function(event) {
-      diagnostic.textContent = `Error occurred in recognition: ${event.error}`;
-    };
+    // Create STOP button
+    const stopBtn = document.createElement('button');
+    stopBtn.textContent = 'STOP & SAVE';
+    stopBtn.style.marginLeft = '10px';
+    stopBtn.style.background = '#ff4444';
+    stopBtn.style.color = 'white';
+    stopBtn.onclick = stopAndSave;
+    startBtn.parentNode.appendChild(stopBtn);
+};
 
-
-    const inputTxt = document.querySelector(".txt");
-    const voiceSelect = document.querySelector("select");
-
-    const pitch = document.querySelector("#pitch");
-    const pitchValue = document.querySelector(".pitch-value");
-    const rate = document.querySelector("#rate");
-    const rateValue = document.querySelector(".rate-value");
-
+// STOP button - ONLY HERE send to Django
+async function stopAndSave() {
+    recognition.stop();
     
-  </script>
+    if (fullTranscript.trim()) {
+        diagnostic.textContent = 'Saving consultation...';
+
+        const response = await fetch(`/patients/speech-to-consultation/${patientId}/`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({transcript: fullTranscript.trim()})
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            diagnostic.textContent = `✅ Consultation saved! ID: ${result.consultation_id}`;
+        } else {
+            diagnostic.textContent = `❌ Error: ${result.error}`;
+        }
+    } else {
+        diagnostic.textContent = 'No speech recorded.';
+    }
+    
+    // Reset UI
+    startBtn.textContent = 'Start';
+    startBtn.disabled = false;
+    document.querySelector('button[style*="ff4444"]').remove();
+}
+
+// Auto-stop on error/silence
+recognition.onspeechend = function() {
+    // Don't auto-restart - wait for STOP
+};
+recognition.onerror = function(event) {
+    diagnostic.textContent = `Error: ${event.error}`;
+};
+
+</script>
+  
 {% endblock %}
 {% endblock %}

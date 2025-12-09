@@ -1,0 +1,74 @@
+{
+  "properties": {
+    "clinical_details": {
+      "type": "object",
+      "properties": {
+        "chief_complaints": {"type": ["string", "null"]},
+        "history_of_presenting_illness": {"type": ["string", "null"]},
+        "past_medical_history": {"type": ["string", "null"]},
+        "past_surgical_history": {"type": ["string", "null"]},
+        "drug_allergies": {"type": ["string", "null"]},
+        "current_medication": {"type": ["string", "null"]},
+        "comorbid_factors": {"type": ["string", "null"]},
+        "sexual_history": {"type": ["string", "null"]},
+        "family_planning_history": {"type": ["string", "null"]},
+        "vaccination_history": {"type": ["string", "null"]}
+      }
+    },
+    
+    "vitals": {
+      "type": "object",
+      "properties": {
+        "temperature": {"type": ["number", "null"]},
+        "blood_pressure": {"type": ["string", "null"]},
+        "pulse": {"type": ["integer", "null"]},
+        "spo2": {"type": ["number", "null"]},
+        "respiration_rate": {"type": ["integer", "null"]},
+        "weight": {"type": ["number", "null"]}
+      }
+    },
+    
+    "examinations": {
+      "type": "object",
+      "properties": {
+        "general_examination": {"type": ["string", "null"]},
+        "heent": {"type": ["string", "null"], "maxLength": 100},
+        "cns": {"type": ["string", "null"], "maxLength": 100},
+        "pa": {"type": ["string", "null"], "maxLength": 100},
+        "mss": {"type": ["string", "null"], "maxLength": 100},
+        "rr": {"type": ["string", "null"], "maxLength": 100},
+        "cvs": {"type": ["string", "null"], "maxLength": 100}
+      }
+    },
+    
+    "investigations": {
+      "type": "object",
+      "properties": {
+        "imaging": {
+          "type": "string",
+          "enum": ["ultrasound", "chest_xray", "mri", "ctscan", "colonoscopy", "endoscopy", "barium_meal", "none"]
+        },
+        "image_findings": {"type": ["string", "null"]},
+        "laboratory": {
+          "type": "string",
+          "enum": ["blood_test", "swab_test", "sputum_test", "urine_test", "stool_test", "high_vaginal_swab", "spermatozoa_test", "ophthalmology_test", "none"]
+        },
+        "lab_findings": {"type": ["string", "null"]}
+      }
+    },
+    
+    "diagnosis_management": {
+      "type": "object",
+      "properties": {
+        "diagnosis": {"type": ["string", "null"]},
+        "management": {
+          "type": "string",
+          "enum": ["supportive", "preventive", "counseling", "referral"]
+        },
+        "medication": {"type": ["string", "null"]},
+        "return_date": {"type": ["string", "null"], "format": "date"}
+      }
+    }
+  },
+  "required": ["clinical_details"]
+}
