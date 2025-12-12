@@ -46,3 +46,4 @@ requests==2.32.5
 daphne==4.2.1
 channels==4.1.0
 django-webpush==0.3.6
+openai==2.9.0
