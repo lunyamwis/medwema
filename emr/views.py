@@ -273,14 +273,14 @@ def send_to_lab(request, consultation_id):
             lab_test = get_object_or_404(LabTest, id=lab_test_id)
             
             try:
-                Bill.objects.create(
-                    patient=patient,
+                bill, created_bill = Bill.objects.get_or_create(
                     consultation=consultation,
-                    clinic=clinic,
-                    total_amount=lab_test.price,
-                    is_paid=False,
-                    created_at=timezone.now(),
+                    defaults={'patient': patient, 'clinic': clinic}
                 )
+                bill.total_amount += lab_test.price
+                bill.is_paid = False
+                bill.save()
+                
             except Exception as e:
                 messages.error(request, f"Error creating bill for {lab_test.name}: {str(e)}")
                 

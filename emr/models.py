@@ -63,8 +63,8 @@ class LabResult(models.Model):
     lab_test = models.ForeignKey(LabTest, on_delete=models.CASCADE, null=True, blank=True)
     consultation = models.ForeignKey(Consultation, on_delete=models.CASCADE, null=True, blank=True)
     result_name = models.CharField(max_length=100, null=True, blank=True)
-    result_value = models.CharField(max_length=100)
-    result_date = models.DateTimeField(auto_now_add=True)
+    result_value = models.TextField(null=True, blank=True)
+    result_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.consultation} - {self.lab_test}"

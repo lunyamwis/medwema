@@ -73,7 +73,7 @@ class Consultation(models.Model):
 
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="consultations")
     doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, blank=True)
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(default=timezone.now)
 
     # Clinical details
     chief_complaints = models.TextField(blank=True, null=True)
@@ -118,6 +118,7 @@ class Consultation(models.Model):
     sexual_history = models.TextField(blank=True, null=True)
     family_planning_history = models.TextField(blank=True, null=True)
     vaccination_history = models.TextField(blank=True, null=True)
+    labor_charges = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"Consultation for {self.patient.name} on {self.date.strftime('%Y-%m-%d')}"

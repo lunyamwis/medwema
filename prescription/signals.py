@@ -17,38 +17,38 @@ def prescription_post_save(sender, instance, created, **kwargs):
     # create consumption record and adjust stock (choose proper stock location)
     # get preferred stock (example: Pharmacy)
     default_loc = Stock.objects.filter(item=item).first()
-    with transaction.atomic():
-        if default_loc:
-            # subtract stock
-            default_loc.quantity = default_loc.quantity - qty
-            default_loc.save()
-            StockMovement.objects.create(
-                item=item,
-                quantity=qty,
-                from_location=default_loc.location,
-                to_location=None,
-                movement_type='OUT',
-                reference=f'PRESC-{consultation.id}',
-                created_by=instance.prescribed_by
-            )
-            ConsumptionRecord.objects.create(
-                consultation=consultation,
-                from_stock=default_loc,
-                item=item,
-                quantity=qty,
-                used_by=instance.prescribed_by
-            )
-        # create or update bill
-        bill, created_bill = Bill.objects.get_or_create(
-            consultation=consultation,
-            defaults={'patient':consultation.patient, 'clinic': consultation.patient.clinic, 'total_amount':0}
-        )
-        unit_price = item.unit_price if hasattr(item,'unit_price') else 0
-        bi = BillItem.objects.create(
-            bill=bill,
-            description=item.name,
+    if default_loc:
+        # subtract stock
+        default_loc.quantity = default_loc.quantity - qty
+        default_loc.save()
+        StockMovement.objects.create(
+            item=item,
             quantity=qty,
-            unit_price=unit_price
+            from_location=default_loc.location,
+            to_location=None,
+            movement_type='OUT',
+            reference=f'PRESC-{consultation.id}',
+            created_by=instance.prescribed_by
         )
-        bill.total_amount += bi.total
-        bill.save()
+        ConsumptionRecord.objects.create(
+            consultation=consultation,
+            from_stock=default_loc,
+            item=item,
+            quantity=qty,
+            used_by=instance.prescribed_by
+        )
+    # create or update bill
+    # import pdb;pdb.set_trace()
+    bill, created_bill = Bill.objects.get_or_create(
+        consultation=consultation,
+        defaults={'patient':consultation.patient, 'clinic': consultation.patient.clinic}
+    )
+    unit_price = item.price
+    bi = BillItem.objects.create(
+        bill=bill,
+        description=item.name,
+        quantity=qty,
+        unit_price=unit_price
+    )
+    bill.total_amount += item.price
+    bill.save()
