@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.shortcuts import redirect
 import requests
 from django.utils.timezone import now
+from .utils import get_last_n_subaccount_transactions, get_transaction_by_reference
 from .models import Bill, Payment
 
 PAYSTACK_SECRET_KEY = settings.PAYSTACK_SECRET_KEY
@@ -20,16 +21,16 @@ PAYSTACK_BASE_URL = "https://api.paystack.co"
 
 def billing_dashboard(request):
     today = now().date()
-    unpaid_bills = Bill.objects.filter(is_paid=False)
-    total_revenue_today = (
-        Bill.objects.filter(is_paid=True, created_at__date=today)
-        .aggregate(Sum("total_amount"))["total_amount__sum"]
-        or 0
-    )
+    bills = Bill.objects.filter()
+    last_3_bills = Bill.objects.filter(is_paid=True).order_by('-created_at')[:3]
+
+    # Calculate total revenue for these last 3 bills
+    total_revenue_last_3 = last_3_bills.aggregate(total=Sum("total_amount"))["total"] or 0
+
     return render(
         request,
         "billing/dashboard.html",
-        {"unpaid_bills": unpaid_bills, "total_revenue_today": total_revenue_today},
+        {"bills": bills},
     )
 
 
@@ -110,21 +111,40 @@ def initiate_payment(request, bill_id):
 
 @csrf_exempt
 def paystack_webhook(request):
-    payload = json.loads(request.body)
-    event = payload.get("event")
-    if event == "charge.success":
-        reference = payload["data"]["reference"]
-        amount = Decimal(payload["data"]["amount"]) / 100
+    # import pdb; pdb.set_trace()
+    reference_id = request.GET.get("trxref")
+    txn = get_transaction_by_reference(reference_id)
+
+    if txn and txn['status'] == 'success':
         try:
-            payment = Payment.objects.get(reference=reference)
+            payment = Payment.objects.get(reference=reference_id)
             payment.status = "success"
             payment.paid_at = timezone.now()
-            payment.paystack_response = payload
             payment.save()
             payment.bill.is_paid = True
             payment.bill.save()
         except Payment.DoesNotExist:
             pass
-    return JsonResponse({"status": "ok"})
+    return redirect("billing_dashboard")
 
 
+
+def transactions_view(request):
+    clinic_subaccount_code = request.user.clinics.last().paystack_subaccount_id  # replace with your clinic object if dynamic
+    transactions = get_last_n_subaccount_transactions(clinic_subaccount_code, n=6)
+
+    # Format transactions for the template
+    formatted_txns = []
+    for tx in transactions:
+        formatted_txns.append({
+            "reference": tx["reference"],
+            "status": tx["status"].capitalize(),
+            "amount": tx["amount"] / 100,  # Paystack amounts are in the smallest currency unit
+            "currency": tx["currency"],
+            "paid_at": tx.get("paid_at") or tx.get("paidAt"),
+            "gateway": tx.get("gateway_response") or "-",
+            "customer_name": f"{tx['customer']['first_name']} {tx['customer']['last_name']}" if tx.get("customer") else "-",
+            "channel": tx.get("channel"),
+        })
+
+    return render(request, "billing/transactions.html", {"transactions": formatted_txns})

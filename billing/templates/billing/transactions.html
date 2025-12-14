@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <a href="/billing/" class="btn btn-outline-secondary mb-3">Back to Dashboard</a>
+  <h2 class="mb-4 text-primary fw-bold">Recent Transactions</h2>
+
+  {% if transactions %}
+  <div class="table-responsive">
+    <table class="table table-hover table-striped align-middle">
+      <thead class="table-primary">
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Reference</th>
+          <th scope="col">Status</th>
+          <th scope="col">Amount (KES)</th>
+          <th scope="col">Customer</th>
+          <th scope="col">Paid At</th>
+          <th scope="col">Channel</th>
+          <th scope="col">Gateway Response</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in transactions %}
+        <tr>
+          <th scope="row">{{ forloop.counter }}</th>
+          <td>{{ tx.reference }}</td>
+          <td>
+            {% if tx.status == "Success" %}
+            <span class="badge bg-success">{{ tx.status }}</span>
+            {% elif tx.status == "Failed" %}
+            <span class="badge bg-danger">{{ tx.status }}</span>
+            {% elif tx.status == "Abandoned" %}
+            <span class="badge bg-warning text-dark">{{ tx.status }}</span>
+            {% else %}
+            <span class="badge bg-secondary">{{ tx.status }}</span>
+            {% endif %}
+          </td>
+          <td>{{ tx.amount }}</td>
+          <td>{{ tx.customer_name }}</td>
+          <td>{{ tx.paid_at|default:"Pending" }}</td>
+          <td>{{ tx.channel|default:"-" }}</td>
+          <td>{{ tx.gateway }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted">No transactions found.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

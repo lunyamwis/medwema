@@ -12,4 +12,6 @@ urlpatterns = [
     path("revenue/", views.revenue_report, name="revenue_report"),
     path("initiate/<int:bill_id>/", views.initiate_payment, name="initiate_payment"),
     path("paystack/callback/", views.paystack_webhook, name="paystack_webhook"),
+    path("transactions/", views.transactions_view, name="transactions_view"),
+
 ]
