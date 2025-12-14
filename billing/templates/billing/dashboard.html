@@ -12,8 +12,8 @@
       <td>{{ bill.patient.name }}</td>
     <td>{{ bill.total_amount }}</td>
     <td>
-      <a href="{% url 'initiate_payment' bill.id %}" class="btn btn-sm btn-primary">Pay</a>
       {% if not bill.is_paid %}
+      <a href="{% url 'initiate_payment' bill.id %}" class="btn btn-sm btn-primary">Pay</a>
       <a href="{% url 'mark_bill_paid' bill.id %}" class="btn btn-sm btn-success">
           Mark as Paid
       </a>
