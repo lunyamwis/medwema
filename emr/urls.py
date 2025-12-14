@@ -15,4 +15,6 @@ urlpatterns = [
     path('ajax/consultation-search/', views.ajax_consultation_search, name='ajax_consultation_search'),
     path('ajax/labtest-search/', views.ajax_labtest_search, name='ajax_labtest_search'),
     path('api/lab-queue-count/', views.lab_queue_count_api, name='lab_queue_count_api'),
+    path("consultations/search/", views.consultation_search, name="consultation_search"),
+
 ]

@@ -4,11 +4,32 @@
 {% block content %}
 <div class="container mt-4">
   <h3 class="mb-3">Add Lab Results</h3>
+  <div class="col-md-12">
+    <label class="form-label fw-semibold">Consultation</label>
+
+    <!-- Custom dropdown -->
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary w-100 dropdown-toggle consultation-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Select Consultation
+      </button>
+      <input
+        type="text"
+        id="consultation-search"
+        class="form-control"
+        placeholder="Search patient..."
+      >
+
+      <ul id="consultation-results" class="dropdown-menu show"></ul>
+
+    </div>
+
+    
+  </div>
 
   <form method="post" id="lab-results-form">
     {% csrf_token %}
     {{ formset.management_form }}
-
+    <input type="hidden" name="consultation_id" id="consultation-id">
     <div id="formset-container">
       {% for form in formset %}
       <div class="formset-item border rounded p-3 mb-3 shadow-sm position-relative">
@@ -23,34 +44,9 @@
 
         <div class="row g-3">
           <!-- Consultation -->
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">Consultation</label>
-
-            <!-- Custom dropdown -->
-            <div class="dropdown">
-              <button class="btn btn-outline-secondary w-100 dropdown-toggle consultation-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Select Consultation
-              </button>
-              <ul class="dropdown-menu w-100 p-2">
-                <input type="text" class="form-control mb-2 consultation-search" placeholder="Search Consultation...">
-                {% for c in consultations %}
-                <li>
-                  <a class="dropdown-item consultation-option" data-value="{{ c.id }}">
-                    {{ c.patient.name }} (ID: {{ c.date }})
-                  </a>
-                </li>
-                {% endfor %}
-              </ul>
-            </div>
-
-            <!-- Hidden Django field -->
-            <div class="d-none">
-              {{ form.consultation }}
-            </div>
-          </div>
-
+          
           <!-- Lab Test -->
-          <div class="col-md-6">
+          <div class="col-md-12">
             <label class="form-label fw-semibold">Lab Test</label>
 
             <div class="dropdown">
@@ -102,6 +98,39 @@ document.addEventListener("DOMContentLoaded", function() {
   const formContainer = document.getElementById("formset-container");
   const totalForms = document.getElementById("id_form-TOTAL_FORMS");
   const addFormBtn = document.getElementById("add-form");
+  const input = document.getElementById("consultation-search");
+  const results = document.getElementById("consultation-results");
+  const consultationHidden = document.getElementById("consultation-id");
+  const consultationBtn = document.querySelector(".consultation-btn");
+
+  input.addEventListener("input", async () => {
+    const q = input.value.trim();
+    if (q.length < 2) {
+      results.innerHTML = "";
+      return;
+    }
+
+    const res = await fetch(`/emr/consultations/search/?q=${encodeURIComponent(q)}`);
+    const data = await res.json();
+
+    results.innerHTML = data.map(item => `
+      <li>
+        <a class="dropdown-item consultation-option" data-id="${item.id}">
+          ${item.label}
+        </a>
+      </li>
+    `).join("");
+  });
+
+  results.addEventListener("click", e => {
+    if (!e.target.classList.contains("consultation-option")) return;
+
+    e.preventDefault();
+    consultationHidden.value = e.target.dataset.id;
+    consultationBtn.textContent = e.target.textContent.trim();
+    results.innerHTML = "";
+    console.log(e.target);
+  });
 
   // Reindex forms
   function reindexForms() {
@@ -149,15 +178,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // Dropdown selections
   document.addEventListener("click", function(e) {
-    if (e.target.classList.contains("consultation-option")) {
-      const dropdown = e.target.closest(".dropdown");
-      const btn = dropdown.querySelector(".consultation-btn");
-      const hiddenSelect = dropdown.closest(".formset-item").querySelector('[name$="-consultation"]');
-      btn.textContent = e.target.textContent.trim();
-      hiddenSelect.value = e.target.dataset.value;
-      bootstrap.Dropdown.getInstance(btn)?.hide();
-    }
-
     if (e.target.classList.contains("labtest-option")) {
       const dropdown = e.target.closest(".dropdown");
       const btn = dropdown.querySelector(".labtest-btn");
@@ -170,11 +190,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
   // Search filtering
   document.addEventListener("input", function(e) {
-    if (e.target.classList.contains("consultation-search")) {
-      const term = e.target.value.toLowerCase();
-      const options = e.target.closest("ul").querySelectorAll(".consultation-option");
-      options.forEach(opt => opt.style.display = opt.textContent.toLowerCase().includes(term) ? "" : "none");
-    }
     if (e.target.classList.contains("labtest-search")) {
       const term = e.target.value.toLowerCase();
       const options = e.target.closest("ul").querySelectorAll(".labtest-option");

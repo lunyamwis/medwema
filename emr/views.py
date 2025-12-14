@@ -51,14 +51,17 @@ def ajax_labtest_search(request):
 
 
 def add_lab_result(request):
-    consultations = Consultation.objects.all()
+    consultations = Consultation.objects.all()[0:3]
     lab_tests = LabTest.objects.filter(lab__lab_type="Internal")
+    consultation_id = request.POST.get("consultation_id")
+    consultation = Consultation.objects.get(id=consultation_id) if consultation_id else None
     LabResultFormSet = modelformset_factory(LabResult, form=LabResultForm, extra=1, can_delete=True)
     if request.method == 'POST':
         formset = LabResultFormSet(request.POST)
         if formset.is_valid():
             instances = formset.save(commit=False)
             for instance in instances:
+                instance.consultation = consultation
                 instance.performed_by = request.user
                 instance.save()
 
@@ -69,6 +72,27 @@ def add_lab_result(request):
 
     return render(request, 'emr/add_result.html', {'formset': formset, 'consultations': consultations, 'lab_tests': lab_tests})
 
+
+
+def consultation_search(request):
+    q = request.GET.get("q", "")
+
+    consultations = (
+        Consultation.objects
+        .select_related("patient")
+        .filter(patient__name__icontains=q)
+        .only("id", "date", "patient__name")[:20]
+    )
+
+    data = [
+        {
+            "id": c.id,
+            "label": f"{c.patient.name} ({c.date})"
+        }
+        for c in consultations
+    ]
+
+    return JsonResponse(data, safe=False)
 
 
 def edit_lab_results(request, consultation_id):

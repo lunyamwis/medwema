@@ -75,7 +75,7 @@
                   <td>{{ row.last_test|date:"M d, Y H:i" }}</td>
                   <td class="text-end">
                     {% if row.consultation_id %}
-                      <a href="{% url 'view_lab_results' row.consultation_id %}" class="btn btn-sm btn-outline-success">👁️ View</a>
+                      <!-- <a href="{% url 'view_lab_results' row.consultation_id %}" class="btn btn-sm btn-outline-success">👁️ View</a> -->
                       <!-- <a href="{% url 'edit_lab_results' row.consultation_id %}" class="btn btn-sm btn-outline-primary">✏️ Edit</a> -->
                       <a href="{% url 'print_lab_results' row.consultation_id %}" target="_blank" class="btn btn-sm btn-outline-secondary">🖨️ Print</a>
                     {% else %}

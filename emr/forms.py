@@ -21,10 +21,9 @@ class ConsultationWidget(ModelSelect2Widget):
 class LabResultForm(forms.ModelForm):
     class Meta:
         model = LabResult
-        fields = ['lab_test', 'consultation', 'result_name', 'result_value']
+        fields = ['lab_test', 'result_name', 'result_value']
         widgets = {
             'lab_test': forms.Select(attrs={'class': 'form-select'}),
-            'consultation': forms.Select(attrs={'class': 'form-select'}),
             'result_value': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 6.5 mmol/L'}),
             'result_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Blood Glucose'}),
         }
@@ -32,7 +31,7 @@ class LabResultForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Mark these as optional for add forms
-        self.fields['consultation'].required = False
+        # self.fields['consultation'].required = False
         self.fields['lab_test'].required = False
         self.fields['result_name'].required = False
         self.fields['result_value'].required = False
