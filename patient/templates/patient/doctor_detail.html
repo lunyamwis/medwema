@@ -38,8 +38,8 @@
 </style>
 <button id="enable-notifications" class="btn btn-sm btn-outline-primary mb-3">
     Enable Lab Alerts 🔔
-  </button>
-
+  </button> ||
+<a href="{% url 'pipeline_notification' %}" class="btn btn-sm btn-outline-secondary">Call Next Patient In</a>
 
   <audio id="notification-sound" src="{% static 'sounds/notification-ding-dong-432437.mp3' %}" preload="auto"></audio>
 
