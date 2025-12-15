@@ -60,7 +60,7 @@ def add_lab_result(request):
         formset = LabResultFormSet(request.POST)
         if formset.is_valid():
             instances = formset.save(commit=False)
-            consultation.lab_findings = str([f"{x.result_name}: {x.result_value}" for x in instances])
+            consultation.lab_findings = str([f"{x.lab_test.name}=> {x.result_name}: {x.result_value}" for x in instances])
             consultation.save()
             for instance in instances:
                 instance.consultation = consultation
