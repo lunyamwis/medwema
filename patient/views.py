@@ -290,24 +290,24 @@ def add_to_queue(request, doctor_id, patient_id):
         consultation_fee = 1300  # second time or more
 
     # Wrap billing + queue addition in a transaction
-    with transaction.atomic():
-        # Create a Bill, set consultation=None if not available yet
-        bill = Bill.objects.create(
-            patient=patient,
-            consultation=None,  # No consultation linked yet
-            clinic=patient.clinic,
-            total_amount=consultation_fee,
-            is_paid=False
-        )
+    # with transaction.atomic():
+    # Create a Bill, set consultation=None if not available yet
+    Bill.objects.create(
+        patient=patient,
+        consultation=None,  # No consultation linked yet
+        clinic=patient.clinic,
+        total_amount=consultation_fee,
+        is_paid=False
+    )
 
-        # Add patient to the queue
-        next_number = Queue.objects.filter(doctor=doctor).count() + 1
-        Queue.objects.create(
-            doctor=doctor,
-            patient=patient,
-            queue_number=next_number,
-            clinic=patient.clinic
-        )
+    # Add patient to the queue
+    next_number = Queue.objects.filter(doctor=doctor).count() + 1
+    Queue.objects.create(
+        doctor=doctor,
+        patient=patient,
+        queue_number=next_number,
+        clinic=patient.clinic
+    )
 
     messages.success(
         request,

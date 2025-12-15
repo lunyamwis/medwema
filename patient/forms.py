@@ -45,7 +45,8 @@ class ConsultationForm(forms.ModelForm):
             **{f: forms.TextInput(attrs={'class': 'form-control'}) for f in [
                 'blood_pressure', 'temperature', 'pulse', 'spo2', 'respiration_rate', 'weight'
             ]},
-            'labor_charges': forms.TextInput(attrs={'class': 'form-control'})
+            'labor_charges': forms.TextInput(attrs={'class': 'form-control'}),
+            'lab_findings': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
