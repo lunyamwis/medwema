@@ -7,7 +7,7 @@ from .models import LabResult, LabTest, Lab, LabQueue
 @admin.register(LabTest)
 class LabTestAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "unit", "price", )
-    list_filter = ("created_at")
+    list_filter = ("created_at",)
     search_fields = ("name",)
 admin.site.register(LabResult)
 admin.site.register(Lab)
