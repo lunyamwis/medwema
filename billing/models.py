@@ -57,6 +57,7 @@ class Payment(models.Model):
     paid_at = models.DateTimeField(null=True, blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     paystack_response = models.JSONField(null=True, blank=True)
+    payment_method = models.CharField(max_length=50, default="CASH")  # e.g., ONLINE, CASH, CARD
 
     def __str__(self):
         return f"{self.reference} - {self.status}"

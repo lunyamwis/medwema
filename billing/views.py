@@ -56,7 +56,6 @@ def mark_bill_paid(request, pk):
         bill=bill,
         amount=bill.total_amount,
         payment_method="CASH",
-        paid_by=request.user,
     )
 
     bill.is_paid = True
