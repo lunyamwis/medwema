@@ -42,7 +42,7 @@ class Bill(models.Model):
 
 class Payment(models.Model):
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE, related_name="payments")
-    reference = models.CharField(max_length=100, unique=True)
+    reference = models.CharField(max_length=100, unique=False)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(
         max_length=20,
