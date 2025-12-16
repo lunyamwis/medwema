@@ -55,7 +55,7 @@ def mark_bill_paid(request, pk):
     Payment.objects.create(
         bill=bill,
         amount=bill.total_amount,
-        payment_method="CASH",
+        payment_method="CASH", # best with options  
     )
 
     bill.is_paid = True
