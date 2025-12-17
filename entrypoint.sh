@@ -27,10 +27,8 @@ celery -A setup beat --loglevel=info &
 
 sleep 5
 
-#echo "<<<<<<<<<<<<<<<<<<<< START setup >>>>>>>>>>>>>>>>>>>>>>>>"
-# python manage.py runserver
-# Start the setup with gunicorn
-#gunicorn --bind 0.0.0.0:8000 setup.wsgi --reload --access-logfile '-' --workers=2
+# Start Gunicorn WSGI
+gunicorn --bind 0.0.0.0:8000 setup.wsgi --workers=2 &
 
-echo "<<<<<<<< Start Daphne (ASGI) >>>>>>>>"
-daphne -b 0.0.0.0 -p 8000 setup.asgi:application
+# Start Daphne ASGI for WebSockets
+daphne -b 0.0.0.0 -p 8001 setup.asgi:application &
