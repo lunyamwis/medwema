@@ -1,5 +1,6 @@
 #!/bin/bash
-
+export DJANGO_SETTINGS_MODULE=setup.settings
+export PYTHONUNBUFFERED=1
 # source /root/.local/share/virtualenvs/brooks-insurance-*/bin/activate
 
 echo "<<<<<<<< Collect Staticfiles>>>>>>>>>"
@@ -31,4 +32,4 @@ sleep 5
 gunicorn --bind 0.0.0.0:8000 setup.wsgi --workers=2 &
 
 # Start Daphne ASGI for WebSockets
-daphne -b 0.0.0.0 -p 8001 setup.asgi:application 
+daphne -b 0.0.0.0 -p 8001 setup.asgi:application &
