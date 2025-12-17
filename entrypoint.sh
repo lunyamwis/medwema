@@ -34,4 +34,4 @@ sleep 5
 # Start Daphne ASGI for WebSockets
 #daphne -b 0.0.0.0 -p 8001 setup.asgi:application 
 
-python3 manage.py runserver
+python3 manage.py runserver 0.0.0.0:8000
