@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<textarea id="chat-log" cols="100" rows="20"></textarea><br>
+<input id="chat-message-input" type="text" size="100"><br>
+<input id="chat-message-submit" type="button" value="Send">
+{{ room_name|json_script:"room-name" }}
+    {% block extra_scripts %}
+<script>
+    const roomName = JSON.parse(
+        document.getElementById('room-name').textContent
+    );
+
+    const chatLog = document.getElementById('chat-log');
+    const messageInput = document.getElementById('chat-message-input');
+    const messageSubmit = document.getElementById('chat-message-submit');
+
+    const chatSocket = new WebSocket(
+        'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+    );
+
+    function appendMessage(sender, message, timestamp) {
+        const time = timestamp ? new Date(timestamp).toLocaleTimeString() : '';
+        chatLog.value += `[${time}] ${sender}: ${message}\n`;
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    chatSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+
+        // History load
+        if (data.type === "history") {
+            chatLog.value = '';
+            data.messages.forEach(msg => {
+                appendMessage(
+                    msg.sender,
+                    msg.content,
+                    msg.timestamp
+                );
+            });
+            return;
+        }
+
+        // Live message
+        if (data.type === "chat.message") {
+            appendMessage(
+                data.sender,
+                data.message,
+                data.timestamp
+            );
+        }
+    };
+
+    chatSocket.onclose = function () {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    messageInput.focus();
+    messageInput.onkeyup = function (e) {
+        if (e.key === 'Enter') {
+            messageSubmit.click();
+        }
+    };
+
+    messageSubmit.onclick = function () {
+        const message = messageInput.value.trim();
+        if (!message) return;
+
+        chatSocket.send(JSON.stringify({
+            message: message
+        }));
+
+        messageInput.value = '';
+    };
+</script>
+{% endblock %}
+{% endblock %}

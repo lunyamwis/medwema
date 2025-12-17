@@ -68,5 +68,29 @@
     <strong>Return Date</strong>
     <div>{{ consultation.return_date }}</div>
   </div>
+
+  <div class="section my-3">
+    <h5 class="mb-2"><strong>Prescription</strong></h5>
+
+    {% if consultation.prescription_set.exists %}
+      <ul class="list-group">
+        {% for prescription in consultation.prescription_set.all %}
+          <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start">
+            <div>
+              <span class="fw-bold">{{ forloop.counter }}. {{ prescription.item }}</span> - 
+              <span>{{ prescription.quantity }}</span>
+            </div>
+            <div class="text-muted small">
+              {{ prescription.prescribed_at|date:"M d, Y H:i" }}<br>
+              {{ prescription.instructions|default:"No instructions." }}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="alert alert-secondary py-2">No prescriptions.</div>
+    {% endif %}
+  </div>
+
 </body>
 </html>

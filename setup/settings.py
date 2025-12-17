@@ -77,12 +77,13 @@ INSTALLED_APPS = [
     'channels',
     'webpush',
     'notification',
+    'chat',
 ]
 
 WEBPUSH_SETTINGS = {
-    "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY"),
-    "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY"),
-    "VAPID_ADMIN_EMAIL": os.getenv("VAPID_ADMIN_EMAIL"),
+    "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY").strip(),
+    "VAPID_PRIVATE_KEY": os.getenv("VAPID_PRIVATE_KEY").strip(),
+    "VAPID_ADMIN_EMAIL": os.getenv("VAPID_ADMIN_EMAIL").strip(),
 }
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
@@ -142,11 +143,11 @@ WSGI_APPLICATION = 'setup.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_DBNAME'),
-        'USER': os.environ.get('POSTGRES_USERNAME'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': os.environ.get('POSTGRES_HOST'),
-        'PORT': os.environ.get('POSTGRES_PORT'),
+        'NAME': os.environ.get('POSTGRES_DBNAME').strip(),
+        'USER': os.environ.get('POSTGRES_USERNAME').strip(),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD').strip(),
+        'HOST': os.environ.get('POSTGRES_HOST').strip(),
+        'PORT': os.environ.get('POSTGRES_PORT').strip(),
     }
 }
 
@@ -203,15 +204,15 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD')
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER').strip()
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD').strip()
 
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 7  # 1 week
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 
 # Paystack config
-PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY')  # set in env or settings
+PAYSTACK_SECRET_KEY = os.getenv('PAYSTACK_SECRET_KEY').strip()  # set in env or setting.strip()s
 PAYSTACK_BASE_URL = 'https://api.paystack.co'
 
 CHANNEL_LAYERS = {

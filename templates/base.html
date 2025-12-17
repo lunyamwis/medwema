@@ -237,6 +237,12 @@
         <a href="{% url 'revenue_report' %}">Revenue Report</a>
       </div>
     </div>
+    <a data-bs-toggle="collapse" href="#chat"><i class="bi bi-chat-dots"></i> <span class="nav-text">Chat</span></a>
+    <div class="collapse" id="chat">
+      <div class="collapse-inner">
+        <a href="{% url 'chat_index' %}">Chat Dashboard</a>
+      </div>
+    </div>
     {% endif %}
     {% if user.is_superuser %}   
     <a data-bs-toggle="collapse" href="#doctorMenu"><i class="bi bi-heart-pulse"></i> <span class="nav-text">Doctors</span></a>

@@ -25,6 +25,7 @@ urlpatterns = [
     path("patients/", include("patient.urls")),
     path("", include("home.urls")),
     path('emr/', include('emr.urls')),
+    path('chat/',include('chat.urls')),
     path('select2/', include('django_select2.urls')),
     path('inventory/', include('inventory.urls')),
     path('billing/', include('billing.urls')),

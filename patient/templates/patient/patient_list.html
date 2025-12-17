@@ -81,6 +81,46 @@
                   <a href="{% url 'patient_edit' patient.id %}" class="btn btn-outline-primary btn-sm">
                     Edit
                   </a>
+                  <button type="button" class="btn btn-sm btn-outline-secondary"
+                          data-bs-toggle="modal"
+                          data-bs-target="#sendToLabModal"
+                          data-patient="{{ item.patient.name }}"
+                          data-consultation-id="{{ item.patient.consultations.last.id }}">
+                  🧾 Send to Lab
+                  </button>
+                  <div class="modal fade" id="sendToLabModal" tabindex="-1" aria-labelledby="sendToLabModalLabel" aria-hidden="true">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content rounded-4 shadow">
+                          <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="sendToLabModalLabel">🧪 Send to Lab</h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+
+                          <form method="post" action="{% url 'send_to_lab' 0 %}" id="sendToLabForm">
+                            <input type="hidden" name="patient_id" id="patient-id-field" value="{{ patient.id }}">
+                            {% csrf_token %}
+                            <div class="modal-body">
+                              <p class="text-muted">Select lab tests for <strong id="labPatientName"></strong>.</p>
+
+                              <!-- Search Input -->
+                              <input type="text" id="labSearchInput" class="form-control mb-2" placeholder="Search lab tests...">
+                              
+                              <!-- Dropdown -->
+                              <select name="lab_tests" id="labTestsDropdown" class="form-select" size="6" multiple required>
+                                {% for lab in lab_tests %}
+                                  <option value="{{ lab.id }}">{{ lab.name }}</option>
+                                {% endfor %}
+                              </select>
+                            </div>
+
+                            <div class="modal-footer">
+                              <button type="submit" class="btn btn-success w-100">Send to Lab</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+
                 </td>
               </tr>
             {% endfor %}
@@ -134,6 +174,40 @@
 
 <script src="{% url 'javascript-catalog' %}"></script>
 <script src="{% static 'js/service-worker.js' %}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const sendToLabModal = document.getElementById("sendToLabModal");
+  const sendToLabForm = document.getElementById("sendToLabForm");
+  const patientNameEl = document.getElementById("labPatientName");
+
+  sendToLabModal.addEventListener("show.bs.modal", (event) => {
+    const button = event.relatedTarget;
+    const patientName = button.getAttribute("data-patient");
+    const consultationId = 0;
+
+    // Update modal content
+    patientNameEl.textContent = patientName;
+
+    // Update form action dynamically
+    sendToLabForm.action = `{% url 'send_to_lab' 0 %}`.replace("0", consultationId);
+  });
+
+  // Optional: search inside dropdown
+  const searchInput = document.getElementById("labSearchInput");
+  const dropdown = document.getElementById("labTestsDropdown");
+
+  searchInput.addEventListener("input", function () {
+    const search = this.value.toLowerCase();
+    Array.from(dropdown.options).forEach(option => {
+      option.style.display = option.text.toLowerCase().includes(search) ? "" : "none";
+    });
+  });
+
+    
+});
+
+
+</script>
 <script>
 
 (async () => {

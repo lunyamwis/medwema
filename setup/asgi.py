@@ -4,6 +4,8 @@ from channels.auth import AuthMiddlewareStack
 from django.core.asgi import get_asgi_application
 from emr import routing
 from patient import routing as patient_routing
+from chat import routing as chat_routing
+
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_project.settings')
 
@@ -11,7 +13,7 @@ application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": AuthMiddlewareStack(
         URLRouter(
-            routing.websocket_urlpatterns + patient_routing.websocket_urlpatterns
+            routing.websocket_urlpatterns + patient_routing.websocket_urlpatterns + chat_routing.websocket_urlpatterns
         )
     ),
 })

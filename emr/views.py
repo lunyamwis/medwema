@@ -272,7 +272,17 @@ def complete_lab_test(request, queue_id):
 
 
 def send_to_lab(request, consultation_id):
-    consultation = get_object_or_404(Consultation, id=consultation_id)
+    consultation = None
+    if consultation_id == 0:
+        patient = get_object_or_404(Patient, id=request.POST.get("patient_id"))
+        consultations = Consultation.objects.filter(patient=patient)
+        if consultations.exists():
+            consultation = consultations.latest('date')
+        else:
+            consultation = Consultation.objects.create(patient=patient, doctor=patient.doctor, date=timezone.now(),chief_complaint="N/A")
+    else:
+        consultation = get_object_or_404(Consultation, id=consultation_id)
+    
     patient = consultation.patient
     clinic = patient.clinic
 

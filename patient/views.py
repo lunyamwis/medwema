@@ -195,7 +195,7 @@ def patient_queue_count_api(request):
 def patient_list(request):
     query = request.GET.get('q')
     page_number = request.GET.get('page')
-
+    lab_tests = LabTest.objects.all()
     # Filter by clinic and optional search term
     patients = Patient.objects.filter(clinic=request.user.clinics.last())
     if query:
@@ -210,6 +210,7 @@ def patient_list(request):
         'page_obj': page_obj,
         'query': query,
         'completed': completed,
+        'lab_tests': lab_tests,
     }
     return render(request, 'patient/patient_list.html', context)
 
