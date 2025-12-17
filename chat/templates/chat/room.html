@@ -14,9 +14,14 @@
     const messageInput = document.getElementById('chat-message-input');
     const messageSubmit = document.getElementById('chat-message-submit');
 
+    // Determine protocol automatically
+    const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+
+    // Build the WebSocket URL dynamically
     const chatSocket = new WebSocket(
-        'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
+        `${protocol}${window.location.host}/ws/chat/${encodeURIComponent(roomName)}/`
     );
+
 
     function appendMessage(sender, message, timestamp) {
         const time = timestamp ? new Date(timestamp).toLocaleTimeString() : '';
