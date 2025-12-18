@@ -75,9 +75,11 @@ def revenue_report(request):
         payments = payments.filter(paid_at__range=[start_date, end_date])
 
     total_revenue = payments.aggregate(Sum("amount"))["amount__sum"] or Decimal("0.00")
+    tithe = total_revenue * Decimal("0.10")
     return render(request, "billing/revenue_report.html", {
         "payments": payments,
         "total_revenue": total_revenue,
+        "tithe": tithe,
         "start_date": start_date,
         "end_date": end_date,
     })
