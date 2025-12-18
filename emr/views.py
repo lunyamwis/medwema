@@ -266,7 +266,7 @@ def complete_lab_test(request, queue_id):
         doctor_queue.status = "fromLab"
         doctor_queue.save()
     messages.success(request, f"Completed test for {queue_item.patient.name}.")
-    return redirect('lab_queue', lab_id=lab.id)
+    return redirect('lab_dashboard')
 
 
 
