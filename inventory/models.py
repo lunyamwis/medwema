@@ -54,6 +54,9 @@ class Item(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     history = HistoricalRecords()
 
+    class Meta:
+        ordering = ["name"]   # ✅ alphabetical A → Z
+
     def __str__(self):
         return f"{self.name} ({self.sku or 'no-sku'})"
 

@@ -39,10 +39,7 @@ def prescription_post_save(sender, instance, created, **kwargs):
         )
     # create or update bill
     # import pdb;pdb.set_trace()
-    bill, created_bill = Bill.objects.get_or_create(
-        consultation=consultation,
-        defaults={'patient':consultation.patient, 'clinic': consultation.patient.clinic}
-    )
+    bill = Bill.objects.filter(patient=consultation.patient,is_paid=False).latest('created_at')
     unit_price = item.price
     bi = BillItem.objects.create(
         bill=bill,

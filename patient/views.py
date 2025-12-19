@@ -348,10 +348,7 @@ def complete_consultation(request, queue_id):
     queue_item = get_object_or_404(Queue, id=queue_id)
     queue_item.complete()
     consultation = queue_item.patient.consultations.last()
-    bill, created_bill = Bill.objects.get_or_create(
-        consultation=consultation,
-        defaults={'patient':consultation.patient, 'clinic': consultation.patient.clinic}
-    )
+    bill = Bill.objects.filter(patient=consultation.patient,is_paid=False).latest('created_at')
     bill.total_amount += consultation.labor_charges or 0
     bill.is_paid = False
     bill.save()

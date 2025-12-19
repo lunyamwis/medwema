@@ -9,3 +9,6 @@ class Prescription(models.Model):
     prescribed_at = models.DateTimeField(auto_now_add=True)
     instructions = models.TextField(blank=True, null=True)
     dispensed = models.BooleanField(default=False)
+
+
+    

@@ -33,12 +33,30 @@
     <div class="center">Date: {{ bill.created_at|date:"Y-m-d H:i" }}</div>
     <hr />
     <div>Patient: {{ bill.patient.name }}</div>
-    <hr />
-    {% for item in bill.items.all %}
-      <div>
-        {{ item.description }} x{{ item.quantity }} - {{ item.total|floatformat:2 }}
-      </div>
+    <ul>
+      {% for prescription in bill.consultation.prescription_set.all %}
+      <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start">
+        <div>
+          <span class="fw-bold">{{ forloop.counter }}. {{ prescription.item }}</span> - 
+          <span>{{ prescription.quantity }}</span>
+        </div>
+        <div class="text-muted small">
+          {{ prescription.prescribed_at|date:"M d, Y H:i" }}<br>
+          {{ prescription.instructions|default:"No instructions." }}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    <hr/>
+    {% for lab_result in bill.consultation.labresult_set.all %}
+    <div>
+      {{lab_result.lab_test.name}}--{{lab_result.lab_test.price}}
+    </div>
     {% endfor %}
+    <hr/>
+    <hr>
+    <div>Doctors Charge: {{bill.consultation.labor_charges}}</div>
+    </body>
     <hr />
     <div class="bold">TOTAL: {{ bill.total_amount|floatformat:2 }}</div>
     <hr />

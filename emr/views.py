@@ -311,10 +311,7 @@ def send_to_lab(request, consultation_id):
             lab_test = get_object_or_404(LabTest, id=lab_test_id)
             
             try:
-                bill, created_bill = Bill.objects.get_or_create(
-                    consultation=consultation,
-                    defaults={'patient': patient, 'clinic': clinic}
-                )
+                bill = Bill.objects.filter(patient=patient,is_paid=False).latest('created_at')
                 bill.total_amount += lab_test.price
                 bill.is_paid = False
                 bill.save()
