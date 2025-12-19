@@ -44,6 +44,7 @@
           {{ prescription.prescribed_at|date:"M d, Y H:i" }}<br>
           {{ prescription.instructions|default:"No instructions." }}
         </div>
+        <div>Price: {{prescription.item.price}}</div>
       </li>
       {% endfor %}
     </ul>
