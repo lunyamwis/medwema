@@ -147,7 +147,7 @@ class Queue(models.Model):
 
     class Meta:
         ordering = ["created_at"]  # oldest first
-        unique_together = ("clinic", "doctor", "queue_number")  # avoid duplicate queue numbers
+        # unique_together = ("clinic", "doctor", "queue_number")  # avoid duplicate queue numbers
 
     def save(self, *args, **kwargs):
         if not self.queue_number:
