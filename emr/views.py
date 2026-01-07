@@ -279,7 +279,7 @@ def send_to_lab(request, consultation_id):
         if consultations.exists():
             consultation = consultations.latest('date')
         else:
-            consultation = Consultation.objects.create(patient=patient, doctor=patient.doctor, date=timezone.now(),chief_complaint="N/A")
+            consultation = Consultation.objects.create(patient=patient, doctor=patient.doctor, date=timezone.now(),chief_complaints="N/A")
     else:
         consultation = get_object_or_404(Consultation, id=consultation_id)
     
