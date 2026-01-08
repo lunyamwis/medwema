@@ -21,7 +21,7 @@ PAYSTACK_BASE_URL = "https://api.paystack.co"
 
 def billing_dashboard(request):
     today = now().date()
-    bills = Bill.objects.filter()
+    bills = Bill.objects.filter(is_paid=False)
     last_3_bills = Bill.objects.filter(is_paid=True).order_by('-created_at')[:3]
 
     # Calculate total revenue for these last 3 bills
