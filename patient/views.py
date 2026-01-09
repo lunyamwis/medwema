@@ -348,10 +348,13 @@ def complete_consultation(request, queue_id):
     queue_item = get_object_or_404(Queue, id=queue_id)
     queue_item.complete()
     consultation = queue_item.patient.consultations.last()
-    bill = Bill.objects.filter(patient=consultation.patient,is_paid=False).latest('created_at')
-    bill.total_amount += consultation.labor_charges or 0
-    bill.is_paid = False
-    bill.save()
+    try:
+        bill = Bill.objects.filter(patient=consultation.patient,is_paid=False).latest('created_at')
+        bill.total_amount += consultation.labor_charges or 0
+        bill.is_paid = False
+        bill.save()
+    except Exception as err:
+        print(f"Bill error: {err}")
     return redirect('doctor_detail', pk=queue_item.doctor.id)
 
 

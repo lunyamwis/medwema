@@ -28,7 +28,7 @@ def billing_dashboard(request):
     total_revenue_last_3 = last_3_bills.aggregate(total=Sum("total_amount"))["total"] or 0
 
     return render(
-        request,
+        request,                
         "billing/dashboard.html",
         {"bills": bills},
     )
