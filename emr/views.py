@@ -50,12 +50,19 @@ def ajax_labtest_search(request):
     return JsonResponse(results, safe=False)
 
 
-def add_lab_result(request):
+def add_lab_result(request, consultation_id):
     consultations = Consultation.objects.all()[0:3]
-    lab_tests = LabTest.objects.filter(lab__lab_type="Internal")
-    consultation_id = request.POST.get("consultation_id")
-    consultation = Consultation.objects.get(id=consultation_id) if consultation_id else None
-    LabResultFormSet = modelformset_factory(LabResult, form=LabResultForm, extra=1, can_delete=True)
+
+    consultation_id = consultation_id if consultation_id else request.POST.get("consultation_id")
+    # import pdb;pdb.set_trace()
+    consultation = None
+    if Consultation.objects.filter(id=consultation_id).exists():
+        consultation = Consultation.objects.get(id=consultation_id) if consultation_id else None
+    else:
+        consultation = get_object_or_404(Consultation, id=consultation_id)
+    lab_tests = [x.lab_test for x in LabQueue.objects.filter(consultation=consultation)]
+
+    LabResultFormSet = modelformset_factory(LabResult, form=LabResultForm, extra=len(lab_tests), can_delete=True)
     if request.method == 'POST':
         formset = LabResultFormSet(request.POST)
         if formset.is_valid():
@@ -74,7 +81,7 @@ def add_lab_result(request):
     else:
         formset = LabResultFormSet(queryset=LabResult.objects.none())
 
-    return render(request, 'emr/add_result.html', {'formset': formset, 'consultations': consultations, 'lab_tests': lab_tests})
+    return render(request, 'emr/add_result.html', {'formset': formset, 'consultations': consultations, 'lab_tests': lab_tests, 'consultation':consultation})
 
 
 

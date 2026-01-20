@@ -10,7 +10,11 @@
     <!-- Custom dropdown -->
     <div class="dropdown">
       <button class="btn btn-outline-secondary w-100 dropdown-toggle consultation-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        {% if consultation.id %}
+        {{consultation.patient.name}}
+        {% else %}
         Select Consultation
+        {% endif %}
       </button>
       <input
         type="text"
@@ -18,9 +22,8 @@
         class="form-control"
         placeholder="Search patient..."
       >
-
+     
       <ul id="consultation-results" class="dropdown-menu show"></ul>
-
     </div>
 
     

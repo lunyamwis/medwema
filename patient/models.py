@@ -106,7 +106,7 @@ class Consultation(models.Model):
     image_findings = models.TextField(blank=True, null=True)
     laboratory = models.CharField(max_length=50, choices=LAB_CHOICES, blank=True, null=True)
     lab_findings = models.TextField(blank=True, null=True)
-
+    
     # Diagnosis & Management
     diagnosis = models.TextField(blank=True, null=True)
     management = models.CharField(max_length=50, choices=MANAGEMENT_CHOICES, blank=True, null=True)

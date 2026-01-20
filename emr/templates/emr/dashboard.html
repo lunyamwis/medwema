@@ -272,7 +272,7 @@
                   {% else %}
                     <span class="text-muted">Done</span>
                   {% endif %}
-                  <a href="{% url 'add_result' %}" class="btn btn-primary">Perform Test</a>
+                  <a href="{% url 'add_result' item.consultation.id %}" class="btn btn-primary">Perform Test</a>
                 </td>
               </tr>
               {% empty %}
