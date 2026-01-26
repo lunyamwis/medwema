@@ -13,6 +13,7 @@ import requests
 from django.utils.timezone import now
 from .utils import get_last_n_subaccount_transactions, get_transaction_by_reference
 from .models import Bill, Payment
+from .forms import BillEditForm
 
 PAYSTACK_SECRET_KEY = settings.PAYSTACK_SECRET_KEY
 PAYSTACK_BASE_URL = "https://api.paystack.co"
@@ -43,6 +44,35 @@ def billing_list(request):
 def bill_detail(request, pk):
     bill = get_object_or_404(Bill, pk=pk)
     return render(request, "billing/bill_detail.html", {"bill": bill})
+
+
+def bill_edit(request, pk):
+    bill = get_object_or_404(Bill, pk=pk)
+
+    # 🔒 Safety: Do not allow editing paid bills
+    if bill.is_paid:
+        messages.error(request, "You cannot edit a bill that has already been paid.")
+        return redirect("billing_dashboard")
+
+    if request.method == "POST":
+        form = BillEditForm(request.POST, instance=bill)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Bill #{bill.id} updated successfully.")
+            return redirect("billing_dashboard")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = BillEditForm(instance=bill)
+
+    return render(
+        request,
+        "billing/bill_edit.html",
+        {
+            "bill": bill,
+            "form": form,
+        }
+    )
 
 def print_receipt(request, pk):
     bill = get_object_or_404(Bill, pk=pk)

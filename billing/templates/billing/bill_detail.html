@@ -1,22 +1,44 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div>
   <h4>Bill #{{ bill.id }} - {{ bill.patient.name }}</h4>
-<table class="table">
-  <thead><tr><th>Item</th><th>Qty</th><th>Unit</th><th>Total</th></tr></thead>
-  <tbody>
-    {% for i in bill.items.all %}
-      <tr>
-        <td>{{ i.description }}</td>
-        <td>{{ i.quantity }}</td>
-        <td>{{ i.unit_price }}</td>
-        <td>{{ i.total }}</td>
-      </tr>
+<div class="center bold">{{ bill.clinic.name }}</div>
+    <div class="center">Receipt #{{ bill.id }}</div>
+    <div class="center">Date: {{ bill.created_at|date:"Y-m-d H:i" }}</div>
+    <hr />
+    <div>Patient: {{ bill.patient.name }}</div>
+    <ul>
+      {% for prescription in bill.consultation.prescription_set.all %}
+      <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start">
+        <div>
+          <span class="fw-bold">{{ forloop.counter }}. {{ prescription.item }}</span> - 
+          <span>{{ prescription.quantity }}</span>
+        </div>
+        <div class="text-muted small">
+          {{ prescription.prescribed_at|date:"M d, Y H:i" }}<br>
+          {{ prescription.instructions|default:"No instructions." }}
+        </div>
+        <div>Price: {{prescription.item.price}}</div>
+      </li>
+      {% endfor %}
+    </ul>
+    <hr/>
+    {% for lab_result in bill.consultation.labresult_set.all %}
+    <div>
+      {{lab_result.lab_test.name}}--{{lab_result.lab_test.price}}
+    </div>
     {% endfor %}
-  </tbody>
-</table>
-
-<p class="fw-bold">Total: {{ bill.total_amount }}</p>
+    <hr/>
+    <hr>
+    <div>Doctors Charge: {{bill.consultation.labor_charges}}</div>
+    </body>
+    <hr />
+    <div class="bold">TOTAL: {{ bill.total_amount|floatformat:2 }}</div>
+    <hr />
+    <div>Payment Method: Cash</div>
+    <div class="center">Thank you and get well soon!</div>
+  </div>
 {% if not bill.is_paid %}
   <a href="{% url 'initiate_payment' bill.id %}" class="btn btn-primary">Pay Now</a>
 {% endif %}

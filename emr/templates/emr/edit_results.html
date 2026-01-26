@@ -7,10 +7,12 @@
 
   <form method="post" id="lab-results-form">
     {% csrf_token %}
+    
     {{ formset.management_form }}
 
     <div id="formset-container">
       {% for form in formset %}
+      {{ form.id }}   <!-- 🚨 THIS IS CRITICAL -->
       <div class="formset-item border rounded p-3 mb-3 shadow-sm position-relative">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0 text-primary fw-semibold">Result {{ forloop.counter }}</h5>

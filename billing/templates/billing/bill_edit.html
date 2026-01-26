@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>Edit Bill #{{ bill.id }}</h3>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label>Total Amount</label>
+        {{ form.total_amount }}
+        {{ form.total_amount.errors }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Save Changes
+    </button>
+
+    <a href="{% url 'bill_detail' bill.id %}" class="btn btn-secondary">
+        Cancel
+    </a>
+</form>
+
+{% endblock %}

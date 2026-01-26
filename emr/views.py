@@ -113,7 +113,7 @@ def edit_lab_results(request, consultation_id):
     LabResultFormSet = modelformset_factory(
         LabResult,
         form=LabResultForm,
-        extra=1,  # allow adding new results
+        extra=0,  # allow adding new results
         can_delete=True,
     )
 
@@ -122,11 +122,12 @@ def edit_lab_results(request, consultation_id):
     if request.method == 'POST':
         formset = LabResultFormSet(request.POST, queryset=queryset)
 
+        print('keys--',request.POST.keys())
         # remove 'id' from changed_data manually if formset fails
-        for form in formset.forms:
+        # for form in formset.forms:
             # import pdb; pdb.set_trace()
             # if not form.changed_data.get('id', None):
-            form.fields['id'] = forms.IntegerField(required=False)
+            # form.fields['id'] = forms.IntegerField(required=False)
 
         if formset.is_valid():
             instances = formset.save(commit=False)

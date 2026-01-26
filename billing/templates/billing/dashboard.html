@@ -17,6 +17,8 @@
       <a href="{% url 'mark_bill_paid' bill.id %}" class="btn btn-sm btn-success">
           Mark as Paid
       </a>
+      <a href="{% url 'bill_detail' bill.id %}" class="btn btn-sm btn-danger">View Bill details</a>
+      <a href="{% url 'bill_edit' bill.id %}" class="btn btn-sm btn-warning">Edit Bill details</a>
       {% else %}
       <a href="{% url 'print_receipt' bill.id %}" target="_blank" class="btn btn-sm btn-outline-secondary">
           Print Receipt
