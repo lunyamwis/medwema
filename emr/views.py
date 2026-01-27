@@ -173,7 +173,13 @@ def print_lab_results(request, consultation_id):
 @login_required
 def lab_dashboard(request):
     search_query = request.GET.get("search", "")
-    lab_queue = LabQueue.objects.filter(status__in=["waiting", "in_progress"]).order_by("created_at")
+    lab_queue = lab_queue = (
+        LabQueue.objects
+        .filter(status__in=["waiting", "in_progress"])
+        .order_by("patient_id", "-consultation__date")  # latest consultation first
+        .distinct("patient_id")  # one row per patient
+    )
+
 
     # Existing results logic...
     results_qs = (
