@@ -1,0 +1,27 @@
+{% extends "specialists/base.html" %}
+{% block title %}New Supply Invoice | Specialists Hub{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="split">
+    <div>
+      <h2>New Supply Invoice</h2>
+      <div class="muted">Record vendor invoice and attach a scan/photo if needed.</div>
+    </div>
+    <a class="btn secondary" href="{% url 'specialists:supply_invoice_list' %}">Back</a>
+  </div>
+
+  <div class="hr"></div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="col-6">{{ form.vendor.label_tag }}{{ form.vendor }}</div>
+      <div class="col-6">{{ form.invoice_number.label_tag }}{{ form.invoice_number }}</div>
+      <div class="col-6">{{ form.invoice_date.label_tag }}{{ form.invoice_date }}</div>
+      <div class="col-6">{{ form.total_amount.label_tag }}{{ form.total_amount }}</div>
+      <div class="col-12">{{ form.attachment.label_tag }}{{ form.attachment }}</div>
+      <div class="col-12"><button class="btn blue" type="submit">Save Invoice</button></div>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "specialists/base.html" %}
+{% block content %}
+<div class="grid">
+  <div class="card" style="grid-column:span 7">
+    <h2 style="margin-top:0">External Lab Request</h2>
+    <div><b>Patient:</b> {{ obj.patient.name }}</div>
+    <div><b>Lab:</b> {{ obj.lab_name }} ({{ obj.lab_email }})</div>
+    <div><b>Status:</b> <span class="badge">{{ obj.status }}</span></div>
+    <hr/>
+    <div><b>Subject:</b> {{ obj.subject }}</div>
+    <pre style="white-space:pre-wrap">{{ obj.message }}</pre>
+
+    <a class="btn" href="{% url 'specialists:external_lab_send' obj.id %}">Send Email</a>
+  </div>
+
+  <div class="card" style="grid-column:span 5">
+    <h3 style="margin-top:0">Upload Result</h3>
+    <form method="post" enctype="multipart/form-data" action="{% url 'specialists:external_lab_upload_result' obj.id %}">
+      {% csrf_token %}
+      {{ upload_form.as_p }}
+      <button class="btn" type="submit">Upload</button>
+    </form>
+
+    <hr/>
+    <h3>Results</h3>
+    {% for r in obj.results.all %}
+      <div class="card" style="margin:10px 0;padding:10px">
+        <div><b>{{ r.uploaded_at|date:"Y-m-d H:i" }}</b></div>
+        <div class="muted">{{ r.notes }}</div>
+        <div><a href="{{ r.uploaded_file.url }}">Download</a></div>
+      </div>
+    {% empty %}
+      <div class="muted">No uploaded results yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

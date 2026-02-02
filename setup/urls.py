@@ -32,6 +32,8 @@ urlpatterns = [
     path('prescriptions/', include('prescription.urls')),
     path('webpush/', include('webpush.urls')),
     path('notifications/',include('notification.urls')),
+    path("specialists/", include("specialists.urls")),
+
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

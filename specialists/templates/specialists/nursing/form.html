@@ -1,0 +1,29 @@
+{% extends "specialists/base.html" %}
+{% block title %}New Nursing Note | Specialists Hub{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="split">
+    <div>
+      <h2>New Nursing Note</h2>
+      <div class="muted">Record actions and observations in a clean, standard format.</div>
+    </div>
+    <a class="btn secondary" href="{% url 'specialists:nursing_list' %}">Back</a>
+  </div>
+
+  <div class="hr"></div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="col-6">{{ form.patient.label_tag }}{{ form.patient }}</div>
+      <div class="col-6">{{ form.consultation.label_tag }}{{ form.consultation }}</div>
+      <div class="col-6">{{ form.task.label_tag }}{{ form.task }}</div>
+      <div class="col-6">{{ form.category.label_tag }}{{ form.category }}</div>
+      <div class="col-12">{{ form.note.label_tag }}{{ form.note }}</div>
+      <div class="col-12">
+        <button class="btn blue" type="submit">Save Note</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

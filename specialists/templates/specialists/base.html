@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Specialists Hub</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{font-family:system-ui,Segoe UI,Arial;margin:0;background:#f6f7fb}
+    .top{background:#111827;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
+    .wrap{max-width:1100px;margin:18px auto;padding:0 14px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .card{background:#fff;border-radius:14px;padding:14px;box-shadow:0 8px 22px rgba(0,0,0,.06);border:1px solid #eef0f6}
+    a.btn{display:inline-block;padding:10px 12px;border-radius:10px;background:#111827;color:#fff;text-decoration:none}
+    .muted{color:#6b7280}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
+    .tabs a{margin-right:10px;color:#111827;text-decoration:none;font-weight:600}
+    .tabs a:hover{text-decoration:underline}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{padding:10px;border-bottom:1px solid #eef0f6;text-align:left}
+    input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #e5e7eb}
+    label{font-weight:700;font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div><b>Specialists Hub</b> <span class="muted">| Sonography • Nursing • External Labs • Home Visits • Supplies • Debts • Equipment</span></div>
+    <div class="tabs">
+      <a href="{% url 'specialists:dashboard' %}">Dashboard</a>
+      <a href="{% url 'specialists:task_list' %}">Specialists Area</a>
+      <a href="{% url 'specialists:sonography_list' %}">Sonography</a>
+      <a href="{% url 'specialists:nursing_list' %}">Nursing</a>
+      <a href="{% url 'specialists:external_lab_list' %}">External Lab</a>
+      <a href="{% url 'specialists:home_visit_list' %}">Home Visits</a>
+      <a href="{% url 'specialists:supply_invoice_list' %}">Supplies</a>
+      <a href="{% url 'specialists:debts_list' %}">Debts</a>
+      <a href="{% url 'specialists:equipment_list' %}">Equipment</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    {% if messages %}
+      <div class="card">
+        {% for m in messages %}<div class="badge">{{ m }}</div>{% endfor %}
+      </div>
+      <div style="height:10px"></div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

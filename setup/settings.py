@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'webpush',
     'notification',
     'chat',
+    'specialists'
 ]
 
 WEBPUSH_SETTINGS = {

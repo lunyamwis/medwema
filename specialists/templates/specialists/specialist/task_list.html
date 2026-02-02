@@ -1,0 +1,95 @@
+{% extends "specialists/base.html" %}
+{% block title %}Specialists Area | Specialists Hub{% endblock %}
+{% block content %}
+<div class="card filters">
+  <div class="split">
+    <div>
+      <h2>Specialists Area</h2>
+      <div class="muted">Track patient workflow, assign specialist, attach service, and bill in one click.</div>
+    </div>
+    <a class="btn blue" href="{% url 'specialists:task_create' %}">New Task</a>
+  </div>
+
+  <div class="hr"></div>
+
+  <form method="get">
+    <div>
+      <label>Role</label>
+      <input name="role" value="{{ request.GET.role }}" placeholder="e.g. sonographer, cardiologist" />
+    </div>
+    <div>
+      <label>Status</label>
+      <select name="status">
+        <option value="">All</option>
+        <option value="waiting" {% if request.GET.status == "waiting" %}selected{% endif %}>Waiting</option>
+        <option value="in_progress" {% if request.GET.status == "in_progress" %}selected{% endif %}>In Progress</option>
+        <option value="done" {% if request.GET.status == "done" %}selected{% endif %}>Done</option>
+        <option value="cancelled" {% if request.GET.status == "cancelled" %}selected{% endif %}>Cancelled</option>
+      </select>
+    </div>
+    <div>
+      <button class="btn" type="submit">Filter</button>
+      <a class="btn secondary" href="{% url 'specialists:task_list' %}">Reset</a>
+    </div>
+  </form>
+</div>
+
+<div class="spacer"></div>
+
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Created</th>
+        <th>Patient</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Service</th>
+        <th>Billing</th>
+        <th class="right">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tasks %}
+      <tr>
+        <td class="muted">{{ t.created_at|date:"Y-m-d H:i" }}</td>
+        <td><b>{{ t.patient.name }}</b></td>
+        <td><span class="badge">{{ t.role }}</span></td>
+        <td>
+          {% if t.status == "done" %}
+            <span class="badge ok">Done</span>
+          {% elif t.status == "in_progress" %}
+            <span class="badge warn">In progress</span>
+          {% else %}
+            <span class="badge">{{ t.get_status_display }}</span>
+          {% endif %}
+        </td>
+        <td class="muted">{{ t.service.name|default:"—" }}</td>
+        <td class="muted">
+          {% if t.bill %}
+            Bill #{{ t.bill.id }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
+        <td class="right">
+          {% if t.service and not t.bill %}
+            <a class="btn small blue" href="{% url 'specialists:task_bill_service' t.id %}">Bill Service</a>
+          {% elif t.bill %}
+            <span class="badge ok">Billed</span>
+          {% else %}
+            <span class="badge warn">No service</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" class="muted">No specialist tasks found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="footer-note">
+    Tip: Assign a service to each task so billing becomes one click.
+  </div>
+</div>
+{% endblock %}

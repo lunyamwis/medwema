@@ -1,0 +1,34 @@
+{% extends "specialists/base.html" %}
+{% block title %}New Home Visit | Specialists Hub{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="split">
+    <div>
+      <h2>New Home Visit</h2>
+      <div class="muted">Capture address, purpose, and the assigned clinician.</div>
+    </div>
+    <a class="btn secondary" href="{% url 'specialists:home_visit_list' %}">Back</a>
+  </div>
+
+  <div class="hr"></div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="col-6">{{ form.patient.label_tag }}{{ form.patient }}</div>
+      <div class="col-6">{{ form.consultation.label_tag }}{{ form.consultation }}</div>
+
+      <div class="col-6">{{ form.visit_date.label_tag }}{{ form.visit_date }}</div>
+      <div class="col-6">{{ form.clinician.label_tag }}{{ form.clinician }}</div>
+
+      <div class="col-12">{{ form.address.label_tag }}{{ form.address }}</div>
+      <div class="col-12">{{ form.purpose.label_tag }}{{ form.purpose }}</div>
+
+      <div class="col-6">{{ form.status.label_tag }}{{ form.status }}</div>
+      <div class="col-12">{{ form.notes.label_tag }}{{ form.notes }}</div>
+
+      <div class="col-12"><button class="btn blue" type="submit">Save Home Visit</button></div>
+    </div>
+  </form>
+</div>
+{% endblock %}

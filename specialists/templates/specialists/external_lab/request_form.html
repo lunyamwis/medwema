@@ -1,0 +1,33 @@
+{% extends "specialists/base.html" %}
+{% block title %}New External Lab Request | Specialists Hub{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="split">
+    <div>
+      <h2>New External Lab Request</h2>
+      <div class="muted">Create a clear message; you can send the email from the request detail page.</div>
+    </div>
+    <a class="btn secondary" href="{% url 'specialists:external_lab_list' %}">Back</a>
+  </div>
+
+  <div class="hr"></div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="col-6">{{ form.patient.label_tag }}{{ form.patient }}</div>
+      <div class="col-6">{{ form.consultation.label_tag }}{{ form.consultation }}</div>
+
+      <div class="col-6">{{ form.lab_name.label_tag }}{{ form.lab_name }}</div>
+      <div class="col-6">{{ form.lab_email.label_tag }}{{ form.lab_email }}</div>
+
+      <div class="col-12">{{ form.subject.label_tag }}{{ form.subject }}</div>
+      <div class="col-12">{{ form.message.label_tag }}{{ form.message }}</div>
+
+      <div class="col-12">
+        <button class="btn blue" type="submit">Create Request</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

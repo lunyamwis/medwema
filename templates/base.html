@@ -237,12 +237,20 @@
         <a href="{% url 'revenue_report' %}">Revenue Report</a>
       </div>
     </div>
+    <a data-bs-toggle="collapse" href="#specialistMenu"><i class="bi bi-cash-coin"></i> <span class="nav-text">Specialists</span></a>
+    <div class="collapse" id="specialistMenu">
+      <div class="collapse-inner">
+        <a href="{% url 'specialists:dashboard' %}">Dashboard</a>
+        
+      </div>
+    </div>
     <a data-bs-toggle="collapse" href="#chat"><i class="bi bi-chat-dots"></i> <span class="nav-text">Chat</span></a>
     <div class="collapse" id="chat">
       <div class="collapse-inner">
         <a href="{% url 'chat_index' %}">Chat Dashboard</a>
       </div>
     </div>
+    
     {% endif %}
     {% if user.is_superuser %}   
     <a data-bs-toggle="collapse" href="#doctorMenu"><i class="bi bi-heart-pulse"></i> <span class="nav-text">Doctors</span></a>
@@ -278,6 +286,7 @@
       <p class="mt-4">&copy; {% now "Y" %} Medwema Clinic built with ❤️ by Lunyamwi Technologies. All rights reserved.</p>
     </footer>
   </div>
+  {% include "partials/chat_widget_iframe.html" %}
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>

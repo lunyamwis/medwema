@@ -1,0 +1,38 @@
+{% extends "specialists/base.html" %}
+{% block title %}Nursing | Specialists Hub{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="split">
+    <div>
+      <h2>Nursing / Observation</h2>
+      <div class="muted">IV • Observation • Acute management • Suturing • Notes.</div>
+    </div>
+    <a class="btn blue" href="{% url 'specialists:nursing_create' %}">New Note</a>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Patient</th>
+        <th>Category</th>
+        <th>Preview</th>
+        <th class="right">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
+        <td><b>{{ r.patient.name }}</b></td>
+        <td><span class="badge">{{ r.get_category_display }}</span></td>
+        <td class="muted">{{ r.note|truncatechars:80 }}</td>
+        <td class="right"><a class="pill-link" href="{% url 'specialists:nursing_detail' r.id %}">View</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="muted">No nursing notes yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

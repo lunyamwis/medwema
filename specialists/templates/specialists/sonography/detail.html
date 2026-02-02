@@ -1,0 +1,43 @@
+{% extends "specialists/base.html" %}
+{% block title %}Sonography Detail | Specialists Hub{% endblock %}
+{% block content %}
+<div class="grid">
+  <div class="card col-8">
+    <div class="split">
+      <div>
+        <h2>Sonography Detail</h2>
+        <div class="muted">{{ obj.performed_at|date:"Y-m-d H:i" }} • {{ obj.get_study_type_display }}</div>
+      </div>
+      <a class="btn secondary" href="{% url 'specialists:sonography_list' %}">Back</a>
+    </div>
+
+    <div class="hr"></div>
+    <div><b>Patient:</b> {{ obj.patient.name }}</div>
+    <div class="muted"><b>Indication:</b> {{ obj.indication|default:"—" }}</div>
+
+    <div class="hr"></div>
+    <h3>Findings</h3>
+    <div style="white-space:pre-wrap">{{ obj.findings|default:"—" }}</div>
+
+    <div class="hr"></div>
+    <h3>Impression</h3>
+    <div style="white-space:pre-wrap">{{ obj.impression|default:"—" }}</div>
+  </div>
+
+  <div class="card col-4">
+    <h3>Attachment</h3>
+    {% if obj.report_file %}
+      <div class="muted">Download the attached report.</div>
+      <div class="spacer"></div>
+      <a class="btn" href="{{ obj.report_file.url }}" target="_blank">Download</a>
+    {% else %}
+      <div class="muted">No attachment uploaded.</div>
+    {% endif %}
+
+    <div class="hr"></div>
+    <div class="muted">
+      <b>Performed by:</b> {{ obj.performed_by|default:"—" }}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "specialists/base.html" %}
+{% block title %}Nursing Detail | Specialists Hub{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="split">
+    <div>
+      <h2>Nursing Note</h2>
+      <div class="muted">{{ obj.created_at|date:"Y-m-d H:i" }} • {{ obj.get_category_display }}</div>
+    </div>
+    <a class="btn secondary" href="{% url 'specialists:nursing_list' %}">Back</a>
+  </div>
+
+  <div class="hr"></div>
+  <div><b>Patient:</b> {{ obj.patient.name }}</div>
+  <div class="muted"><b>Created by:</b> {{ obj.created_by|default:"—" }}</div>
+
+  <div class="hr"></div>
+  <h3>Note</h3>
+  <div style="white-space:pre-wrap">{{ obj.note }}</div>
+</div>
+{% endblock %}

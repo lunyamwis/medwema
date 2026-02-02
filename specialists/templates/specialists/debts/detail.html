@@ -1,0 +1,38 @@
+{% extends "specialists/base.html" %}
+{% block content %}
+<div class="grid">
+  <div class="card" style="grid-column:span 7">
+    <h2 style="margin-top:0">Debt Case</h2>
+    <div><b>Patient:</b> {{ obj.patient.name }}</div>
+    <div><b>Bill:</b> #{{ obj.bill.id }}</div>
+    <div><b>Status:</b> <span class="badge">{{ obj.status }}</span></div>
+    <div><b>Balance:</b> {{ obj.balance }}</div>
+
+    {% if wa_link %}
+      <div style="height:10px"></div>
+      <a class="btn" href="{{ wa_link }}" target="_blank">WhatsApp Follow-up</a>
+    {% endif %}
+  </div>
+
+  <div class="card" style="grid-column:span 5">
+    <h3 style="margin-top:0">Log Follow-up</h3>
+    <form method="post" action="{% url 'specialists:debt_add_followup' obj.id %}">
+      {% csrf_token %}
+      {{ follow_form.as_p }}
+      <button class="btn" type="submit">Save Follow-up</button>
+    </form>
+
+    <hr/>
+    <h3>History</h3>
+    {% for f in obj.followups.all %}
+      <div class="card" style="margin:10px 0;padding:10px">
+        <div><b>{{ f.get_channel_display }}</b> - {{ f.created_at|date:"Y-m-d H:i" }}</div>
+        <div class="muted">{{ f.sent_to }}</div>
+        <div>{{ f.message }}</div>
+      </div>
+    {% empty %}
+      <div class="muted">No follow-ups yet.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

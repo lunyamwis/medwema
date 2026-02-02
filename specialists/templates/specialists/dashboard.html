@@ -1,0 +1,72 @@
+{% extends "specialists/base.html" %}
+{% block title %}Dashboard | Specialists Hub{% endblock %}
+{% block content %}
+<div class="grid">
+  <div class="card col-12">
+    <div class="split">
+      <div>
+        <h2>Operations Dashboard</h2>
+        <div class="muted">Fast workflows: queue → specialist task → service → billing → follow-up.</div>
+      </div>
+      <div class="row">
+        <a class="btn blue" href="{% url 'specialists:task_create' %}">New Specialist Task</a>
+        <a class="btn" href="{% url 'specialists:external_lab_create' %}">New External Lab Request</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-3">
+    {% include "specialists/partials/card.html" with subtitle="Tasks waiting" value=counts.tasks_waiting action_url=task_list_url action_text="View tasks" %}
+  </div>
+  <div class="col-3">
+    {% include "specialists/partials/card.html" with subtitle="Sonography today" value=counts.sonography_today action_url=sonography_url action_text="New report" %}
+  </div>
+  <div class="col-3">
+    {% include "specialists/partials/card.html" with subtitle="Nursing notes today" value=counts.nursing_today action_url=nursing_url action_text="New note" %}
+  </div>
+  <div class="col-3">
+    {% include "specialists/partials/card.html" with subtitle="External lab pending" value=counts.external_pending action_url=external_lab_url action_text="View" %}
+  </div>
+
+  <div class="card col-6">
+    <h3>My Alerts</h3>
+    <div class="muted">New arrivals, new tasks, and reminders show up here.</div>
+    <div class="hr"></div>
+
+    {% for n in notif %}
+      <div class="card" style="padding:12px; margin:10px 0">
+        <div class="split">
+          <div>
+            <div><b>{{ n.title }}</b></div>
+            <div class="muted">{{ n.message }}</div>
+            <div class="footer-note">{{ n.created_at|date:"Y-m-d H:i" }}</div>
+          </div>
+          {% if n.url %}
+            <a class="btn small" href="{{ n.url }}">Open</a>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="muted">No alerts yet.</div>
+    {% endfor %}
+  </div>
+
+  <div class="card col-6">
+    <h3>Debt & Stock Watch</h3>
+    <div class="row">
+      <span class="badge warn">Open/Promised debts: {{ counts.debts_open }}</span>
+      <span class="badge bad">Low stock items: {{ counts.low_stock }}</span>
+    </div>
+    <div class="hr"></div>
+    <div class="row">
+      <a class="btn" href="{% url 'specialists:debts_list' %}">Follow-up Debts</a>
+      <a class="btn secondary" href="{% url 'specialists:equipment_list' %}">Manage Equipment</a>
+      <a class="btn secondary" href="{% url 'specialists:supply_invoice_list' %}">View Supplies Spend</a>
+    </div>
+
+    <div class="footer-note">
+      Tip: Set equipment reorder levels so low stock is flagged automatically.
+    </div>
+  </div>
+</div>
+{% endblock %}

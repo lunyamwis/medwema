@@ -1,0 +1,78 @@
+{% extends "embed_base.html" %}
+
+{% block content %}
+<style>
+  .chat-wrap{height:100vh;display:flex;flex-direction:column;padding:12px;gap:10px;box-sizing:border-box}
+  .chat-log{flex:1;width:100%;resize:none;border:1px solid #e5e7eb;border-radius:14px;padding:10px;outline:none;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size:12px;line-height:1.45;background:#f9fafb}
+  .chat-bar{display:flex;gap:8px}
+  .chat-input{flex:1;border:1px solid #e5e7eb;border-radius:12px;padding:10px 12px;outline:none;font-size:14px}
+  .chat-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+  .chat-send{border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;background:#2563eb;color:#fff}
+  .hint{font-size:12px;color:#6b7280}
+</style>
+
+<div class="chat-wrap">
+  <div class="hint">
+    Room: <b>{{ room_name }}</b> • WebSocket: <span id="ws-status">connecting…</span>
+  </div>
+
+  <textarea id="chat-log" class="chat-log" readonly></textarea>
+
+  <div class="chat-bar">
+    <input id="chat-message-input" class="chat-input" type="text" placeholder="Type a message and hit Enter…" />
+    <button id="chat-message-submit" class="chat-send" type="button">Send</button>
+  </div>
+</div>
+
+{{ room_name|json_script:"room-name" }}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const roomName = JSON.parse(document.getElementById('room-name').textContent);
+
+  const chatLog = document.getElementById('chat-log');
+  const messageInput = document.getElementById('chat-message-input');
+  const messageSubmit = document.getElementById('chat-message-submit');
+  const wsStatus = document.getElementById('ws-status');
+
+  const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+  const chatSocket = new WebSocket(`${protocol}${window.location.host}/ws/chat/${encodeURIComponent(roomName)}/`);
+
+  function appendMessage(sender, message, timestamp) {
+    const time = timestamp ? new Date(timestamp).toLocaleTimeString() : '';
+    chatLog.value += `[${time}] ${sender}: ${message}\n`;
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  chatSocket.onopen = () => { wsStatus.textContent = "online"; wsStatus.style.color = "#16a34a"; };
+  chatSocket.onclose = () => { wsStatus.textContent = "offline"; wsStatus.style.color = "#dc2626"; };
+
+  chatSocket.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+
+    if (data.type === "history") {
+      chatLog.value = "";
+      data.messages.forEach(msg => appendMessage(msg.sender, msg.content, msg.timestamp));
+      return;
+    }
+    if (data.type === "chat.message") {
+      appendMessage(data.sender, data.message, data.timestamp);
+    }
+  };
+
+  messageInput.focus();
+  messageInput.addEventListener("keyup", (e) => {
+    if (e.key === "Enter") messageSubmit.click();
+  });
+
+  messageSubmit.addEventListener("click", () => {
+    const message = messageInput.value.trim();
+    if (!message) return;
+    chatSocket.send(JSON.stringify({ message }));
+    messageInput.value = "";
+  });
+</script>
+{% endblock %}

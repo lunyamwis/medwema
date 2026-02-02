@@ -1,0 +1,11 @@
+<div class="card">
+  <div class="split">
+    <div>
+      <div class="muted">{{ subtitle }}</div>
+      <div class="kpi">{{ value }}</div>
+    </div>
+    {% if action_url %}
+      <a class="btn" href="{{ action_url }}">{{ action_text|default:"Open" }}</a>
+    {% endif %}
+  </div>
+</div>

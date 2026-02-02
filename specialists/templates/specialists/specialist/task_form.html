@@ -1,0 +1,35 @@
+{% extends "specialists/base.html" %}
+{% block title %}New Task | Specialists Hub{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="split">
+    <div>
+      <h2>Create Specialist Task</h2>
+      <div class="muted">Assign specialist + role, link consultation, choose a billable service.</div>
+    </div>
+    <a class="btn secondary" href="{% url 'specialists:task_list' %}">Back</a>
+  </div>
+
+  <div class="hr"></div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="col-6">{{ form.patient.label_tag }}{{ form.patient }}</div>
+      <div class="col-6">{{ form.consultation.label_tag }}{{ form.consultation }}</div>
+
+      <div class="col-6">{{ form.role.label_tag }}{{ form.role }}</div>
+      <div class="col-6">{{ form.assigned_to.label_tag }}{{ form.assigned_to }}</div>
+
+      <div class="col-6">{{ form.service.label_tag }}{{ form.service }}</div>
+      <div class="col-6">{{ form.status.label_tag }}{{ form.status }}</div>
+
+      <div class="col-12">{{ form.notes.label_tag }}{{ form.notes }}</div>
+
+      <div class="col-12">
+        <button class="btn blue" type="submit">Create Task</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

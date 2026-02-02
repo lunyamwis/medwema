@@ -1,0 +1,27 @@
+{% extends "specialists/base.html" %}
+{% block title %}Add Equipment | Specialists Hub{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="split">
+    <div>
+      <h2>Add Equipment Item</h2>
+      <div class="muted">Include reorder level for automatic low stock tracking.</div>
+    </div>
+    <a class="btn secondary" href="{% url 'specialists:equipment_list' %}">Back</a>
+  </div>
+
+  <div class="hr"></div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="col-6">{{ form.name.label_tag }}{{ form.name }}</div>
+      <div class="col-6">{{ form.category.label_tag }}{{ form.category }}</div>
+      <div class="col-6">{{ form.qty_available.label_tag }}{{ form.qty_available }}</div>
+      <div class="col-6">{{ form.reorder_level.label_tag }}{{ form.reorder_level }}</div>
+      <div class="col-12">{{ form.notes.label_tag }}{{ form.notes }}</div>
+      <div class="col-12"><button class="btn blue" type="submit">Save Item</button></div>
+    </div>
+  </form>
+</div>
+{% endblock %}

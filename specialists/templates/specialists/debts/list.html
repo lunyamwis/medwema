@@ -1,0 +1,49 @@
+{% extends "specialists/base.html" %}
+{% block title %}Debts | Specialists Hub{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="split">
+    <div>
+      <h2>Debts</h2>
+      <div class="muted">Track unpaid bills and follow up via WhatsApp/email/calls.</div>
+    </div>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Created</th>
+        <th>Patient</th>
+        <th>Bill</th>
+        <th>Status</th>
+        <th>Balance</th>
+        <th class="right">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="muted">{{ r.created_at|date:"Y-m-d" }}</td>
+        <td><b>{{ r.patient.name }}</b></td>
+        <td class="muted">#{{ r.bill.id }}</td>
+        <td>
+          {% if r.status == "paid" %}
+            <span class="badge ok">Paid</span>
+          {% elif r.status == "open" %}
+            <span class="badge bad">Open</span>
+          {% else %}
+            <span class="badge warn">{{ r.get_status_display }}</span>
+          {% endif %}
+        </td>
+        <td><b>{{ r.balance }}</b></td>
+        <td class="right">
+          <a class="btn small" href="{% url 'specialists:debt_detail' r.id %}">Open</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="muted">No debt cases yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

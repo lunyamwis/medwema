@@ -5,4 +5,6 @@ from . import views
 urlpatterns = [
     path("", views.index, name="chat_index"),
     path("<str:room_name>/", views.room, name="room"),
+    # path("chat-embed/<str:room_name>/", views.room_embed, name="room_embed"),
+
 ]

@@ -1,0 +1,38 @@
+{% extends "specialists/base.html" %}
+{% block title %}Home Visits | Specialists Hub{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="split">
+    <div>
+      <h2>Home Visits</h2>
+      <div class="muted">Schedule and record home-based care.</div>
+    </div>
+    <a class="btn blue" href="{% url 'specialists:home_visit_create' %}">New Home Visit</a>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Visit date</th>
+        <th>Patient</th>
+        <th>Clinician</th>
+        <th>Status</th>
+        <th>Purpose</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.visit_date|date:"Y-m-d H:i" }}</td>
+        <td><b>{{ r.patient.name }}</b></td>
+        <td class="muted">{{ r.clinician|default:"—" }}</td>
+        <td><span class="badge">{{ r.get_status_display }}</span></td>
+        <td class="muted">{{ r.purpose|default:"—"|truncatechars:90 }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="muted">No home visits yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

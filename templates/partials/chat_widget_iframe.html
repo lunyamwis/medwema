@@ -1,0 +1,172 @@
+{# templates/partials/chat_widget_iframe.html #}
+<style>
+  .chatbot-fab {
+    position: fixed; right: 18px; bottom: 18px;
+    width: 58px; height: 58px; border-radius: 999px;
+    border: 0; cursor: pointer;
+    background: #111827; color: white;
+    box-shadow: 0 12px 30px rgba(0,0,0,.22);
+    display:flex; align-items:center; justify-content:center;
+    z-index: 9999;
+  }
+  .chatbot-fab:hover { opacity:.95; }
+
+  .chatbot-panel {
+    position: fixed; right: 18px; bottom: 88px;
+    width: 380px; height: 520px;
+    max-width: calc(100vw - 36px);
+    max-height: calc(100vh - 120px);
+    border-radius: 16px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 18px 50px rgba(0,0,0,.18);
+    z-index: 9999;
+    overflow: hidden;
+    transform: translateY(10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all .18s ease;
+    display:flex; flex-direction:column;
+  }
+  .chatbot-panel.open{
+    transform: translateY(0);
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  .chatbot-header{
+    background:#111827; color:#fff;
+    padding:10px 12px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px;
+  }
+  .chatbot-header b{font-size:14px}
+  .chatbot-header .meta{color:#cbd5e1; font-size:12px}
+
+  .chatbot-close{
+    background: rgba(255,255,255,.14);
+    border:0; color:#fff; border-radius:10px;
+    padding:6px 10px; cursor:pointer; font-weight:800;
+  }
+
+  .chatbot-roombar{
+    padding:10px 12px; border-bottom:1px solid #eef2f7;
+    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    background:#fff;
+  }
+  .chatbot-roombar input{
+    flex:1; min-width:150px;
+    padding:9px 10px; border-radius:12px;
+    border:1px solid #e5e7eb; outline:none;
+  }
+  .chatbot-roombar input:focus{
+    border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.15);
+  }
+  .chatbot-btn{
+    border:0; border-radius:12px;
+    padding:9px 10px; cursor:pointer;
+    font-weight:800; font-size:12px;
+  }
+  .chatbot-btn.primary{background:#2563eb; color:#fff}
+  .chatbot-btn.secondary{background:#f3f4f6; color:#111827}
+
+  .chatbot-iframe{
+    width:100%; height:100%; border:0;
+    flex:1; background:#fff;
+  }
+
+  @media (max-width: 480px){
+    .chatbot-panel{width: calc(100vw - 36px); height: 70vh;}
+  }
+</style>
+
+<button id="chatbot-fab" class="chatbot-fab" aria-label="Open chat">💬</button>
+
+<div id="chatbot-panel" class="chatbot-panel" role="dialog" aria-label="Chat widget">
+  <div class="chatbot-header">
+    <div>
+      <b>Clinic Chat</b>
+      <span class="meta" id="chat-meta">Room: <span id="chat-room-label">general</span></span>
+    </div>
+    <button id="chatbot-close" class="chatbot-close" type="button">✕</button>
+  </div>
+
+  <div class="chatbot-roombar">
+    <input id="chat-room-input" type="text" placeholder="laboratory | doctors | operations | general" autocomplete="off" />
+    <button id="chat-room-go" class="chatbot-btn primary" type="button">Join</button>
+    <button id="chat-room-general" class="chatbot-btn secondary" type="button">General</button>
+  </div>
+
+  <iframe id="chat-iframe" class="chatbot-iframe" title="Chat"></iframe>
+</div>
+
+<script>
+(function(){
+  const fab = document.getElementById("chatbot-fab");
+  const panel = document.getElementById("chatbot-panel");
+  const closeBtn = document.getElementById("chatbot-close");
+  const roomInput = document.getElementById("chat-room-input");
+  const goBtn = document.getElementById("chat-room-go");
+  const generalBtn = document.getElementById("chat-room-general");
+  const iframe = document.getElementById("chat-iframe");
+  const roomLabel = document.getElementById("chat-room-label");
+
+  const STORAGE_KEY_ROOM = "chat_widget_room";
+  const STORAGE_KEY_OPEN = "chat_widget_open";
+
+  function setRoom(room){
+    const clean = (room || "").trim().toLowerCase() || "general";
+    localStorage.setItem(STORAGE_KEY_ROOM, clean);
+    roomLabel.textContent = clean;
+
+    // Add ?embed=1 to tell the room page to hide layout and fit the widget
+    iframe.src = "/chat/" + encodeURIComponent(clean) + "/?embed=1";
+  }
+
+  function openPanel(){
+    panel.classList.add("open");
+    localStorage.setItem(STORAGE_KEY_OPEN, "1");
+    setTimeout(() => roomInput.focus(), 50);
+  }
+
+  function closePanel(){
+    panel.classList.remove("open");
+    localStorage.setItem(STORAGE_KEY_OPEN, "0");
+  }
+
+  function join(){
+    const room = roomInput.value;
+    if(!room.trim()){
+      roomInput.focus();
+      roomInput.style.borderColor = "#ef4444";
+      setTimeout(()=> roomInput.style.borderColor = "#e5e7eb", 700);
+      return;
+    }
+    setRoom(room);
+  }
+
+  fab.addEventListener("click", () => panel.classList.contains("open") ? closePanel() : openPanel());
+  closeBtn.addEventListener("click", closePanel);
+
+  goBtn.addEventListener("click", join);
+  generalBtn.addEventListener("click", () => { roomInput.value = "general"; join(); });
+
+  roomInput.addEventListener("keyup", (e) => {
+    if(e.key === "Enter") join();
+    if(e.key === "Escape") closePanel();
+  });
+
+  document.addEventListener("click", (e) => {
+    const inside = panel.contains(e.target) || fab.contains(e.target);
+    if(!inside && panel.classList.contains("open")) closePanel();
+  });
+
+  // Restore state
+  const savedRoom = localStorage.getItem(STORAGE_KEY_ROOM) || "general";
+  roomInput.value = savedRoom;
+  setRoom(savedRoom);
+
+  const savedOpen = localStorage.getItem(STORAGE_KEY_OPEN);
+  if(savedOpen === "1") openPanel();
+})();
+</script>

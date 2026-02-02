@@ -6,4 +6,6 @@ def index(request):
 
 
 def room(request, room_name):
-    return render(request, "chat/room.html", {"room_name": room_name})
+    template = "chat/room_embed.html" if request.GET.get("embed") else "chat/room.html"
+    return render(request, template, {"room_name": room_name})
+    
