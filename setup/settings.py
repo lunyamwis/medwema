@@ -236,3 +236,4 @@ CHANNEL_LAYERS = {
 
 # # Tell select2 which cache configuration to use:
 # SELECT2_CACHE_BACKEND = "select2"
+X_FRAME_OPTIONS = "SAMEORIGIN"

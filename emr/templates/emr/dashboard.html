@@ -76,7 +76,9 @@
                     {% if row.consultation_id %}
                       <!-- <a href="{% url 'view_lab_results' row.consultation_id %}" class="btn btn-sm btn-outline-success">👁️ View</a> -->
                       <a href="{% url 'edit_lab_results' row.consultation_id %}" class="btn btn-sm btn-outline-primary">✏️ Edit</a>
+                      {% if row.status == 'completed' %}
                       <a href="{% url 'print_lab_results' row.consultation_id %}" target="_blank" class="btn btn-sm btn-outline-secondary">🖨️ Print</a>
+                      {% endif %}
                     {% else %}
                       <span class="badge bg-secondary">No Consultation</span>
                     {% endif %}
@@ -268,7 +270,7 @@
                   {% if item.status == 'waiting' %}
                     <a href="{% url 'start_lab_test' item.id %}" class="btn btn-sm btn-outline-primary">Start</a>
                   {% elif item.status == 'in_progress' or item.status == 'inlab' %}
-                    <a href="{% url 'complete_lab_test' item.id %}" class="btn btn-sm btn-outline-success">Complete</a>
+                    <a href="{% url 'complete_lab_test' item.id %}" class="btn btn-sm btn-outline-success">Verify</a>
                   {% else %}
                     <span class="text-muted">Done</span>
                   {% endif %}

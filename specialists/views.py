@@ -13,6 +13,7 @@ from .forms import (
     ExternalLabRequestForm, ExternalLabResultForm,
     HomeVisitForm, SupplyInvoiceForm, EquipmentItemForm, DebtFollowUpForm
 )
+from django.db import models
 from .models import (
     NotificationForSpecialist, SpecialistTask, SonographyStudy, NursingNote,
     ExternalLabRequest, ExternalLabResult, HomeVisit, SupplyInvoice,
@@ -24,8 +25,7 @@ from .services import notify_user, bill_for_service, send_external_lab_email
 def _clinic_from_request(request):
     # Adapt this to your tenancy pattern: request.user.clinic / request.clinic / etc.
     # For now: try a common pattern
-    return getattr(request.user, "clinic", None) or getattr(request, "clinic", None)
-
+    return request.user.clinics.last()
 
 @login_required
 def dashboard(request):
@@ -70,26 +70,15 @@ def task_list(request):
 @login_required
 def task_create(request):
     clinic = _clinic_from_request(request)
-    if request.method == "POST":
-        form = SpecialistTaskForm(request.POST)
-        if form.is_valid():
-            obj = form.save(commit=False)
-            obj.clinic = clinic
-            obj.save()
+    form = SpecialistTaskForm(request.POST or None)
+    # import pdb;pdb.set_trace()
+    if request.method == "POST" and form.is_valid():
+        obj = form.save(commit=False)
+        obj.clinic = clinic
+        obj.save()
+        messages.success(request, "Task created.")
+        return redirect("specialists:task_list")
 
-            # Notify assigned specialist
-            if obj.assigned_to:
-                notify_user(
-                    clinic=clinic,
-                    recipient=obj.assigned_to,
-                    title="New Specialist Task",
-                    message=f"{obj.patient.name} assigned ({obj.role}).",
-                    url=reverse("specialists:task_list"),
-                )
-            messages.success(request, "Task created.")
-            return redirect("specialists:task_list")
-    else:
-        form = SpecialistTaskForm()
     return render(request, "specialists/specialist/task_form.html", {"form": form})
 
 
@@ -168,7 +157,8 @@ def sonography_list(request):
 @login_required
 def sonography_create(request):
     clinic = _clinic_from_request(request)
-    if request.method == "POST":
+    form = SonographyStudyForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
         form = SonographyStudyForm(request.POST, request.FILES)
         if form.is_valid():
             obj = form.save(commit=False)
@@ -234,7 +224,9 @@ def external_lab_list(request):
 @login_required
 def external_lab_create(request):
     clinic = _clinic_from_request(request)
-    if request.method == "POST":
+    form = ExternalLabRequestForm(request.POST or None) 
+    # import pdb;pdb.set_trace()
+    if request.method == "POST" and form.is_valid():
         form = ExternalLabRequestForm(request.POST)
         if form.is_valid():
             obj = form.save(commit=False)

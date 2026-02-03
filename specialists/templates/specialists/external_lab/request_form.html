@@ -15,8 +15,9 @@
   <form method="post">
     {% csrf_token %}
     <div class="form-grid">
-      <div class="col-6">{{ form.patient.label_tag }}{{ form.patient }}</div>
-      <div class="col-6">{{ form.consultation.label_tag }}{{ form.consultation }}</div>
+      <div class="col-6">{{ form.patient_id.label_tag }}{{ form.patient_id }}</div>
+  <div class="col-6">{{ form.consultation_id.label_tag }}{{ form.consultation_id }}</div>
+
 
       <div class="col-6">{{ form.lab_name.label_tag }}{{ form.lab_name }}</div>
       <div class="col-6">{{ form.lab_email.label_tag }}{{ form.lab_email }}</div>
