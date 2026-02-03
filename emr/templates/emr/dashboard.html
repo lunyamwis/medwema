@@ -147,6 +147,19 @@
               placeholder="Search by Lab Test..."
               value="{{ request.GET.lab_test|default:'' }}"
           >
+          <input
+              type="date"
+              name="result_date_from"
+              class="form-control form-control-sm mb-2"
+              value="{{ request.GET.result_date_from|default:'' }}"
+          >
+          <input
+              type="date"
+              name="result_date_to"
+              class="form-control form-control-sm mb-2"
+              value="{{ request.GET.result_date_to|default:'' }}"
+          >
+
           <button type="submit" class="btn btn-sm btn-outline-primary">Search</button>
       </form>
 

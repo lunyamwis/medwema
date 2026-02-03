@@ -16,6 +16,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from billing.models import Bill, Payment
+from django.utils.dateparse import parse_date
 
 
 from django.views.decorators.http import require_GET
@@ -196,22 +197,41 @@ def lab_dashboard(request):
 
     patient_query = request.GET.get('patient', '')
     lab_test_query = request.GET.get('lab_test', '')
+    result_date_from_raw = request.GET.get("result_date_from", "").strip()
+    result_date_to_raw   = request.GET.get("result_date_to", "").strip()
+    result_date_raw      = request.GET.get("result_date", "").strip()  # optional exact
+
+    result_date_from = parse_date(result_date_from_raw) if result_date_from_raw else None
+    result_date_to   = parse_date(result_date_to_raw) if result_date_to_raw else None
+    result_date      = parse_date(result_date_raw) if result_date_raw else None
+
+    filters = Q()
+
+    if patient_query:
+        filters &= Q(consultation__patient__name__icontains=patient_query)
+
+    if lab_test_query:
+        filters &= Q(lab_test__name__icontains=lab_test_query)
+
 
     if patient_query and lab_test_query:
-        historical_results_qs = historical_results_qs.filter(
+        filters &= Q(
             consultation__patient__name__icontains=patient_query,
             lab_test__name__icontains=lab_test_query
         )
-    elif patient_query:
-        historical_results_qs = historical_results_qs.filter(
-            consultation__patient__name__icontains=patient_query
-        )
-    elif lab_test_query:
-        historical_results_qs = historical_results_qs.filter(
-            lab_test__name__icontains=lab_test_query
-        )
+    if result_date:
+        filters &= Q(result_date=result_date)
+    else:
+        if result_date_from:
+            filters &= Q(result_date__gte=result_date_from)
+        if result_date_to:
+            filters &= Q(result_date__lte=result_date_to)
 
-    historical_results_qs = historical_results_qs.distinct()
+    
+    if filters:
+        historical_results_qs = historical_results_qs.filter(filters)
+
+    historical_results_qs = historical_results_qs.order_by("-result_date", "-id").distinct()
 
     paginator = Paginator(results_qs, 10)
     page_obj = paginator.get_page(request.GET.get("page"))
