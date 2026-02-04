@@ -24,7 +24,7 @@
       {% endfor %}
     </ul>
     <hr/>
-    {% for lab_result in bill.consultation.labresult_set.all %}
+    {% for lab_result in bill.patient.consultations.last.labresult_set.all %}
     <div>
       {{lab_result.lab_test.name}}--{{lab_result.lab_test.price}}
     </div>

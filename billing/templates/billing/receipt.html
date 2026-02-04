@@ -49,16 +49,14 @@
       {% endfor %}
     </ul>
     <hr/>
-    {% for lab_result in bill.patient.consultations.last %}
+    {% for lab_result in  bill.patient.consultations.last.labresult_set.all %}
     <div>
       {{lab_result.lab_test.name}}--{{lab_result.lab_test.price}}
     </div>
     {% endfor %}
     <hr/>
     <hr>
-     {% for consultation in bill.patient.consultations.all %}
-    <div>Doctors Charge: {{consultation.labor_charge}}</div>
-    {% endfor %}
+    <div>Doctors Charge: {{bill.patient.consultations.last.labor_charges}}</div>
     </body>
     <hr />
     <div class="bold">TOTAL: {{ bill.total_amount|floatformat:2 }}</div>
