@@ -1,11 +1,35 @@
 {% extends "specialists/base.html" %}
-{% block content %}
-<div class="card">
-  <h2 style="margin-top:0">New Sonography Report</h2>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button class="btn" type="submit">Save</button>
-  </form>
+{% load crispy_forms_tags %}
+
+{% block title %}New Sonography Report | Specialists Hub{% endblock %}
+
+{% block content_inner %}
+
+<div class="d-flex justify-content-between align-items-start align-items-sm-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">New Sonography Report</h3>
+    <div class="text-secondary">Capture study details and attach the report if available.</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'specialists:sonography_list' %}">
+    ← Back
+  </a>
 </div>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+      {{ form|crispy }}
+    </div>
+
+    <div class="card-footer bg-white border-0 p-4 d-flex justify-content-between align-items-center">
+      <div class="text-secondary small">
+        Tip: Write findings clearly, then summarize the key impression for fast clinical decisions.
+      </div>
+      <button class="btn btn-primary px-4" type="submit">Save</button>
+    </div>
+  </div>
+</form>
+
 {% endblock %}

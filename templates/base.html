@@ -217,6 +217,8 @@
     <div class="collapse" id="labMenu">
       <div class="collapse-inner">
         <a href="{% url 'lab_dashboard' %}">Lab Queue</a>
+        <a href="{% url 'lab_results_dashboard' %}">Lab Results</a>
+        <a href="{% url 'lab_search_dashboard' %}">Lab Search</a>
         
       </div>
     </div>
@@ -283,7 +285,7 @@
     </div>
 
     <footer>
-      <p class="mt-4">&copy; {% now "Y" %} Medwema Clinic built with ❤️ by Lunyamwi Technologies. All rights reserved.</p>
+      <p class="mt-4">&copy; {% now "Y" %} Medwema Clinic built with ❤️ by Medwema. All rights reserved.</p>
     </footer>
   </div>
   {% include "partials/chat_widget_iframe.html" %}

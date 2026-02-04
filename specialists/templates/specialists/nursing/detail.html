@@ -1,21 +1,51 @@
 {% extends "specialists/base.html" %}
 {% block title %}Nursing Detail | Specialists Hub{% endblock %}
-{% block content %}
-<div class="card">
-  <div class="split">
-    <div>
-      <h2>Nursing Note</h2>
-      <div class="muted">{{ obj.created_at|date:"Y-m-d H:i" }} • {{ obj.get_category_display }}</div>
+
+{% block content_inner %}
+
+<div class="d-flex justify-content-between align-items-start align-items-sm-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Nursing Note</h3>
+    <div class="text-secondary small">
+      {{ obj.created_at|date:"Y-m-d H:i" }} • {{ obj.get_category_display }}
     </div>
-    <a class="btn secondary" href="{% url 'specialists:nursing_list' %}">Back</a>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'specialists:nursing_list' %}">
+    ← Back
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+  <div class="card-body p-4">
+
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <div class="text-secondary small">Patient</div>
+        <div class="fw-semibold fs-5">{{ obj.patient.name }}</div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="text-secondary small">Created By</div>
+        <div class="fw-semibold">{{ obj.created_by|default:"—" }}</div>
+      </div>
+    </div>
+
+    <hr class="my-4">
+
+    <div>
+      <h5 class="fw-bold mb-3">Clinical Note</h5>
+      <div class="border rounded-4 p-3 bg-light" style="white-space: pre-wrap;">
+        {{ obj.note }}
+      </div>
+    </div>
+
   </div>
 
-  <div class="hr"></div>
-  <div><b>Patient:</b> {{ obj.patient.name }}</div>
-  <div class="muted"><b>Created by:</b> {{ obj.created_by|default:"—" }}</div>
-
-  <div class="hr"></div>
-  <h3>Note</h3>
-  <div style="white-space:pre-wrap">{{ obj.note }}</div>
+  <div class="card-footer bg-white border-0 px-4 py-3">
+    <div class="text-secondary small">
+      Tip: Keep notes structured (Assessment, Intervention, Outcome) for quick review.
+    </div>
+  </div>
 </div>
+
 {% endblock %}

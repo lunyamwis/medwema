@@ -1,150 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Laboratory Results</title>
+<meta charset="UTF-8">
+<title>Laboratory Results</title>
 
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  body { font-size: 13px; }
+  .small-text { font-size: 12px; }
+  .tight { margin-bottom: 6px !important; }
+  .section-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .no-shadow { box-shadow: none !important; }
+  .no-border { border: none !important; }
+  .table td, .table th { padding: 4px 6px; }
+</style>
 </head>
 
-<body class="bg-light">
+<body>
 
-<div class="container my-5">
+<div class="container-fluid px-3 py-2">
 
   <!-- HEADER -->
-  <div class="text-center mb-5">
-    <h1 class="fw-bold text-primary mb-2">Laboratory Results</h1>
-    <p class="text-muted fs-5 mb-0">
-      Bahari Medical Clinic — Diagnostic Laboratory
-    </p>
-    <div class="mt-3">
-      <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-4 py-2 fs-6">
-        Official Medical Report
-      </span>
-    </div>
+  <div class="text-center tight">
+    <h4 class="fw-bold text-primary mb-1">Laboratory Results</h4>
+    <div class="small-text text-muted">Bahari Medical Clinic — Diagnostic Laboratory</div>
   </div>
 
   <!-- PATIENT SUMMARY -->
   {% if consultation %}
-  <div class="card border-0 shadow-sm mb-5">
-    <div class="card-body p-4">
-      <div class="row g-4 align-items-center">
-
-        <div class="col-md-6">
-          <div class="d-flex align-items-center gap-3">
-            <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width:60px;height:60px;">
-              <strong class="fs-4">👤</strong>
-            </div>
-            <div>
-              <div class="text-muted text-uppercase small">Patient Name</div>
-              <div class="fw-bold fs-4">
-                {{ consultation.patient.name }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6">
-          <div class="d-flex align-items-center gap-3">
-            <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width:60px;height:60px;">
-              <strong class="fs-4">🗓</strong>
-            </div>
-            <div>
-              <div class="text-muted text-uppercase small">Consultation Date</div>
-              <div class="fw-semibold fs-5">
-                {{ consultation.date|date:"Y-m-d H:i" }}
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
+  <table class="table table-bordered small-text tight">
+    <tr>
+      <th style="width:25%">Patient</th>
+      <td>{{ consultation.patient.name }}</td>
+      <th style="width:25%">Consultation Date</th>
+      <td>{{ consultation.date|date:"Y-m-d H:i" }}</td>
+    </tr>
+  </table>
   {% endif %}
 
-  <!-- RESULTS -->
-  <div class="mb-4">
-    <h3 class="fw-semibold text-secondary mb-3">Test Results</h3>
-    <p class="text-muted">
-      Below are the laboratory findings associated with this consultation.
-    </p>
-  </div>
+  <!-- RESULTS TITLE -->
+  <div class="section-title mt-2">Test Results</div>
 
-  <div class="row g-4">
-
-    {% for result in results %}
-    <div class="col-md-6 col-lg-4">
-      <div class="card h-100 border-0 shadow-lg">
-
-        <!-- CARD HEADER -->
-        <div class="card-header bg-white border-0 pb-0">
-          <span class="badge bg-secondary bg-opacity-10 text-secondary mb-2">
-            {{ result.lab_test.name }}
-          </span>
-          <h5 class="fw-bold mt-2 mb-0">
-            {{ result.result_name }}
-          </h5>
-        </div>
-
-        <!-- CARD BODY -->
-        <div class="card-body pt-3">
-
-          <!-- RESULT VALUE -->
-          <div class="mb-4">
-            <div class="text-muted small text-uppercase mb-1">
-              Result Value
-            </div>
-            <div class="display-6 fw-bold text-primary">
-              {{ result.result_value }}
-              <span class="fs-5 text-muted">
-                {{ result.lab_test.unit }}
-              </span>
-            </div>
-          </div>
-
-          <!-- REFERENCE RANGE -->
-          <div class="mb-3">
-            <div class="text-muted small text-uppercase">
-              Reference Range
-            </div>
-            <div class="fw-semibold">
-              {{ result.lab_test.reference_min }} – {{ result.lab_test.reference_max }}
-              {{ result.lab_test.unit }}
-            </div>
-          </div>
-
-          <!-- INTERPRETATION -->
-          <div class="mb-3">
-            <div class="text-muted small text-uppercase">
-              Interpretation
-            </div>
-            <div class="text-muted small">
-              {{ result.lab_test.description }}
-            </div>
-          </div>
-
-        </div>
-
-        <!-- CARD FOOTER -->
-        <div class="card-footer bg-white border-0 text-end">
-          <span class="badge rounded-pill bg-light text-muted">
-            {{ result.result_date|date:"Y-m-d" }}
-          </span>
-        </div>
-
-      </div>
-    </div>
-    {% endfor %}
-
-  </div>
+  <!-- RESULTS TABLE -->
+  <table class="table table-sm table-bordered align-middle">
+    <thead class="table-light">
+      <tr>
+        <th>Test</th>
+        <th>Result</th>
+        <th>Unit</th>
+        <th>Reference Range</th>
+        <th>Interpretation</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for result in results %}
+      <tr>
+        <td>{{ result.lab_test.name }}</td>
+        <td class="fw-semibold text-primary">{{ result.result_value }}</td>
+        <td>{{ result.lab_test.unit }}</td>
+        <td>
+          {{ result.lab_test.reference_min }} – {{ result.lab_test.reference_max }}
+        </td>
+        <td class="small-text">{{ result.lab_test.description }}</td>
+        <td>{{ result.result_date|date:"Y-m-d" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
   <!-- FOOTER -->
-  <div class="text-center mt-5 pt-4 border-top">
-    <p class="fw-semibold mb-1">
-      Bahari Medical Clinic Laboratory Report.
-    </p>
+  <div class="text-center mt-2 small-text text-muted">
+    Bahari Medical Clinic Laboratory Report
   </div>
 
 </div>

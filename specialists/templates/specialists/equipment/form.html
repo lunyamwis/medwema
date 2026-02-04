@@ -1,27 +1,38 @@
 {% extends "specialists/base.html" %}
+{% load crispy_forms_tags %}
 {% block title %}Add Equipment | Specialists Hub{% endblock %}
-{% block content %}
-<div class="card">
-  <div class="split">
-    <div>
-      <h2>Add Equipment Item</h2>
-      <div class="muted">Include reorder level for automatic low stock tracking.</div>
+
+{% block content_inner %}
+
+<div class="d-flex justify-content-between align-items-start align-items-sm-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Add Equipment Item</h3>
+    <div class="text-secondary">
+      Include reorder level for automatic low stock tracking.
     </div>
-    <a class="btn secondary" href="{% url 'specialists:equipment_list' %}">Back</a>
   </div>
-
-  <div class="hr"></div>
-
-  <form method="post">
-    {% csrf_token %}
-    <div class="form-grid">
-      <div class="col-6">{{ form.name.label_tag }}{{ form.name }}</div>
-      <div class="col-6">{{ form.category.label_tag }}{{ form.category }}</div>
-      <div class="col-6">{{ form.qty_available.label_tag }}{{ form.qty_available }}</div>
-      <div class="col-6">{{ form.reorder_level.label_tag }}{{ form.reorder_level }}</div>
-      <div class="col-12">{{ form.notes.label_tag }}{{ form.notes }}</div>
-      <div class="col-12"><button class="btn blue" type="submit">Save Item</button></div>
-    </div>
-  </form>
+  <a class="btn btn-outline-secondary" href="{% url 'specialists:equipment_list' %}">
+    ← Back
+  </a>
 </div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+      {{ form|crispy }}
+    </div>
+
+    <div class="card-footer bg-white border-0 p-4 d-flex justify-content-between align-items-center">
+      <div class="text-secondary small">
+        Tip: When stock drops below the reorder level, the item will be flagged as low stock.
+      </div>
+      <button class="btn btn-primary px-4" type="submit">
+        Save Item
+      </button>
+    </div>
+  </div>
+</form>
+
 {% endblock %}

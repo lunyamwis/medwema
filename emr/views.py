@@ -247,6 +247,160 @@ def lab_dashboard(request):
         "lab_queue": lab_queue,
     })
 
+@login_required
+def lab_results_dashboard(request):
+    search_query = request.GET.get("search", "")
+    lab_queue = lab_queue = (
+        LabQueue.objects
+        .filter(status__in=["waiting", "in_progress"])
+        .order_by("-consultation__date")  # latest consultation first
+        .distinct("patient_id")  # one row per patient
+    )
+
+
+    # Existing results logic...
+    results_qs = (
+        LabResult.objects.values("consultation__patient__name", "consultation_id")
+        .annotate(total_tests=Count("id"), last_test=Max("consultation__date"))
+        .order_by("-consultation__date")
+    )
+
+    if search_query:
+        results_qs = results_qs.filter(consultation__patient__name__icontains=search_query)
+
+
+
+    historical_results_qs = LabResult.objects.all()
+
+    patient_query = request.GET.get('patient', '')
+    lab_test_query = request.GET.get('lab_test', '')
+    result_date_from_raw = request.GET.get("result_date_from", "").strip()
+    result_date_to_raw   = request.GET.get("result_date_to", "").strip()
+    result_date_raw      = request.GET.get("result_date", "").strip()  # optional exact
+
+    result_date_from = parse_date(result_date_from_raw) if result_date_from_raw else None
+    result_date_to   = parse_date(result_date_to_raw) if result_date_to_raw else None
+    result_date      = parse_date(result_date_raw) if result_date_raw else None
+
+    filters = Q()
+
+    if patient_query:
+        filters &= Q(consultation__patient__name__icontains=patient_query)
+
+    if lab_test_query:
+        filters &= Q(lab_test__name__icontains=lab_test_query)
+
+
+    if patient_query and lab_test_query:
+        filters &= Q(
+            consultation__patient__name__icontains=patient_query,
+            lab_test__name__icontains=lab_test_query
+        )
+    if result_date:
+        filters &= Q(result_date=result_date)
+    else:
+        if result_date_from:
+            filters &= Q(result_date__gte=result_date_from)
+        if result_date_to:
+            filters &= Q(result_date__lte=result_date_to)
+
+    
+    if filters:
+        historical_results_qs = historical_results_qs.filter(filters)
+
+    historical_results_qs = historical_results_qs.order_by("-consultation__date").distinct()
+
+    paginator = Paginator(results_qs, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    historical_paginator = Paginator(historical_results_qs, 10)
+    historical_page_obj = historical_paginator.get_page(request.GET.get("historical_page"))
+
+    return render(request, "emr/lab_results_dashboard.html", {
+        "page_obj": page_obj,
+        "historical_page_obj": historical_page_obj,
+        "search_query": search_query,
+        "patient": patient_query,
+        "lab_test": lab_test_query,
+        "lab_queue": lab_queue,
+    })
+
+
+
+@login_required
+def lab_search_dashboard(request):
+    search_query = request.GET.get("search", "")
+    lab_queue = lab_queue = (
+        LabQueue.objects
+        .filter(status__in=["waiting", "in_progress"])
+        .order_by("patient_id", "-consultation__date")  # latest consultation first
+        .distinct("patient_id")  # one row per patient
+    )
+
+
+    # Existing results logic...
+    results_qs = (
+        LabResult.objects.values("consultation__patient__name", "consultation_id")
+        .annotate(total_tests=Count("id"), last_test=Max("result_date"))
+    )
+
+    if search_query:
+        results_qs = results_qs.filter(consultation__patient__name__icontains=search_query)
+
+
+
+    historical_results_qs = LabResult.objects.all()
+
+    patient_query = request.GET.get('patient', '')
+    lab_test_query = request.GET.get('lab_test', '')
+    result_date_from_raw = request.GET.get("result_date_from", "").strip()
+    result_date_to_raw   = request.GET.get("result_date_to", "").strip()
+    result_date_raw      = request.GET.get("result_date", "").strip()  # optional exact
+
+    result_date_from = parse_date(result_date_from_raw) if result_date_from_raw else None
+    result_date_to   = parse_date(result_date_to_raw) if result_date_to_raw else None
+    result_date      = parse_date(result_date_raw) if result_date_raw else None
+
+    filters = Q()
+
+    if patient_query:
+        filters &= Q(consultation__patient__name__icontains=patient_query)
+
+    if lab_test_query:
+        filters &= Q(lab_test__name__icontains=lab_test_query)
+
+
+    if patient_query and lab_test_query:
+        filters &= Q(
+            consultation__patient__name__icontains=patient_query,
+            lab_test__name__icontains=lab_test_query
+        )
+    if result_date:
+        filters &= Q(result_date=result_date)
+    else:
+        if result_date_from:
+            filters &= Q(result_date__gte=result_date_from)
+        if result_date_to:
+            filters &= Q(result_date__lte=result_date_to)
+
+    
+    if filters:
+        historical_results_qs = historical_results_qs.filter(filters)
+
+    historical_results_qs = historical_results_qs.order_by("-result_date", "-id").distinct()
+
+    paginator = Paginator(results_qs, 10)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    historical_paginator = Paginator(historical_results_qs, 10)
+    historical_page_obj = historical_paginator.get_page(request.GET.get("historical_page"))
+
+    return render(request, "emr/lab_search_dashboard.html", {
+        "page_obj": page_obj,
+        "historical_page_obj": historical_page_obj,
+        "search_query": search_query,
+        "patient": patient_query,
+        "lab_test": lab_test_query,
+        "lab_queue": lab_queue,
+    })
 
 def view_lab_results(request, consultation_id):
     results = LabResult.objects.all()

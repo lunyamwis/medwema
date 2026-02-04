@@ -1,51 +1,99 @@
 {% extends "base.html" %}
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Specialists Hub</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    body{font-family:system-ui,Segoe UI,Arial;margin:0;background:#f6f7fb}
-    .top{background:#111827;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center}
-    .wrap{max-width:1100px;margin:18px auto;padding:0 14px}
-    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
-    .card{background:#fff;border-radius:14px;padding:14px;box-shadow:0 8px 22px rgba(0,0,0,.06);border:1px solid #eef0f6}
-    a.btn{display:inline-block;padding:10px 12px;border-radius:10px;background:#111827;color:#fff;text-decoration:none}
-    .muted{color:#6b7280}
-    .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px}
-    .tabs a{margin-right:10px;color:#111827;text-decoration:none;font-weight:600}
-    .tabs a:hover{text-decoration:underline}
-    .table{width:100%;border-collapse:collapse}
-    .table th,.table td{padding:10px;border-bottom:1px solid #eef0f6;text-align:left}
-    input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid #e5e7eb}
-    label{font-weight:700;font-size:13px}
-  </style>
-</head>
-<body>
-  <div class="top">
-    <div><b>Specialists Hub</b> <span class="muted">| Sonography • Nursing • External Labs • Home Visits • Supplies • Debts • Equipment</span></div>
-    <div class="tabs">
-      <a href="{% url 'specialists:dashboard' %}">Dashboard</a>
-      <a href="{% url 'specialists:task_list' %}">Specialists Area</a>
-      <a href="{% url 'specialists:sonography_list' %}">Sonography</a>
-      <a href="{% url 'specialists:nursing_list' %}">Nursing</a>
-      <a href="{% url 'specialists:external_lab_list' %}">External Lab</a>
-      <a href="{% url 'specialists:home_visit_list' %}">Home Visits</a>
-      <a href="{% url 'specialists:supply_invoice_list' %}">Supplies</a>
-      <a href="{% url 'specialists:debts_list' %}">Debts</a>
-      <a href="{% url 'specialists:equipment_list' %}">Equipment</a>
+{% load static %}
+
+{% block title %}Specialists Hub{% endblock %}
+
+{% block content %}
+
+<!-- 🔷 TOP NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
+  <div class="container-fluid px-4">
+    <span class="navbar-brand fw-bold">
+      Specialists Hub
+      <small class="text-secondary fw-normal d-none d-md-inline">
+        | Sonography • Nursing • Labs • Home Visits • Supplies • Debts • Equipment
+      </small>
+    </span>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#hubNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse mt-3 mt-lg-0" id="hubNav">
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0 nav-pills gap-2">
+
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'specialists:dashboard' %}">Dashboard</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'specialists:task_list' %}">Specialists</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'specialists:sonography_list' %}">Sonography</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'specialists:nursing_list' %}">Nursing</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'specialists:external_lab_list' %}">External Lab</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'specialists:home_visit_list' %}">Home Visits</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'specialists:supply_invoice_list' %}">Supplies</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'specialists:debts_list' %}">Debts</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="{% url 'specialists:equipment_list' %}">Equipment</a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+
+<!-- 🔷 PAGE WRAPPER -->
+<div class="container py-4">
+
+  <!-- 🔔 MESSAGES -->
+  {% if messages %}
+  <div class="row mb-3">
+    <div class="col">
+      {% for m in messages %}
+        <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
+          {{ m }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 📦 MAIN CONTENT CARD -->
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-4">
+
+      {% block specialists_content %}
+      {% block content_inner %}
+      {% endblock %}
+      {% endblock %}
+
     </div>
   </div>
 
-  <div class="wrap">
-    {% if messages %}
-      <div class="card">
-        {% for m in messages %}<div class="badge">{{ m }}</div>{% endfor %}
-      </div>
-      <div style="height:10px"></div>
-    {% endif %}
-    {% block content %}{% endblock %}
-  </div>
-</body>
-</html>
+</div>
+
+{% block extra_scripts %}
+<script>
+  document.querySelectorAll('.nav-link').forEach(link => {
+    if (link.href === window.location.href) {
+      link.classList.add('active', 'bg-primary');
+    }
+  });
+</script>
+{% endblock %}
+{% endblock %}

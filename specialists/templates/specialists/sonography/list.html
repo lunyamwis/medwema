@@ -1,24 +1,80 @@
 {% extends "specialists/base.html" %}
-{% block content %}
-<div class="card">
-  <div style="display:flex;justify-content:space-between;align-items:center">
-    <h2 style="margin:0">Sonography Reports</h2>
-    <a class="btn" href="{% url 'specialists:sonography_create' %}">New</a>
+{% block title %}Sonography | Specialists Hub{% endblock %}
+
+{% block content_inner %}
+
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Sonography Reports</h3>
+    <div class="text-secondary">View and manage completed imaging studies.</div>
   </div>
-  <table class="table">
-    <thead><tr><th>Date</th><th>Patient</th><th>Type</th><th>Actions</th></tr></thead>
-    <tbody>
-      {% for r in rows %}
-        <tr>
-          <td>{{ r.performed_at|date:"Y-m-d H:i" }}</td>
-          <td>{{ r.patient.name }}</td>
-          <td><span class="badge">{{ r.get_study_type_display }}</span></td>
-          <td><a href="{% url 'specialists:sonography_detail' r.id %}">View</a></td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="4" class="muted">No reports yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <a class="btn btn-primary" href="{% url 'specialists:sonography_create' %}">
+    + New Report
+  </a>
 </div>
+
+<div class="card border-0 shadow-sm rounded-4">
+  <div class="card-body p-0">
+
+    <div class="d-flex justify-content-between align-items-center px-4 pt-4 pb-3">
+      <div>
+        <div class="fw-semibold">Reports</div>
+        <div class="text-secondary small">
+          {{ rows|length }} report{{ rows|length|pluralize }} recorded
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="text-nowrap">Date</th>
+            <th>Patient</th>
+            <th>Study Type</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td class="text-nowrap">{{ r.performed_at|date:"Y-m-d H:i" }}</td>
+
+            <td>
+              <div class="fw-semibold">{{ r.patient.name }}</div>
+            </td>
+
+            <td>
+              <span class="badge text-bg-info rounded-pill">
+                {{ r.get_study_type_display }}
+              </span>
+            </td>
+
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'specialists:sonography_detail' r.id %}">
+                View
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center text-secondary py-5">
+              No reports yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="card-footer bg-white border-0 px-4 py-3">
+    <div class="text-secondary small">
+      Tip: Ensure findings and impressions are completed before finalizing a report.
+    </div>
+  </div>
+</div>
+
 {% endblock %}

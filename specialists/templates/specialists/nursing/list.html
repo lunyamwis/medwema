@@ -1,38 +1,86 @@
 {% extends "specialists/base.html" %}
 {% block title %}Nursing | Specialists Hub{% endblock %}
-{% block content %}
-<div class="card">
-  <div class="split">
-    <div>
-      <h2>Nursing / Observation</h2>
-      <div class="muted">IV • Observation • Acute management • Suturing • Notes.</div>
+
+{% block content_inner %}
+
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Nursing / Observation</h3>
+    <div class="text-secondary">IV • Observation • Acute management • Suturing • Notes.</div>
+  </div>
+  <a class="btn btn-primary" href="{% url 'specialists:nursing_create' %}">
+    + New Note
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+  <div class="card-body p-0">
+
+    <div class="d-flex justify-content-between align-items-center px-4 pt-4 pb-3">
+      <div>
+        <div class="fw-semibold">Clinical Notes</div>
+        <div class="text-secondary small">
+          {{ rows|length }} note{{ rows|length|pluralize }} recorded
+        </div>
+      </div>
     </div>
-    <a class="btn blue" href="{% url 'specialists:nursing_create' %}">New Note</a>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="text-nowrap">Date</th>
+            <th>Patient</th>
+            <th>Category</th>
+            <th>Preview</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td class="text-nowrap">{{ r.created_at|date:"Y-m-d H:i" }}</td>
+
+            <td>
+              <div class="fw-semibold">{{ r.patient.name }}</div>
+            </td>
+
+            <td>
+              <span class="badge text-bg-info rounded-pill">
+                {{ r.get_category_display }}
+              </span>
+            </td>
+
+            <td class="text-secondary">
+              {{ r.note|truncatechars:80 }}
+            </td>
+
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'specialists:nursing_detail' r.id %}">
+                View
+              </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-secondary py-5">
+              No nursing notes yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+
   </div>
 
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Patient</th>
-        <th>Category</th>
-        <th>Preview</th>
-        <th class="right">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in rows %}
-      <tr>
-        <td>{{ r.created_at|date:"Y-m-d H:i" }}</td>
-        <td><b>{{ r.patient.name }}</b></td>
-        <td><span class="badge">{{ r.get_category_display }}</span></td>
-        <td class="muted">{{ r.note|truncatechars:80 }}</td>
-        <td class="right"><a class="pill-link" href="{% url 'specialists:nursing_detail' r.id %}">View</a></td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5" class="muted">No nursing notes yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="card-footer bg-white border-0 px-4 py-3">
+    <div class="text-secondary small">
+      Tip: Use clear categories to make follow-up care easier to track.
+    </div>
+  </div>
 </div>
+
 {% endblock %}

@@ -43,11 +43,11 @@
             </tr>
           </thead>
           <tbody>
-            {% for consultation in consultations %}
+            {% for consultation in page_obj %}
               <tr>
-                <td>{{ forloop.counter }}</td>
+                <td>{{ consultation.id }}</td>
                 <td>{{ consultation.patient.name }}</td>
-                <td>{{ consultation.created_at|date:"M d, Y H:i" }}</td>
+                <td>{{ consultation.date|date:"M d, Y H:i" }}</td>
                 <td>
                   {% if consultation.patient.queues.last.status == 'pending' %}
                     <span class="badge bg-warning text-dark">Pending</span>
@@ -64,10 +64,6 @@
                     <a href="{% url 'consultation_detail' consultation.id %}" 
                        class="btn btn-sm btn-outline-primary">
                       <i class="bi bi-eye"></i>
-                    </a>
-                    <a href="{% url 'consultation_edit' consultation.patient.id consultation.id %}" 
-                       class="btn btn-sm btn-outline-secondary">
-                      <i class="bi bi-pencil"></i>
                     </a>
                     <a href="{% url 'consultation_pdf' consultation.id %}" 
                        class="btn btn-sm btn-outline-secondary">
@@ -88,35 +84,43 @@
       </div>
 
       <!-- Pagination -->
-      {% if is_paginated %}
-      <nav>
+      <!-- Pagination Controls -->
+      {% if page_obj.has_other_pages %}
+      <nav aria-label="Patient pagination" class="mt-4">
         <ul class="pagination justify-content-center">
           {% if page_obj.has_previous %}
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
                 Previous
               </a>
             </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
           {% endif %}
 
-          {% for i in paginator.page_range %}
-            <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-              <a class="page-link" href="?page={{ i }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
-                {{ i }}
-              </a>
-            </li>
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+              </li>
+            {% endif %}
           {% endfor %}
 
           {% if page_obj.has_next %}
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
                 Next
               </a>
             </li>
+          {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
           {% endif %}
         </ul>
       </nav>
       {% endif %}
+    
     </div>
   </div>
 </div>

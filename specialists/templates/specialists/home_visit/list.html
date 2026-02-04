@@ -1,38 +1,89 @@
 {% extends "specialists/base.html" %}
 {% block title %}Home Visits | Specialists Hub{% endblock %}
-{% block content %}
-<div class="card">
-  <div class="split">
-    <div>
-      <h2>Home Visits</h2>
-      <div class="muted">Schedule and record home-based care.</div>
+
+{% block content_inner %}
+
+<div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Home Visits</h3>
+    <div class="text-secondary">Schedule and record home-based care.</div>
+  </div>
+  <a class="btn btn-primary" href="{% url 'specialists:home_visit_create' %}">
+    + New Home Visit
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+  <div class="card-body p-0">
+
+    <div class="d-flex justify-content-between align-items-center px-4 pt-4 pb-3">
+      <div>
+        <div class="fw-semibold">Scheduled Visits</div>
+        <div class="text-secondary small">
+          {{ rows|length }} visit{{ rows|length|pluralize }} recorded
+        </div>
+      </div>
     </div>
-    <a class="btn blue" href="{% url 'specialists:home_visit_create' %}">New Home Visit</a>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="text-nowrap">Visit Date</th>
+            <th>Patient</th>
+            <th>Clinician</th>
+            <th>Status</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td class="text-nowrap">{{ r.visit_date|date:"Y-m-d H:i" }}</td>
+
+            <td>
+              <div class="fw-semibold">{{ r.patient.name }}</div>
+            </td>
+
+            <td class="text-secondary">
+              {{ r.clinician|default:"—" }}
+            </td>
+
+            <td>
+              {% if r.status == "completed" %}
+                <span class="badge text-bg-success rounded-pill">{{ r.get_status_display }}</span>
+              {% elif r.status == "scheduled" %}
+                <span class="badge text-bg-primary rounded-pill">{{ r.get_status_display }}</span>
+              {% elif r.status == "cancelled" %}
+                <span class="badge text-bg-secondary rounded-pill">{{ r.get_status_display }}</span>
+              {% else %}
+                <span class="badge text-bg-warning rounded-pill">{{ r.get_status_display }}</span>
+              {% endif %}
+            </td>
+
+            <td class="text-secondary">
+              {{ r.purpose|default:"—"|truncatechars:90 }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-secondary py-5">
+              No home visits yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
   </div>
 
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Visit date</th>
-        <th>Patient</th>
-        <th>Clinician</th>
-        <th>Status</th>
-        <th>Purpose</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for r in rows %}
-      <tr>
-        <td>{{ r.visit_date|date:"Y-m-d H:i" }}</td>
-        <td><b>{{ r.patient.name }}</b></td>
-        <td class="muted">{{ r.clinician|default:"—" }}</td>
-        <td><span class="badge">{{ r.get_status_display }}</span></td>
-        <td class="muted">{{ r.purpose|default:"—"|truncatechars:90 }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5" class="muted">No home visits yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="card-footer bg-white border-0 px-4 py-3">
+    <div class="text-secondary small">
+      Tip: Keep visit purposes short and clear for quick review.
+    </div>
+  </div>
 </div>
+
 {% endblock %}

@@ -148,7 +148,10 @@ def patient_success(request):
 
 
 def consultation_list(request):
-    consultations = Consultation.objects.select_related("patient", "doctor").order_by("-date")
+    query = request.GET.get("q")
+    consultations = Consultation.objects.all().order_by("-date")
+    if query:
+        consultations = consultations.filter(patient__name__icontains=query)
     paginator = Paginator(consultations, 10)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)

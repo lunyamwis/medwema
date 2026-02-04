@@ -1,11 +1,14 @@
-<div class="card">
-  <div class="split">
+<div class="card border-0 shadow-sm rounded-4 h-100">
+  <div class="card-body p-4 d-flex justify-content-between align-items-start gap-3">
     <div>
-      <div class="muted">{{ subtitle }}</div>
-      <div class="kpi">{{ value }}</div>
+      <div class="text-secondary small mb-1">{{ subtitle }}</div>
+      <div class="display-6 fw-bold mb-0">{{ value }}</div>
     </div>
+
     {% if action_url %}
-      <a class="btn" href="{{ action_url }}">{{ action_text|default:"Open" }}</a>
+      <a class="btn btn-sm btn-outline-primary flex-shrink-0" href="{{ action_url }}">
+        {{ action_text|default:"Open" }}
+      </a>
     {% endif %}
   </div>
 </div>

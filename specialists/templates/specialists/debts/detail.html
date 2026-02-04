@@ -1,38 +1,126 @@
 {% extends "specialists/base.html" %}
-{% block content %}
-<div class="grid">
-  <div class="card" style="grid-column:span 7">
-    <h2 style="margin-top:0">Debt Case</h2>
-    <div><b>Patient:</b> {{ obj.patient.name }}</div>
-    <div><b>Bill:</b> #{{ obj.bill.id }}</div>
-    <div><b>Status:</b> <span class="badge">{{ obj.status }}</span></div>
-    <div><b>Balance:</b> {{ obj.balance }}</div>
+{% load crispy_forms_tags %}
 
-    {% if wa_link %}
-      <div style="height:10px"></div>
-      <a class="btn" href="{{ wa_link }}" target="_blank">WhatsApp Follow-up</a>
-    {% endif %}
+{% block title %}Debt Case | Specialists Hub{% endblock %}
+
+{% block content_inner %}
+
+<div class="d-flex justify-content-between align-items-start align-items-sm-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Debt Case</h3>
+    <div class="text-secondary">Track balance, follow-ups, and communication history.</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'specialists:debts_list' %}">← Back</a>
+</div>
+
+<div class="row g-3">
+  <!-- Left: Case Summary -->
+  <div class="col-12 col-lg-7">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start gap-3">
+          <div>
+            <h5 class="fw-bold mb-1">{{ obj.patient.name }}</h5>
+            <div class="text-secondary small">Bill #{{ obj.bill.id }}</div>
+          </div>
+
+          {# Optional badge coloring (adjust if your status values differ) #}
+          {% if obj.status == "paid" %}
+            <span class="badge text-bg-success rounded-pill">Paid</span>
+          {% elif obj.status == "promised" %}
+            <span class="badge text-bg-warning rounded-pill">Promised</span>
+          {% elif obj.status == "open" %}
+            <span class="badge text-bg-danger rounded-pill">Open</span>
+          {% else %}
+            <span class="badge text-bg-info rounded-pill">{{ obj.status }}</span>
+          {% endif %}
+        </div>
+
+        <hr class="my-3">
+
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <div class="text-secondary small">Balance</div>
+            <div class="fs-4 fw-bold">{{ obj.balance }}</div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <div class="text-secondary small">Billing Reference</div>
+            <div class="fw-semibold">Bill #{{ obj.bill.id }}</div>
+          </div>
+        </div>
+
+        {% if wa_link %}
+          <div class="mt-4">
+            <a class="btn btn-success" href="{{ wa_link }}" target="_blank" rel="noopener">
+              WhatsApp Follow-up
+            </a>
+            <div class="text-secondary small mt-2">
+              Opens WhatsApp with a prepared message.
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
   </div>
 
-  <div class="card" style="grid-column:span 5">
-    <h3 style="margin-top:0">Log Follow-up</h3>
-    <form method="post" action="{% url 'specialists:debt_add_followup' obj.id %}">
-      {% csrf_token %}
-      {{ follow_form.as_p }}
-      <button class="btn" type="submit">Save Follow-up</button>
-    </form>
+  <!-- Right: Follow-up Form + History -->
+  <div class="col-12 col-lg-5">
+    <div class="card border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-1">Log Follow-up</h5>
+        <div class="text-secondary small mb-3">Record a call, SMS, WhatsApp, or visit follow-up.</div>
 
-    <hr/>
-    <h3>History</h3>
-    {% for f in obj.followups.all %}
-      <div class="card" style="margin:10px 0;padding:10px">
-        <div><b>{{ f.get_channel_display }}</b> - {{ f.created_at|date:"Y-m-d H:i" }}</div>
-        <div class="muted">{{ f.sent_to }}</div>
-        <div>{{ f.message }}</div>
+        <form method="post" action="{% url 'specialists:debt_add_followup' obj.id %}" novalidate>
+          {% csrf_token %}
+          {{ follow_form|crispy }}
+
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-primary w-100" type="submit">Save Follow-up</button>
+          </div>
+        </form>
       </div>
-    {% empty %}
-      <div class="muted">No follow-ups yet.</div>
-    {% endfor %}
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="fw-bold mb-0">History</h5>
+          <span class="badge text-bg-light border rounded-pill">
+            {{ obj.followups.count }} item{{ obj.followups.count|pluralize }}
+          </span>
+        </div>
+        <div class="text-secondary small mb-3">All recorded follow-ups for this debt.</div>
+
+        <div class="vstack gap-2">
+          {% for f in obj.followups.all %}
+            <div class="border rounded-4 p-3">
+              <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                  <div class="fw-semibold">
+                    {{ f.get_channel_display }}
+                    <span class="text-secondary fw-normal">• {{ f.created_at|date:"Y-m-d H:i" }}</span>
+                  </div>
+
+                  {% if f.sent_to %}
+                    <div class="text-secondary small mt-1">{{ f.sent_to }}</div>
+                  {% endif %}
+
+                  {% if f.message %}
+                    <div class="mt-2">{{ f.message }}</div>
+                  {% else %}
+                    <div class="text-secondary small mt-2">No message recorded.</div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="text-secondary">No follow-ups yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
 {% endblock %}

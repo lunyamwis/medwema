@@ -1,37 +1,135 @@
 {% extends "specialists/base.html" %}
-{% block content %}
-<div class="grid">
-  <div class="card" style="grid-column:span 7">
-    <h2 style="margin-top:0">External Lab Request</h2>
-    <div><b>Patient:</b> {{ obj.patient.name }}</div>
-    <div><b>Lab:</b> {{ obj.lab_name }} ({{ obj.lab_email }})</div>
-    <div><b>Status:</b> <span class="badge">{{ obj.status }}</span></div>
-    <hr/>
-    <div><b>Subject:</b> {{ obj.subject }}</div>
-    <pre style="white-space:pre-wrap">{{ obj.message }}</pre>
+{% load crispy_forms_tags %}
 
-    <a class="btn" href="{% url 'specialists:external_lab_send' obj.id %}">Send Email</a>
+{% block title %}External Lab Request | Specialists Hub{% endblock %}
+
+{% block content_inner %}
+
+<div class="d-flex justify-content-between align-items-start align-items-sm-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">External Lab Request</h3>
+    <div class="text-secondary">Review details, send email, and upload results.</div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'specialists:external_lab_list' %}">
+    ← Back
+  </a>
+</div>
+
+<div class="row g-3">
+  <!-- Left: Request details -->
+  <div class="col-12 col-lg-7">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start gap-3">
+          <div>
+            <h5 class="fw-bold mb-1">{{ obj.subject|default:"External Lab Request" }}</h5>
+            <div class="text-secondary small">Request summary</div>
+          </div>
+
+          <span class="badge text-bg-light border rounded-pill">
+            {{ obj.status }}
+          </span>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="row g-2">
+          <div class="col-12">
+            <div class="small text-secondary">Patient</div>
+            <div class="fw-semibold">{{ obj.patient.name }}</div>
+          </div>
+
+          <div class="col-12">
+            <div class="small text-secondary">Lab</div>
+            <div class="fw-semibold">{{ obj.lab_name }}</div>
+            <div class="text-secondary small">{{ obj.lab_email }}</div>
+          </div>
+        </div>
+
+        <hr class="my-3">
+
+        <div class="small text-secondary mb-2">Message</div>
+        <div class="border rounded-4 p-3 bg-light">
+          <div class="fw-semibold mb-2">Subject</div>
+          <div class="mb-3">{{ obj.subject }}</div>
+
+          <div class="fw-semibold mb-2">Body</div>
+          <div class="text-body" style="white-space: pre-wrap;">{{ obj.message }}</div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <a class="btn btn-primary" href="{% url 'specialists:external_lab_send' obj.id %}">
+            Send Email
+          </a>
+          {% if obj.lab_email %}
+            <a class="btn btn-outline-secondary" href="mailto:{{ obj.lab_email }}?subject={{ obj.subject|urlencode }}">
+              Email via client
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="text-secondary small mt-3">
+          Tip: Upload results after the lab responds so they’re stored on the patient record.
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="card" style="grid-column:span 5">
-    <h3 style="margin-top:0">Upload Result</h3>
-    <form method="post" enctype="multipart/form-data" action="{% url 'specialists:external_lab_upload_result' obj.id %}">
-      {% csrf_token %}
-      {{ upload_form.as_p }}
-      <button class="btn" type="submit">Upload</button>
-    </form>
+  <!-- Right: Upload + Results -->
+  <div class="col-12 col-lg-5">
+    <div class="card border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-1">Upload Result</h5>
+        <div class="text-secondary small mb-3">Attach the lab file and add notes.</div>
 
-    <hr/>
-    <h3>Results</h3>
-    {% for r in obj.results.all %}
-      <div class="card" style="margin:10px 0;padding:10px">
-        <div><b>{{ r.uploaded_at|date:"Y-m-d H:i" }}</b></div>
-        <div class="muted">{{ r.notes }}</div>
-        <div><a href="{{ r.uploaded_file.url }}">Download</a></div>
+        <form method="post" enctype="multipart/form-data"
+              action="{% url 'specialists:external_lab_upload_result' obj.id %}">
+          {% csrf_token %}
+          {{ upload_form|crispy }}
+
+          <div class="d-flex gap-2 mt-3">
+            <button class="btn btn-primary w-100" type="submit">Upload</button>
+          </div>
+        </form>
       </div>
-    {% empty %}
-      <div class="muted">No uploaded results yet.</div>
-    {% endfor %}
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="fw-bold mb-0">Results</h5>
+          <span class="badge text-bg-light border rounded-pill">
+            {{ obj.results.count }} file{{ obj.results.count|pluralize }}
+          </span>
+        </div>
+        <div class="text-secondary small mb-3">Uploaded lab outputs for this request.</div>
+
+        <div class="vstack gap-2">
+          {% for r in obj.results.all %}
+            <div class="border rounded-4 p-3">
+              <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                  <div class="fw-semibold">{{ r.uploaded_at|date:"Y-m-d H:i" }}</div>
+                  {% if r.notes %}
+                    <div class="text-secondary small mt-1">{{ r.notes }}</div>
+                  {% else %}
+                    <div class="text-secondary small mt-1">No notes.</div>
+                  {% endif %}
+                </div>
+
+                <a class="btn btn-sm btn-outline-primary" href="{{ r.uploaded_file.url }}">
+                  Download
+                </a>
+              </div>
+            </div>
+          {% empty %}
+            <div class="text-secondary">No uploaded results yet.</div>
+          {% endfor %}
+        </div>
+
+      </div>
+    </div>
   </div>
 </div>
+
 {% endblock %}

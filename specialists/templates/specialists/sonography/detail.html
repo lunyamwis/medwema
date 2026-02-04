@@ -1,43 +1,82 @@
 {% extends "specialists/base.html" %}
 {% block title %}Sonography Detail | Specialists Hub{% endblock %}
-{% block content %}
-<div class="grid">
-  <div class="card col-8">
-    <div class="split">
-      <div>
-        <h2>Sonography Detail</h2>
-        <div class="muted">{{ obj.performed_at|date:"Y-m-d H:i" }} • {{ obj.get_study_type_display }}</div>
-      </div>
-      <a class="btn secondary" href="{% url 'specialists:sonography_list' %}">Back</a>
+
+{% block content_inner %}
+
+<div class="d-flex justify-content-between align-items-start align-items-sm-center mb-4">
+  <div>
+    <h3 class="fw-bold mb-1">Sonography Detail</h3>
+    <div class="text-secondary small">
+      {{ obj.performed_at|date:"Y-m-d H:i" }} • {{ obj.get_study_type_display }}
     </div>
+  </div>
+  <a class="btn btn-outline-secondary" href="{% url 'specialists:sonography_list' %}">
+    ← Back
+  </a>
+</div>
 
-    <div class="hr"></div>
-    <div><b>Patient:</b> {{ obj.patient.name }}</div>
-    <div class="muted"><b>Indication:</b> {{ obj.indication|default:"—" }}</div>
+<div class="row g-3">
+  <!-- Left: Clinical Report -->
+  <div class="col-12 col-lg-8">
+    <div class="card border-0 shadow-sm rounded-4 h-100">
+      <div class="card-body p-4">
 
-    <div class="hr"></div>
-    <h3>Findings</h3>
-    <div style="white-space:pre-wrap">{{ obj.findings|default:"—" }}</div>
+        <div class="mb-3">
+          <div class="text-secondary small">Patient</div>
+          <div class="fw-semibold fs-5">{{ obj.patient.name }}</div>
+        </div>
 
-    <div class="hr"></div>
-    <h3>Impression</h3>
-    <div style="white-space:pre-wrap">{{ obj.impression|default:"—" }}</div>
+        <div class="mb-4">
+          <div class="text-secondary small">Indication</div>
+          <div>{{ obj.indication|default:"—" }}</div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="mb-4">
+          <h5 class="fw-bold mb-2">Findings</h5>
+          <div class="border rounded-4 p-3 bg-light" style="white-space: pre-wrap;">
+            {{ obj.findings|default:"—" }}
+          </div>
+        </div>
+
+        <div>
+          <h5 class="fw-bold mb-2">Impression</h5>
+          <div class="border rounded-4 p-3 bg-light" style="white-space: pre-wrap;">
+            {{ obj.impression|default:"—" }}
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
-  <div class="card col-4">
-    <h3>Attachment</h3>
-    {% if obj.report_file %}
-      <div class="muted">Download the attached report.</div>
-      <div class="spacer"></div>
-      <a class="btn" href="{{ obj.report_file.url }}" target="_blank">Download</a>
-    {% else %}
-      <div class="muted">No attachment uploaded.</div>
-    {% endif %}
+  <!-- Right: Meta + Attachment -->
+  <div class="col-12 col-lg-4">
+    <div class="card border-0 shadow-sm rounded-4 mb-3">
+      <div class="card-body p-4">
+        <h6 class="fw-bold mb-2">Attachment</h6>
 
-    <div class="hr"></div>
-    <div class="muted">
-      <b>Performed by:</b> {{ obj.performed_by|default:"—" }}
+        {% if obj.report_file %}
+          <div class="text-secondary small mb-3">Download the attached report.</div>
+          <a class="btn btn-primary w-100" href="{{ obj.report_file.url }}" target="_blank">
+            Download Report
+          </a>
+        {% else %}
+          <div class="text-secondary">No attachment uploaded.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body p-4">
+        <h6 class="fw-bold mb-2">Performed By</h6>
+        <div class="text-secondary">
+          {{ obj.performed_by|default:"—" }}
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
 {% endblock %}
