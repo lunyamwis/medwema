@@ -193,7 +193,8 @@
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#sendToLabModal"
                                                 data-patient="{{ item.patient.name }}"
-                                                data-consultation-id="{{ item.patient.consultations.last.id }}">
+                                                data-consultation-id="{{ item.patient.consultations.last.id }}"
+                                                data-patient-id="{{ item.patient.id }}">
                                         🧾 Send to Lab
                                         </button>
                                     </div>
@@ -221,7 +222,7 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
-      <form method="post" action="{% url 'send_to_lab' 0 %}" id="sendToLabForm">
+      <form method="post" action="{% url 'send_to_lab' 0 0 %}" id="sendToLabForm">
         {% csrf_token %}
         <div class="modal-body">
           <p class="text-muted">Select lab tests for <strong id="labPatientName"></strong>.</p>
@@ -266,12 +267,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const button = event.relatedTarget;
     const patientName = button.getAttribute("data-patient");
     const consultationId = button.getAttribute("data-consultation-id");
+    const patientId = button.getAttribute("data-patient-id");
+    const sendToLabBaseUrl = "{% url 'send_to_lab' 0 0 %}";
 
     // Update modal content
     patientNameEl.textContent = patientName;
-
     // Update form action dynamically
-    sendToLabForm.action = `{% url 'send_to_lab' 0 %}`.replace("0", consultationId);
+    let url = sendToLabBaseUrl.replace("/0/0/", `/${consultationId}/${patientId}/`);
+
+    sendToLabForm.action = url;
+    
   });
 
   // Optional: search inside dropdown

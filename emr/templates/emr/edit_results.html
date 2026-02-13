@@ -13,6 +13,8 @@
     <div id="formset-container">
       {% for form in formset %}
       {{ form.id }}   <!-- 🚨 THIS IS CRITICAL -->
+      
+      Delete:{{ form.DELETE }}
       <div class="formset-item border rounded p-3 mb-3 shadow-sm position-relative">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0 text-primary fw-semibold">Result {{ forloop.counter }}</h5>
@@ -135,15 +137,33 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   // ✅ Remove form
+  // ✅ Remove form: mark DELETE if existing, else remove if new
   formContainer.addEventListener("click", (e) => {
-    if (e.target.closest(".remove-form")) {
-      const item = e.target.closest(".formset-item");
-      if (formContainer.querySelectorAll(".formset-item").length > 1) {
-        item.remove();
-        reindexForms();
-      } else {
-        alert("At least one result form must remain.");
-      }
+    const btn = e.target.closest(".remove-form");
+    if (!btn) return;
+
+    const item = e.target.closest(".formset-item");
+
+    // Existing object? It will have a hidden id input with a value
+    const idInput = item.querySelector('input[name$="-id"]');
+    const deleteInput = item.querySelector('input[name$="-DELETE"]');
+
+    const hasExistingId = idInput && idInput.value && idInput.value.trim() !== "";
+
+    if (hasExistingId) {
+      // Mark for deletion and hide from UI
+      if (deleteInput) deleteInput.checked = true;
+      item.style.display = "none";
+      // IMPORTANT: Do NOT remove from DOM, do NOT reindex
+      return;
+    }
+
+    // New unsaved form: safe to remove
+    if (formContainer.querySelectorAll(".formset-item").length > 1) {
+      item.remove();
+      reindexForms(); // OK for new forms only
+    } else {
+      alert("At least one result form must remain.");
     }
   });
 

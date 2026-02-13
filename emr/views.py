@@ -252,7 +252,7 @@ def lab_results_dashboard(request):
     search_query = request.GET.get("search", "")
     lab_queue = lab_queue = (
         LabQueue.objects
-        .filter(status__in=["waiting", "in_progress"])
+        .all()
         .order_by("-consultation__date")  # latest consultation first
         .distinct("patient_id")  # one row per patient
     )
@@ -459,10 +459,10 @@ def complete_lab_test(request, queue_id):
 
 
 
-def send_to_lab(request, consultation_id):
+def send_to_lab(request, consultation_id, patient_id):
     consultation = None
     if consultation_id == 0:
-        patient = get_object_or_404(Patient, id=request.POST.get("patient_id"))
+        patient = get_object_or_404(Patient, id=patient_id)
         consultations = Consultation.objects.filter(patient=patient)
         if consultations.exists():
             consultation = consultations.latest('date')
