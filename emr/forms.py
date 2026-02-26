@@ -24,7 +24,13 @@ class LabResultForm(forms.ModelForm):
         fields = ['lab_test', 'result_name', 'result_value']
         widgets = {
             'lab_test': forms.Select(attrs={'class': 'form-select'}),
-            'result_value': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 6.5 mmol/L'}),
+            'result_value': forms.Textarea(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Enter result value...',
+                    'rows': 6
+                }
+            ),
             'result_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Blood Glucose'}),
         }
 
