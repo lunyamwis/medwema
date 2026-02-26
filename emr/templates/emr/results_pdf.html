@@ -103,6 +103,8 @@
     .results-table {
       border-radius: 12px;
       overflow: hidden;
+      width: 100%;
+      table-layout: auto; /* IMPORTANT: allow natural column sizing */
     }
 
     .results-table thead th {
@@ -126,38 +128,13 @@
     .result-value {
       font-weight: 800;
       color: #1f3c88;
+      white-space: nowrap; /* keep numeric result compact */
     }
 
-    .results-table th:nth-child(1),
-    .results-table td:nth-child(1) { width: 20%; }
-
-    
-
- 
-    .results-table th:nth-child(4),
-    .results-table td:nth-child(4) { width: 18%; }
-
-    .results-table th:nth-child(5),
-    .results-table td:nth-child(5) { width: 28%; }
-
-    .results-table {
-      table-layout: fixed;
-      width: 100%;
-    }
-    .results-table th:nth-child(3),
-    .results-table td:nth-child(3) { 
-      width: 10%; 
-      white-space: nowrap;
-    }
-    .results-table th:nth-child(2),
-    .results-table td:nth-child(2) { 
-      width: 20%; 
-    }
     .interpretation {
       font-size: 13px;
       line-height: 1.6;
       color: #495057;
-      min-width: 220px;
     }
 
     /* Small utility text */
@@ -176,12 +153,48 @@
       color: #6c757d;
     }
 
-    /* Print tweaks */
+    /* ===== PDF / PRINT: FORCE LANDSCAPE ===== */
+    @page {
+      size: A4 landscape;
+      margin: 12mm;
+    }
+
     @media print {
-      .report-shell { max-width: 100%; padding: 0; }
-      .report-header { border: 0; background: #fff; }
-      .meta-pill { border: 0; padding: 0; margin: 0 10px; }
-      .results-table tbody tr:hover { background: transparent; }
+      html, body {
+        width: 100%;
+      }
+
+      .report-shell {
+        max-width: 100%;
+        padding: 0;
+      }
+
+      .report-header {
+        border: 0;
+        background: #fff;
+      }
+
+      .meta-pill {
+        border: 0;
+        padding: 0;
+        margin: 0 10px;
+      }
+
+      /* Allow wrapping in print so columns don't squeeze */
+      .results-table th,
+      .results-table td {
+        white-space: normal;
+      }
+
+      /* Keep the numeric result from wrapping */
+      .results-table td.result-value,
+      .result-value {
+        white-space: nowrap;
+      }
+
+      .results-table tbody tr:hover {
+        background: transparent;
+      }
     }
   </style>
 </head>
@@ -234,10 +247,10 @@
       <table class="table table-bordered results-table align-middle">
         <thead>
           <tr>
-            <th style="width: 20%;">Test</th>
-            <th style="width: 12%;">Result</th>
-            <th style="width: 18%;">Reference Range</th>
-            <th style="width: 28%;">Interpretation</th>
+            <th style="width: 25%;">Test</th>
+            <th style="width: 15%;">Result</th>
+            <th style="width: 20%;">Reference Range</th>
+            <th style="width: 40%;">Interpretation</th>
           </tr>
         </thead>
         <tbody>
@@ -249,7 +262,6 @@
               {{ result.result_value }}
             </td>
 
-            
             <td>
               {% if result.lab_test.reference_min or result.lab_test.reference_max %}
                 {{ result.lab_test.reference_min }} – {{ result.lab_test.reference_max }}
@@ -268,7 +280,7 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="6" class="text-center small-text py-4">
+            <td colspan="4" class="text-center small-text py-4">
               No lab results available for this consultation.
             </td>
           </tr>

@@ -465,9 +465,8 @@ def send_to_lab(request, consultation_id, patient_id):
         patient = get_object_or_404(Patient, id=patient_id)
         consultations = Consultation.objects.filter(patient=patient)
         if consultations.exists():
-            consultation = consultations.latest('date')
-        else:
-            consultation = Consultation.objects.create(patient=patient, doctor=patient.doctor, date=timezone.now(),chief_complaints="N/A")
+            print('This consultation already exists')
+        consultation = Consultation.objects.create(patient=patient, doctor=patient.doctor, date=timezone.now(),chief_complaints="N/A")
     else:
         consultation = get_object_or_404(Consultation, id=consultation_id)
     
