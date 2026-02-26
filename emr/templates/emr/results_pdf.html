@@ -222,6 +222,7 @@
 
     <!-- RESULTS TABLE -->
     <div class="table-responsive">
+      {% for result in results %}
       <table class="table table-bordered results-table align-middle">
         <thead>
           <tr>
@@ -231,13 +232,12 @@
           </tr>
         </thead>
         <tbody>
-          {% for result in results %}
           <p>{{forloop.counter}}. -{{ result.lab_test.name }}</p>
 
           <tr>
             
             <td class="result-value">
-              {{ result.result_value }}
+              {{ result.result_value|linebreaksbr }}
             </td>
 
             
@@ -265,9 +265,9 @@
               No lab results available for this consultation.
             </td>
           </tr>
-          {% endfor %}
         </tbody>
       </table>
+      {% endfor %}
     </div>
 
     <!-- FOOTER -->
