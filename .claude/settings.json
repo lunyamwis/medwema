@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "\\home\\luther\\medwema\\templates",
+      "\\\\wsl.localhost\\Ubuntu\\home\\luther\\medwema\\templates"
+    ],
+    "allow": [
+      "Bash(ls \"\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\luther\\\\medwema\")",
+      "Read(//mnt/wsl/Ubuntu/home/luther/**)"
+    ]
+  }
+}

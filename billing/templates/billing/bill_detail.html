@@ -1,46 +1,242 @@
 {% extends "base.html" %}
 
+{% block title %}Bill #{{ bill.id }}{% endblock %}
+{% block page_title %}Bill #{{ bill.id }}{% endblock %}
+{% block nav_billing %}active{% endblock %}
+
 {% block content %}
-<div>
-  <h4>Bill #{{ bill.id }} - {{ bill.patient.name }}</h4>
-<div class="center bold">{{ bill.clinic.name }}</div>
-    <div class="center">Receipt #{{ bill.id }}</div>
-    <div class="center">Date: {{ bill.created_at|date:"Y-m-d H:i" }}</div>
-    <hr />
-    <div>Patient: {{ bill.patient.name }}</div>
-    <ul>
-      {% for prescription in bill.consultation.prescription_set.all %}
-      <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start">
-        <div>
-          <span class="fw-bold">{{ forloop.counter }}. {{ prescription.item }}</span> - 
-          <span>{{ prescription.quantity }}</span>
-        </div>
-        <div class="text-muted small">
-          {{ prescription.prescribed_at|date:"M d, Y H:i" }}<br>
-          {{ prescription.instructions|default:"No instructions." }}
-        </div>
-        <div>Price: {{prescription.item.price}}</div>
-      </li>
-      {% endfor %}
-    </ul>
-    <hr/>
-    {% for lab_result in bill.patient.consultations.last.labresult_set.all %}
-    <div>
-      {{lab_result.lab_test.name}}--{{lab_result.lab_test.price}}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb mb-1">
+      <a href="{% url 'billing_dashboard' %}">Billing</a>
+      <i class="bi bi-chevron-right" style="font-size:.7rem;"></i>
+      <a href="{% url 'billing_list' %}">Bills</a>
+      <i class="bi bi-chevron-right" style="font-size:.7rem;"></i>
+      <span>Bill #{{ bill.id }}</span>
     </div>
-    {% endfor %}
-    <hr/>
-    <hr>
-    <div>Doctors Charge: {{bill.patient.consultations.last.labor_charges}}</div>
-    </body>
-    <hr />
-    <div class="bold">TOTAL: {{ bill.total_amount|floatformat:2 }}</div>
-    <hr />
-    <div>Payment Method: Cash</div>
-    <div class="center">Thank you and get well soon!</div>
+    <h1 class="page-heading">Bill #{{ bill.id }}</h1>
+    <p class="page-subheading">{{ bill.patient.name }} &mdash; {{ bill.created_at|date:"M d, Y" }}</p>
   </div>
-{% if not bill.is_paid %}
-  <a href="{% url 'initiate_payment' bill.id %}" class="btn btn-primary">Pay Now</a>
-{% endif %}
+  <div class="d-flex gap-2 flex-wrap no-print">
+    <a href="{% url 'print_receipt' bill.pk %}" class="btn btn-outline-secondary" target="_blank">
+      <i class="bi bi-printer me-1"></i>Print Receipt
+    </a>
+    {% if not bill.is_paid %}
+    <a href="{% url 'bill_edit' bill.pk %}" class="btn btn-outline-primary">
+      <i class="bi bi-pencil me-1"></i>Edit Bill
+    </a>
+    {% endif %}
+    <a href="{% url 'billing_list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+  </div>
+</div>
+
+<!-- Two-column layout -->
+<div class="row g-4">
+
+  <!-- LEFT: Bill details -->
+  <div class="col-lg-8">
+
+    <!-- Patient info strip -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width:48px;height:48px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700;font-size:1.25rem;flex-shrink:0;">
+            {{ bill.patient.name|first|upper }}
+          </div>
+          <div class="flex-grow-1">
+            <div class="fw-600 fs-6">{{ bill.patient.name }}</div>
+            <div class="text-muted small d-flex gap-3 flex-wrap mt-1">
+              {% if bill.patient.phone_number %}
+              <span><i class="bi bi-phone me-1"></i>{{ bill.patient.phone_number }}</span>
+              {% endif %}
+              {% if bill.patient.email %}
+              <span><i class="bi bi-envelope me-1"></i>{{ bill.patient.email }}</span>
+              {% endif %}
+              {% if bill.consultation %}
+              <span>
+                <i class="bi bi-journal-medical me-1"></i>
+                Consultation
+                <a href="{% url 'consultation_detail' consultation_id=bill.consultation.pk %}" class="text-primary ms-1">#{{ bill.consultation.pk }}</a>
+              </span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="text-muted small">Bill Date</div>
+            <div class="fw-500">{{ bill.created_at|date:"M d, Y" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bill items -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <i class="bi bi-list-check me-2 text-primary"></i>Bill Items
+      </div>
+      <div class="card-body p-0">
+        {% if bill.items.all %}
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th class="text-center" style="width:80px;">Qty</th>
+                <th class="text-end" style="width:130px;">Unit Price</th>
+                <th class="text-end" style="width:130px;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in bill.items.all %}
+              <tr>
+                <td>{{ item.description }}</td>
+                <td class="text-center">{{ item.quantity }}</td>
+                <td class="text-end">KES {{ item.unit_price|floatformat:2 }}</td>
+                <td class="text-end fw-500">KES {{ item.total|floatformat:2 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted small">
+          <i class="bi bi-inbox" style="font-size:1.5rem;opacity:.4;display:block;margin-bottom:.5rem;"></i>
+          No line items on this bill.
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Summary footer -->
+      <div class="card-body border-top" style="background:#f8fafc;">
+        <div class="d-flex flex-column gap-1" style="max-width:280px;margin-left:auto;">
+          <div class="d-flex justify-content-between text-muted small">
+            <span>Subtotal</span>
+            <span>KES {{ bill.total_amount|floatformat:2 }}</span>
+          </div>
+          {% if bill.discount %}
+          <div class="d-flex justify-content-between text-danger small">
+            <span>Discount</span>
+            <span>-KES {{ bill.discount|floatformat:2 }}</span>
+          </div>
+          {% endif %}
+          <hr class="my-1">
+          <div class="d-flex justify-content-between fw-700 fs-6">
+            <span>Net Amount</span>
+            <span class="text-primary">KES {{ bill.net_amount|floatformat:2 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if bill.notes %}
+    <div class="card">
+      <div class="card-header"><i class="bi bi-sticky me-2 text-primary"></i>Notes</div>
+      <div class="card-body text-muted small">{{ bill.notes }}</div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- RIGHT: Payment info -->
+  <div class="col-lg-4">
+
+    <!-- Status card -->
+    <div class="card mb-4">
+      <div class="card-body text-center py-4">
+        {% if bill.is_paid %}
+        <div style="width:64px;height:64px;border-radius:50%;background:#dcfce7;color:#16a34a;display:grid;place-items:center;font-size:1.75rem;margin:0 auto .75rem;">
+          <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <div class="fw-700 fs-5 text-success">Paid</div>
+        <div class="text-muted small mt-1">This bill has been settled</div>
+        {% else %}
+        <div style="width:64px;height:64px;border-radius:50%;background:#fef3c7;color:#d97706;display:grid;place-items:center;font-size:1.75rem;margin:0 auto .75rem;">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+        <div class="fw-700 fs-5 text-warning">Unpaid</div>
+        <div class="text-muted small mt-1">KES {{ bill.net_amount|floatformat:2 }} due</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Pay form (unpaid only) -->
+    {% if not bill.is_paid %}
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-credit-card me-2 text-primary"></i>Record Payment</div>
+      <div class="card-body">
+        <form method="post" action="{% url 'mark_bill_paid' bill.pk %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Payment Method</label>
+            <select name="payment_method" class="form-select no-select2">
+              <option value="CASH">Cash</option>
+              <option value="CARD">Card</option>
+              <option value="MPESA">M-Pesa</option>
+              <option value="ONLINE">Online</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Amount</label>
+            <div class="input-group">
+              <span class="input-group-text">KES</span>
+              <input type="text" class="form-control" value="{{ bill.net_amount|floatformat:2 }}" readonly>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success w-100">
+            <i class="bi bi-check-lg me-1"></i>Mark as Paid
+          </button>
+        </form>
+        <div class="mt-3">
+          <a href="{% url 'initiate_payment' bill.pk %}" class="btn btn-outline-primary w-100">
+            <i class="bi bi-credit-card-2-front me-1"></i>Pay via Paystack
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Payment history -->
+    {% if bill.payments.all %}
+    <div class="card">
+      <div class="card-header"><i class="bi bi-clock-history me-2 text-primary"></i>Payment History</div>
+      <div class="card-body p-0">
+        <ul class="list-group list-group-flush">
+          {% for payment in bill.payments.all %}
+          <li class="list-group-item px-3 py-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="fw-500 small">{{ payment.receipt_number|default:"—" }}</div>
+                <div class="text-muted" style="font-size:.75rem;">
+                  {{ payment.get_payment_method_display }}
+                  {% if payment.paid_at %}
+                  &bull; {{ payment.paid_at|date:"M d, Y H:i" }}
+                  {% endif %}
+                </div>
+              </div>
+              <div class="text-end">
+                <div class="fw-600 text-success small">KES {{ payment.amount|floatformat:2 }}</div>
+                <span class="badge rounded-pill
+                  {% if payment.status == 'success' or payment.status == 'manual' %}bg-success
+                  {% elif payment.status == 'pending' %}bg-warning text-dark
+                  {% else %}bg-danger{% endif %}"
+                  style="font-size:.7rem;">
+                  {{ payment.get_status_display }}
+                </span>
+              </div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
 
 {% endblock %}

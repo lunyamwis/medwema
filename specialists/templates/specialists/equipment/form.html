@@ -1,38 +1,103 @@
-{% extends "specialists/base.html" %}
-{% load crispy_forms_tags %}
-{% block title %}Add Equipment | Specialists Hub{% endblock %}
+{% extends 'base.html' %}
 
-{% block content_inner %}
+{% block title %}Add Equipment Item{% endblock %}
+{% block page_title %}Add Equipment Item{% endblock %}
+{% block nav_specialists %}active{% endblock %}
 
-<div class="d-flex justify-content-between align-items-start align-items-sm-center mb-4">
-  <div>
-    <h3 class="fw-bold mb-1">Add Equipment Item</h3>
-    <div class="text-secondary">
-      Include reorder level for automatic low stock tracking.
-    </div>
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">Add Equipment Item</h1>
+    <p class="page-subheading">
+      <a href="{% url 'specialists:dashboard' %}" class="text-decoration-none" style="color:var(--accent);">Specialist Hub</a>
+      &rsaquo;
+      <a href="{% url 'specialists:equipment_list' %}" class="text-decoration-none" style="color:var(--accent);">Equipment</a>
+      &rsaquo; New
+    </p>
   </div>
-  <a class="btn btn-outline-secondary" href="{% url 'specialists:equipment_list' %}">
-    ← Back
+  <a href="{% url 'specialists:equipment_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back
   </a>
 </div>
 
-<form method="post" novalidate>
-  {% csrf_token %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-6">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-box-seam me-2 text-primary"></i>Equipment Details
+        </div>
+        <div class="card-body">
 
-  <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-body p-4">
-      {{ form|crispy }}
-    </div>
+          <!-- Item info -->
+          <p class="form-section-title">Item</p>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <label class="form-label" for="{{ form.name.id_for_label }}">
+                Name <span class="text-danger">*</span>
+              </label>
+              {{ form.name }}
+              {% if form.name.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.name.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="{{ form.category.id_for_label }}">Category</label>
+              {{ form.category }}
+              {% if form.category.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.category.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
 
-    <div class="card-footer bg-white border-0 p-4 d-flex justify-content-between align-items-center">
-      <div class="text-secondary small">
-        Tip: When stock drops below the reorder level, the item will be flagged as low stock.
+          <!-- Stock levels -->
+          <p class="form-section-title">Stock Levels</p>
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.qty_available.id_for_label }}">
+                Qty Available <span class="text-danger">*</span>
+              </label>
+              {{ form.qty_available }}
+              {% if form.qty_available.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.qty_available.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.reorder_level.id_for_label }}">Reorder Level</label>
+              {{ form.reorder_level }}
+              <div class="form-text">Items at or below this level are flagged as low stock.</div>
+              {% if form.reorder_level.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.reorder_level.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <p class="form-section-title">Notes</p>
+          <div class="mb-2">
+            <label class="form-label" for="{{ form.notes.id_for_label }}">Notes</label>
+            {{ form.notes }}
+            {% if form.notes.errors %}
+            <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.notes.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+        </div>
+        <div class="card-body border-top d-flex justify-content-between align-items-center" style="border-top:1px solid var(--border);">
+          <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            Set a realistic reorder level so shortages are flagged automatically.
+          </small>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check-lg me-1"></i>Save Item
+          </button>
+        </div>
       </div>
-      <button class="btn btn-primary px-4" type="submit">
-        Save Item
-      </button>
-    </div>
+    </form>
   </div>
-</form>
+</div>
 
 {% endblock %}

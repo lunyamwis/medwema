@@ -1,23 +1,257 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% block title %}Create Purchase Order{% endblock %}
+{% block page_title %}Create Purchase Order{% endblock %}
+{% block nav_inventory %}active{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="card shadow-lg border-0 rounded-4">
-    <div class="card-header text-white fw-bold fs-5" style="background: linear-gradient(90deg, #007bff, #00bfff);">
-      🧾 Create Purchase Order
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb mb-1">
+      <a href="{% url 'inventory_dashboard' %}">Inventory</a>
+      <i class="bi bi-chevron-right"></i>
+      <a href="{% url 'po_list' %}">Purchase Orders</a>
+      <i class="bi bi-chevron-right"></i>
+      <span>New</span>
     </div>
-    <div class="card-body bg-light">
-      <form method="post" novalidate>
-        {% csrf_token %}
-        {{ form|crispy }}
+    <h1 class="page-heading">Create Purchase Order</h1>
+    <p class="page-subheading">Order items from a supplier</p>
+  </div>
+  <a href="{% url 'po_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+</div>
 
-        <div class="d-flex justify-content-between mt-4">
-          <a href="{% url 'po_list' %}" class="btn btn-outline-secondary">← Back</a>
-          <button type="submit" class="btn btn-success px-4">💾 Save Purchase Order</button>
+<form method="post" novalidate id="po-form">
+  {% csrf_token %}
+
+  <!-- PO details -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="bi bi-file-earmark-text me-2 text-muted"></i>Order Details
+    </div>
+    <div class="card-body">
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.supplier.id_for_label }}">
+            Supplier <span class="text-danger">*</span>
+          </label>
+          {{ form.supplier }}
+          {% if form.supplier.errors %}
+          <div class="text-danger small mt-1">{{ form.supplier.errors.as_text }}</div>
+          {% endif %}
         </div>
-      </form>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.expected_date.id_for_label }}">Expected Date</label>
+          {{ form.expected_date }}
+          {% if form.expected_date.errors %}
+          <div class="text-danger small mt-1">{{ form.expected_date.errors.as_text }}</div>
+          {% endif %}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form.status.id_for_label }}">Status</label>
+          {{ form.status }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.notes.id_for_label }}">Notes</label>
+          {{ form.notes }}
+        </div>
+      </div>
     </div>
   </div>
-</div>
+
+  <!-- PO lines -->
+  <div class="card mb-4">
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <span><i class="bi bi-list-ul me-2 text-muted"></i>Order Lines</span>
+      <button type="button" class="btn btn-sm btn-outline-primary" id="add-line-btn">
+        <i class="bi bi-plus-lg me-1"></i>Add Line
+      </button>
+    </div>
+    <div class="card-body">
+      {{ formset.management_form }}
+
+      <div id="formset-container">
+        {% for line_form in formset %}
+        <div class="po-line row g-2 align-items-start mb-3 pb-3 border-bottom" id="line-{{ forloop.counter0 }}">
+          {% if line_form.non_field_errors %}
+          <div class="col-12"><div class="alert alert-danger py-2">{{ line_form.non_field_errors }}</div></div>
+          {% endif %}
+
+          <div class="col-md-5">
+            <label class="form-label">Item <span class="text-danger">*</span></label>
+            {{ line_form.item }}
+            {% if line_form.item.errors %}
+            <div class="text-danger small mt-1">{{ line_form.item.errors.as_text }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Quantity <span class="text-danger">*</span></label>
+            {{ line_form.quantity }}
+            {% if line_form.quantity.errors %}
+            <div class="text-danger small mt-1">{{ line_form.quantity.errors.as_text }}</div>
+            {% endif %}
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Unit Price</label>
+            {{ line_form.unit_price }}
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <div class="w-100">
+              <label class="form-label">Line Total</label>
+              <div class="form-control bg-light text-muted line-total" style="cursor:default;">—</div>
+            </div>
+          </div>
+          <div class="col-md-1 d-flex align-items-end pb-1">
+            {% if line_form.DELETE %}
+            <div>
+              <label class="form-label d-block">&nbsp;</label>
+              <button type="button" class="btn btn-sm btn-outline-danger remove-line-btn" title="Remove line">
+                <i class="bi bi-trash3"></i>
+              </button>
+              <div style="display:none;">{{ line_form.DELETE }}</div>
+              {{ line_form.id }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Empty form template for JS cloning -->
+      <div id="empty-form-template" style="display:none;">
+        <div class="po-line row g-2 align-items-start mb-3 pb-3 border-bottom">
+          <div class="col-md-5">
+            <label class="form-label">Item <span class="text-danger">*</span></label>
+            <select name="{{ formset.prefix }}-__prefix__-item" class="form-select"
+                    data-placeholder="Search item…" data-minimum-input-length="0">
+              <option value="">---------</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Quantity <span class="text-danger">*</span></label>
+            <input type="number" name="{{ formset.prefix }}-__prefix__-quantity"
+                   class="form-control" step="0.01" min="0" value="">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label">Unit Price</label>
+            <input type="number" name="{{ formset.prefix }}-__prefix__-unit_price"
+                   class="form-control" step="0.01" min="0" value="0">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <div class="w-100">
+              <label class="form-label">Line Total</label>
+              <div class="form-control bg-light text-muted line-total" style="cursor:default;">—</div>
+            </div>
+          </div>
+          <div class="col-md-1 d-flex align-items-end pb-1">
+            <div>
+              <label class="form-label d-block">&nbsp;</label>
+              <button type="button" class="btn btn-sm btn-outline-danger remove-line-btn" title="Remove line">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="d-flex justify-content-end gap-2">
+    <a href="{% url 'po_list' %}" class="btn btn-outline-secondary">Cancel</a>
+    <button type="submit" class="btn btn-primary px-4">
+      <i class="bi bi-floppy me-1"></i>Save Purchase Order
+    </button>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  "use strict";
+
+  const container     = document.getElementById("formset-container");
+  const emptyTemplate = document.getElementById("empty-form-template");
+  const totalForms    = document.getElementById("id_{{ formset.prefix }}-TOTAL_FORMS");
+  const addBtn        = document.getElementById("add-line-btn");
+
+  // Recalculate line total for a row
+  function calcTotal(row) {
+    const qty   = parseFloat(row.querySelector('[name$="-quantity"]')?.value) || 0;
+    const price = parseFloat(row.querySelector('[name$="-unit_price"]')?.value) || 0;
+    const cell  = row.querySelector(".line-total");
+    if (cell) {
+      cell.textContent = (qty && price) ? (qty * price).toFixed(2) : "—";
+    }
+  }
+
+  // Wire up events on a single row
+  function wireRow(row) {
+    row.querySelectorAll('[name$="-quantity"], [name$="-unit_price"]').forEach(function (inp) {
+      inp.addEventListener("input", function () { calcTotal(row); });
+    });
+    const removeBtn = row.querySelector(".remove-line-btn");
+    if (removeBtn) {
+      removeBtn.addEventListener("click", function () {
+        const deleteCheckbox = row.querySelector('[name$="-DELETE"]');
+        if (deleteCheckbox) {
+          deleteCheckbox.checked = true;
+          row.style.display = "none";
+        } else {
+          row.remove();
+          updateTotalForms();
+        }
+      });
+    }
+  }
+
+  function updateTotalForms() {
+    const visible = container.querySelectorAll(".po-line:not([style*='display: none'])");
+    totalForms.value = visible.length;
+  }
+
+  // Wire existing rows
+  container.querySelectorAll(".po-line").forEach(function (row) {
+    wireRow(row);
+    calcTotal(row);
+  });
+
+  // Add new line
+  addBtn.addEventListener("click", function () {
+    const idx      = parseInt(totalForms.value, 10);
+    const template = emptyTemplate.querySelector(".po-line").cloneNode(true);
+
+    // Replace __prefix__ with real index
+    template.innerHTML = template.innerHTML.replaceAll("__prefix__", idx);
+
+    container.appendChild(template);
+    totalForms.value = idx + 1;
+
+    // Init Select2 on new selects
+    $(template).find("select").select2({
+      theme: "bootstrap-5",
+      width: "100%",
+      placeholder: "Search item…",
+      allowClear: true,
+      ajax: {
+        url: "/inventory/api/items/",
+        dataType: "json",
+        delay: 250,
+        data: function (p) { return { search: p.term }; },
+        processResults: function (d) {
+          return { results: d.results.map(function (i) { return { id: i.id, text: i.name + (i.sku ? " (" + i.sku + ")" : "") }; }) };
+        }
+      }
+    });
+
+    wireRow(template);
+  });
+})();
+</script>
 {% endblock %}

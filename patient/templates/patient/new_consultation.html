@@ -1,223 +1,552 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}New Consultation — {{ patient.name }}{% endblock %}
+{% block page_title %}New Consultation{% endblock %}
+{% block nav_patients %}active{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-  <h3>New Consultation for {{ patient.name }}</h3>
-  <p>Incase you want to send this patient to the lab please <a href="{% url 'doctor_detail' patient.doctor.id %}">click here</a> after finishing to fill in the most necessary fields in the consultation form. Thank you.</p>
-  
-  <form method="post">
-    {% csrf_token %}
-    <div class="accordion" id="consultationAccordion">
-
-      <!-- Chief Complaints & History -->
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#section1">
-            Chief Complaints & History
-          </button>
-        </h2>
-        <div id="section1" class="accordion-collapse collapse show">
-          <div class="accordion-body">
-            {{ form.chief_complaints|as_crispy_field }}
-            {{ form.history_of_presenting_illness|as_crispy_field }}
-            {{ form.past_medical_history|as_crispy_field }}
-            {{ form.past_surgical_history|as_crispy_field }}
-            {{ form.drug_allergies|as_crispy_field }}
-            {{ form.current_medication|as_crispy_field }}
-            {{ form.comorbid_factors|as_crispy_field }}
-            <hr>
-            <h5 class="mt-3 mb-3 text-primary">Additional History</h5>
-            {{ form.sexual_history|as_crispy_field }}
-            {{ form.family_planning_history|as_crispy_field }}
-            {{ form.vaccination_history|as_crispy_field }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Vital Signs -->
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section2">
-            Vital Signs
-          </button>
-        </h2>
-        <div id="section2" class="accordion-collapse collapse">
-          <div class="accordion-body row">
-            <div class="col-md-4">{{ form.temperature|as_crispy_field }}</div>
-            <div class="col-md-4">{{ form.blood_pressure|as_crispy_field }}</div>
-            <div class="col-md-4">{{ form.pulse|as_crispy_field }}</div>
-            <div class="col-md-4">{{ form.spo2|as_crispy_field }}</div>
-            <div class="col-md-4">{{ form.respiration_rate|as_crispy_field }}</div>
-            <div class="col-md-4">{{ form.weight|as_crispy_field }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Examination -->
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section3">
-            Examination
-          </button>
-        </h2>
-        <div id="section3" class="accordion-collapse collapse">
-          <div class="accordion-body">
-            {{ form.general_examination|as_crispy_field }}
-            <div class="row">
-                <div class="col-md-4">{{ form.heent|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.cvs|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.pa|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.mss|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.rr|as_crispy_field }}</div>
-                <div class="col-md-4">{{ form.cns|as_crispy_field }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Investigations -->
-    <div class="accordion-item">
-    <h2 class="accordion-header">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section4">
-        Investigations
-        </button>
-    </h2>
-    
-    <div id="section4" class="accordion-collapse collapse">
-        <div class="accordion-body row">
-        <div class="col-md-6">{{ form.imaging|as_crispy_field }}</div>
-        <div class="col-md-6">{{ form.laboratory|as_crispy_field }}</div>
-        <div class="col-md-12">{{ form.lab_findings|as_crispy_field }}</div>
-        </div>
-    </div>
-    </div>
-
-    <!-- Diagnosis & Management -->
-    <div class="accordion-item">
-    <h2 class="accordion-header">
-        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section5">
-        Diagnosis & Management
-        </button>
-    </h2>
-    <div id="section5" class="accordion-collapse collapse">
-        <div class="accordion-body">
-        {{ form.diagnosis|as_crispy_field }}
-        {{ form.management|as_crispy_field }}
-        {{ form.labor_charges|as_crispy_field }}
-        </div>
-    </div>
-    </div>
-
-
-      <!-- Medication -->
-      <div class="accordion-item">
-        <h2 class="accordion-header">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#section6">
-            Medication & Follow-Up
-          </button>
-        </h2>
-        <div id="section6" class="accordion-collapse collapse">
-          <div class="accordion-body">
-            {{ form.medication|as_crispy_field }}
-            {{ form.return_date|as_crispy_field }}
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="text-end mt-3">
-      <button type="submit" class="btn btn-primary btn-lg px-4">💾 Save Consultation</button>
-    </div>
-  </form>
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">New Consultation</h1>
+    <p class="page-subheading">
+      <a href="{% url 'patient_detail' patient.id %}" class="text-decoration-none">{{ patient.name }}</a>
+      {% if patient.patient_number %}&nbsp;·&nbsp;<span class="text-muted">{{ patient.patient_number }}</span>{% endif %}
+    </p>
+  </div>
+  <a href="{% url 'patient_detail' patient.id %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i> Back to Patient
+  </a>
 </div>
-<p>For faster documentation, you can use the speech consultation recorder below.</p>
-<h4>Speech Consultation Recorder</h4>
-<p class="hints"></p>
-<div class="output"></div>
-<button class="start btn-secondary btn-sm">Start recognition</button>
-<hr>
-{% block extra_scripts %}
-<script>
-let fullTranscript = '';  // Accumulate speech here
 
-var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
-var recognition = new SpeechRecognition();
-recognition.continuous = true;
-recognition.interimResults = true;
-recognition.lang = 'en-US';
+<!-- ───────────────────────── SPEECH RECORDER ───────────────────────── -->
+<div class="recorder-card mb-4" id="recorderCard">
+  <div class="recorder-header">
+    <div class="recorder-title-group">
+      <div class="recorder-icon-wrap" id="recorderIconWrap">
+        <i class="bi bi-mic-fill" id="recorderIcon"></i>
+      </div>
+      <div>
+        <div class="recorder-title">AI Speech Recorder</div>
+        <div class="recorder-subtitle" id="recorderStatus">Ready to record</div>
+      </div>
+    </div>
+    <div class="recorder-controls">
+      <button type="button" class="btn-record" id="btnRecord" title="Start recording">
+        <i class="bi bi-mic-fill" id="btnRecordIcon"></i>
+        <span id="btnRecordLabel">Record</span>
+      </button>
+      <button type="button" class="btn-fill-ai" id="btnFill" disabled title="Fill form using AI">
+        <i class="bi bi-stars me-1"></i> Fill Form with AI
+      </button>
+    </div>
+  </div>
 
-const diagnostic = document.querySelector(".output");
-const startBtn = document.querySelector(".start");
-const patientId = "{{ patient.id }}";
+  <!-- Waveform + transcript -->
+  <div class="recorder-body" id="recorderBody" style="display:none">
+    <div class="waveform-wrap" id="waveformWrap">
+      <div class="waveform-bar" style="--d:0"></div>
+      <div class="waveform-bar" style="--d:1"></div>
+      <div class="waveform-bar" style="--d:2"></div>
+      <div class="waveform-bar" style="--d:3"></div>
+      <div class="waveform-bar" style="--d:4"></div>
+      <div class="waveform-bar" style="--d:5"></div>
+      <div class="waveform-bar" style="--d:6"></div>
+      <div class="waveform-bar" style="--d:7"></div>
+      <div class="waveform-bar" style="--d:8"></div>
+      <div class="waveform-bar" style="--d:9"></div>
+      <div class="waveform-bar" style="--d:10"></div>
+      <div class="waveform-bar" style="--d:11"></div>
+    </div>
+    <div class="recorder-transcript" id="recorderTranscript">
+      <span class="transcript-placeholder">Start speaking — transcript appears here…</span>
+    </div>
+    <div class="recorder-char-count" id="recorderCharCount">0 words</div>
+  </div>
 
-// Accumulate ALL speech during session
-recognition.onresult = function(event) {
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-            fullTranscript += ' ' + transcript;
-            diagnostic.textContent = `Listening... (${fullTranscript.length} chars)`;
-        }
-    }
-};
+  <!-- AI status bar -->
+  <div class="recorder-ai-status" id="recorderAiStatus" style="display:none">
+    <div class="ai-spinner"></div>
+    <span id="recorderAiMsg">Processing with AI…</span>
+  </div>
+</div>
 
-// START button
-startBtn.onclick = function() {
-    fullTranscript = '';  // Reset transcript
-    recognition.start();
-    startBtn.textContent = 'Listening... 🔴';
-    startBtn.disabled = true;
-    
-    // Create STOP button
-    const stopBtn = document.createElement('button');
-    stopBtn.textContent = 'STOP & SAVE';
-    stopBtn.style.marginLeft = '10px';
-    stopBtn.style.background = '#ff4444';
-    stopBtn.style.color = 'white';
-    stopBtn.onclick = stopAndSave;
-    startBtn.parentNode.appendChild(stopBtn);
-};
+<!-- Inline styles scoped to this page -->
+<style>
+.recorder-card {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #1e3a5f 100%);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  color: #f1f5f9;
+  box-shadow: 0 8px 32px rgba(15,23,42,.45);
+  border: 1px solid rgba(255,255,255,.07);
+}
+.recorder-header { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+.recorder-title-group { display:flex; align-items:center; gap:.875rem; }
+.recorder-icon-wrap {
+  width: 46px; height: 46px; border-radius: 50%;
+  background: rgba(99,102,241,.2); border: 1px solid rgba(99,102,241,.4);
+  display: grid; place-items: center; font-size: 1.1rem; color: #818cf8;
+  flex-shrink: 0; transition: all .3s;
+}
+.recorder-icon-wrap.recording {
+  background: rgba(239,68,68,.2); border-color: rgba(239,68,68,.5);
+  color: #f87171;
+  animation: iconPulse 1.4s ease-in-out infinite;
+}
+@keyframes iconPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.45); }
+  50% { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+}
+.recorder-title { font-weight: 600; font-size: .95rem; }
+.recorder-subtitle { font-size: .78rem; color: #94a3b8; }
+.recorder-controls { display:flex; gap:.625rem; align-items:center; flex-wrap:wrap; }
 
-// STOP button - ONLY HERE send to Django
-async function stopAndSave() {
-    recognition.stop();
-    
-    if (fullTranscript.trim()) {
-        diagnostic.textContent = 'Saving consultation...';
-
-        const response = await fetch(`/patients/speech-to-consultation/${patientId}/`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({transcript: fullTranscript.trim()})
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-            diagnostic.textContent = `✅ Consultation saved! ID: ${result.consultation_id}`;
-        } else {
-            diagnostic.textContent = `❌ Error: ${result.error}`;
-        }
-    } else {
-        diagnostic.textContent = 'No speech recorded.';
-    }
-    
-    // Reset UI
-    startBtn.textContent = 'Start';
-    startBtn.disabled = false;
-    document.querySelector('button[style*="ff4444"]').remove();
+.btn-record {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .5rem 1.125rem; border-radius: 999px;
+  border: none; cursor: pointer; font-weight: 600; font-size: .85rem;
+  background: rgba(99,102,241,.15); color: #a5b4fc;
+  border: 1px solid rgba(99,102,241,.35);
+  transition: all .2s;
+}
+.btn-record:hover { background: rgba(99,102,241,.28); }
+.btn-record.recording {
+  background: rgba(239,68,68,.18); color: #fca5a5;
+  border-color: rgba(239,68,68,.45);
+  animation: btnPulse 1.6s ease-in-out infinite;
+}
+@keyframes btnPulse {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 0 6px rgba(239,68,68,.15); }
 }
 
-// Auto-stop on error/silence
-recognition.onspeechend = function() {
-    // Don't auto-restart - wait for STOP
-};
-recognition.onerror = function(event) {
-    diagnostic.textContent = `Error: ${event.error}`;
-};
+.btn-fill-ai {
+  display: inline-flex; align-items: center; gap: .25rem;
+  padding: .5rem 1.125rem; border-radius: 999px;
+  border: 1px solid rgba(251,191,36,.35); cursor: pointer;
+  font-weight: 600; font-size: .85rem;
+  background: rgba(251,191,36,.1); color: #fbbf24;
+  transition: all .2s;
+}
+.btn-fill-ai:hover:not(:disabled) { background: rgba(251,191,36,.2); }
+.btn-fill-ai:disabled { opacity: .4; cursor: not-allowed; }
 
-</script>
-  
+.recorder-body { margin-top: 1.125rem; }
+.waveform-wrap {
+  display: flex; align-items: flex-end; gap: 3px;
+  height: 36px; margin-bottom: .875rem;
+  justify-content: center;
+}
+.waveform-bar {
+  width: 4px; border-radius: 2px;
+  background: rgba(99,102,241,.35);
+  height: 6px; transition: height .1s;
+}
+.waveform-bar.active {
+  background: #818cf8;
+  animation: barBounce 0.8s ease-in-out infinite;
+  animation-delay: calc(var(--d) * 0.065s);
+}
+@keyframes barBounce {
+  0%, 100% { height: 6px; }
+  50% { height: 28px; }
+}
+.recorder-transcript {
+  background: rgba(0,0,0,.25); border-radius: 10px;
+  padding: .875rem 1rem; min-height: 72px; max-height: 160px;
+  overflow-y: auto; font-size: .875rem; line-height: 1.6;
+  color: #e2e8f0; border: 1px solid rgba(255,255,255,.06);
+}
+.transcript-placeholder { color: #475569; font-style: italic; }
+.transcript-interim { color: #94a3b8; font-style: italic; }
+.recorder-char-count { text-align:right; font-size:.72rem; color:#64748b; margin-top:.375rem; }
+
+.recorder-ai-status {
+  display: flex; align-items: center; gap: .75rem;
+  margin-top: 1rem; padding: .75rem 1rem; border-radius: 8px;
+  background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.2);
+  font-size: .85rem; color: #fbbf24;
+}
+.ai-spinner {
+  width: 18px; height: 18px; border-radius: 50%; flex-shrink:0;
+  border: 2px solid rgba(251,191,36,.25);
+  border-top-color: #fbbf24;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<!-- ───────────────────────── CONSULTATION FORM ───────────────────────── -->
+<form method="post" id="consultationForm">
+  {% csrf_token %}
+
+  <!-- Clinical History -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <i class="bi bi-clipboard2-pulse me-2"></i> Clinical History
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label" for="{{ form.chief_complaints.id_for_label }}">{{ form.chief_complaints.label }}</label>
+          {{ form.chief_complaints }}
+          {% if form.chief_complaints.errors %}<div class="invalid-feedback d-block">{{ form.chief_complaints.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.history_of_presenting_illness.id_for_label }}">{{ form.history_of_presenting_illness.label }}</label>
+          {{ form.history_of_presenting_illness }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.past_medical_history.label }}</label>
+          {{ form.past_medical_history }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.past_surgical_history.label }}</label>
+          {{ form.past_surgical_history }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.drug_allergies.label }}</label>
+          {{ form.drug_allergies }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.current_medication.label }}</label>
+          {{ form.current_medication }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">{{ form.comorbid_factors.label }}</label>
+          {{ form.comorbid_factors }}
+        </div>
+      </div>
+
+      <div class="form-section-title mt-4">Additional History</div>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">{{ form.sexual_history.label }}</label>
+          {{ form.sexual_history }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.family_planning_history.label }}</label>
+          {{ form.family_planning_history }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.vaccination_history.label }}</label>
+          {{ form.vaccination_history }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vital Signs -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <i class="bi bi-heart-pulse me-2"></i> Vital Signs
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-6 col-md-4">
+          <label class="form-label">{{ form.temperature.label }} <small class="text-muted">(°C)</small></label>
+          {{ form.temperature }}
+        </div>
+        <div class="col-6 col-md-4">
+          <label class="form-label">{{ form.blood_pressure.label }} <small class="text-muted">(mmHg)</small></label>
+          {{ form.blood_pressure }}
+        </div>
+        <div class="col-6 col-md-4">
+          <label class="form-label">{{ form.pulse.label }} <small class="text-muted">(bpm)</small></label>
+          {{ form.pulse }}
+        </div>
+        <div class="col-6 col-md-4">
+          <label class="form-label">{{ form.spo2.label }} <small class="text-muted">(%)</small></label>
+          {{ form.spo2 }}
+        </div>
+        <div class="col-6 col-md-4">
+          <label class="form-label">{{ form.respiration_rate.label }} <small class="text-muted">(breaths/min)</small></label>
+          {{ form.respiration_rate }}
+        </div>
+        <div class="col-6 col-md-4">
+          <label class="form-label">{{ form.weight.label }} <small class="text-muted">(kg)</small></label>
+          {{ form.weight }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Physical Examination -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <i class="bi bi-person-lines-fill me-2"></i> Physical Examination
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">{{ form.general_examination.label }}</label>
+          {{ form.general_examination }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.heent.label }}</label>
+          {{ form.heent }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.cvs.label }}</label>
+          {{ form.cvs }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.pa.label }}</label>
+          {{ form.pa }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.mss.label }}</label>
+          {{ form.mss }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.rr.label }}</label>
+          {{ form.rr }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">{{ form.cns.label }}</label>
+          {{ form.cns }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Investigations -->
+  <div class="card mb-3">
+    <div class="card-header">
+      <i class="bi bi-eyedropper me-2"></i> Investigations
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">{{ form.imaging.label }}</label>
+          {{ form.imaging }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.laboratory.label }}</label>
+          {{ form.laboratory }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">{{ form.lab_findings.label }}</label>
+          {{ form.lab_findings }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diagnosis & Management -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="bi bi-journal-medical me-2"></i> Diagnosis &amp; Management
+    </div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">{{ form.diagnosis.label }}</label>
+          {{ form.diagnosis }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">{{ form.management.label }}</label>
+          {{ form.management }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.medication.label }}</label>
+          {{ form.medication }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">{{ form.return_date.label }}</label>
+          {{ form.return_date }}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">{{ form.labor_charges.label }} <small class="text-muted">(KES)</small></label>
+          {{ form.labor_charges }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticky submit bar -->
+  <div class="sticky-submit-bar">
+    <a href="{% url 'patient_detail' patient.id %}" class="btn btn-outline-secondary">
+      <i class="bi bi-x-lg me-1"></i> Cancel
+    </a>
+    <button type="submit" class="btn btn-primary px-4">
+      <i class="bi bi-check-lg me-1"></i> Save Consultation
+    </button>
+  </div>
+</form>
+
+<style>
+.sticky-submit-bar {
+  position: sticky; bottom: 0; z-index: 40;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: .875rem 0; margin-top: 1rem;
+  display: flex; gap: .75rem; justify-content: flex-end;
+}
+</style>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  const patientId = "{{ patient.id }}";
+  const ENDPOINT = `/patients/speech-to-consultation/${patientId}/`;
+  const EDIT_URL = (cid) => `/patients/${patientId}/consultations/${cid}/edit/`;
+
+  let recognition = null;
+  let isRecording = false;
+  let finalTranscript = "";
+  let interimTranscript = "";
+
+  const btnRecord      = document.getElementById("btnRecord");
+  const btnRecordIcon  = document.getElementById("btnRecordIcon");
+  const btnRecordLabel = document.getElementById("btnRecordLabel");
+  const btnFill        = document.getElementById("btnFill");
+  const recorderBody   = document.getElementById("recorderBody");
+  const recorderStatus = document.getElementById("recorderStatus");
+  const recorderIconWrap = document.getElementById("recorderIconWrap");
+  const recorderTranscript = document.getElementById("recorderTranscript");
+  const recorderCharCount  = document.getElementById("recorderCharCount");
+  const recorderAiStatus   = document.getElementById("recorderAiStatus");
+  const recorderAiMsg      = document.getElementById("recorderAiMsg");
+  const waveformBars       = document.querySelectorAll(".waveform-bar");
+
+  function wordCount(text) {
+    return text.trim() ? text.trim().split(/\s+/).length : 0;
+  }
+
+  function setWaveformActive(active) {
+    waveformBars.forEach(b => b.classList.toggle("active", active));
+  }
+
+  function renderTranscript() {
+    if (!finalTranscript && !interimTranscript) {
+      recorderTranscript.innerHTML = '<span class="transcript-placeholder">Start speaking — transcript appears here…</span>';
+    } else {
+      recorderTranscript.innerHTML =
+        (finalTranscript ? `<span>${finalTranscript}</span>` : "") +
+        (interimTranscript ? `<span class="transcript-interim"> ${interimTranscript}</span>` : "");
+    }
+    const wc = wordCount(finalTranscript + " " + interimTranscript);
+    recorderCharCount.textContent = `${wc} word${wc !== 1 ? "s" : ""}`;
+    recorderTranscript.scrollTop = recorderTranscript.scrollHeight;
+  }
+
+  function startRecording() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+      return;
+    }
+    finalTranscript = "";
+    interimTranscript = "";
+    isRecording = true;
+
+    recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => {
+      recorderBody.style.display = "";
+      recorderStatus.textContent = "Recording…";
+      recorderIconWrap.classList.add("recording");
+      btnRecord.classList.add("recording");
+      btnRecordIcon.className = "bi bi-stop-fill";
+      btnRecordLabel.textContent = "Stop";
+      btnFill.disabled = true;
+      setWaveformActive(true);
+    };
+
+    recognition.onresult = (e) => {
+      interimTranscript = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) {
+          finalTranscript += e.results[i][0].transcript + " ";
+        } else {
+          interimTranscript += e.results[i][0].transcript;
+        }
+      }
+      renderTranscript();
+    };
+
+    recognition.onerror = (e) => {
+      if (e.error !== "aborted") {
+        recorderStatus.textContent = `Error: ${e.error}`;
+      }
+      stopRecording();
+    };
+
+    recognition.onend = () => {
+      if (isRecording) {
+        // Restart for continuous recording
+        try { recognition.start(); } catch (_) {}
+      }
+    };
+
+    recognition.start();
+  }
+
+  function stopRecording() {
+    isRecording = false;
+    if (recognition) {
+      recognition.onend = null;
+      recognition.stop();
+      recognition = null;
+    }
+    recorderStatus.textContent = finalTranscript
+      ? `${wordCount(finalTranscript)} words recorded`
+      : "Recording stopped";
+    recorderIconWrap.classList.remove("recording");
+    btnRecord.classList.remove("recording");
+    btnRecordIcon.className = "bi bi-mic-fill";
+    btnRecordLabel.textContent = "Record";
+    setWaveformActive(false);
+    btnFill.disabled = !finalTranscript.trim();
+    interimTranscript = "";
+    renderTranscript();
+  }
+
+  btnRecord.addEventListener("click", () => {
+    if (isRecording) stopRecording();
+    else startRecording();
+  });
+
+  btnFill.addEventListener("click", async () => {
+    const transcript = finalTranscript.trim();
+    if (!transcript) return;
+
+    recorderAiStatus.style.display = "flex";
+    recorderAiMsg.textContent = "Processing with AI…";
+    btnFill.disabled = true;
+    btnRecord.disabled = true;
+
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}",
+        },
+        body: JSON.stringify({ transcript }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        recorderAiMsg.textContent = "Done! Redirecting to edit form…";
+        window.location.href = EDIT_URL(data.consultation_id);
+      } else {
+        recorderAiMsg.textContent = `Error: ${data.error}`;
+        btnFill.disabled = false;
+        btnRecord.disabled = false;
+      }
+    } catch (err) {
+      recorderAiMsg.textContent = `Network error: ${err.message}`;
+      btnFill.disabled = false;
+      btnRecord.disabled = false;
+    }
+  });
+})();
+</script>
 {% endblock %}

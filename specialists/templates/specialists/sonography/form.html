@@ -1,35 +1,124 @@
-{% extends "specialists/base.html" %}
-{% load crispy_forms_tags %}
+{% extends 'base.html' %}
 
-{% block title %}New Sonography Report | Specialists Hub{% endblock %}
+{% block title %}New Sonography Report{% endblock %}
+{% block page_title %}New Sonography Report{% endblock %}
+{% block nav_specialists %}active{% endblock %}
 
-{% block content_inner %}
+{% block content %}
 
-<div class="d-flex justify-content-between align-items-start align-items-sm-center mb-4">
-  <div>
-    <h3 class="fw-bold mb-1">New Sonography Report</h3>
-    <div class="text-secondary">Capture study details and attach the report if available.</div>
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">New Sonography Report</h1>
+    <p class="page-subheading">
+      <a href="{% url 'specialists:dashboard' %}" class="text-decoration-none" style="color:var(--accent);">Specialist Hub</a>
+      &rsaquo;
+      <a href="{% url 'specialists:sonography_list' %}" class="text-decoration-none" style="color:var(--accent);">Sonography</a>
+      &rsaquo; New
+    </p>
   </div>
-  <a class="btn btn-outline-secondary" href="{% url 'specialists:sonography_list' %}">
-    ← Back
+  <a href="{% url 'specialists:sonography_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back
   </a>
 </div>
 
-<form method="post" enctype="multipart/form-data" novalidate>
-  {% csrf_token %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-9">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-camera2 me-2 text-primary"></i>Sonography Study Details
+        </div>
+        <div class="card-body">
 
-  <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-body p-4">
-      {{ form|crispy }}
-    </div>
+          <!-- Patient -->
+          <p class="form-section-title">Patient</p>
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.patient.id_for_label }}">
+                Patient <span class="text-danger">*</span>
+              </label>
+              {{ form.patient }}
+              {% if form.patient.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.patient.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.consultation.id_for_label }}">Consultation</label>
+              {{ form.consultation }}
+              {% if form.consultation.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.consultation.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.task.id_for_label }}">Linked Task</label>
+              {{ form.task }}
+              {% if form.task.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.task.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.study_type.id_for_label }}">
+                Study Type <span class="text-danger">*</span>
+              </label>
+              {{ form.study_type }}
+              {% if form.study_type.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.study_type.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
 
-    <div class="card-footer bg-white border-0 p-4 d-flex justify-content-between align-items-center">
-      <div class="text-secondary small">
-        Tip: Write findings clearly, then summarize the key impression for fast clinical decisions.
+          <!-- Clinical content -->
+          <p class="form-section-title">Clinical Report</p>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <label class="form-label" for="{{ form.indication.id_for_label }}">Indication / Reason</label>
+              {{ form.indication }}
+              {% if form.indication.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.indication.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="{{ form.findings.id_for_label }}">Findings</label>
+              {{ form.findings }}
+              {% if form.findings.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.findings.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="{{ form.impression.id_for_label }}">Impression / Conclusion</label>
+              {{ form.impression }}
+              {% if form.impression.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.impression.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Attachment -->
+          <p class="form-section-title">Attachment</p>
+          <div class="mb-2">
+            <label class="form-label" for="{{ form.report_file.id_for_label }}">Report File (optional)</label>
+            {{ form.report_file }}
+            <div class="form-text">Upload a PDF or image of the printed report if available.</div>
+            {% if form.report_file.errors %}
+            <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.report_file.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+        </div>
+        <div class="card-body border-top d-flex justify-content-between align-items-center" style="border-top:1px solid var(--border);">
+          <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            Write findings clearly, then summarise the key impression for fast clinical decisions.
+          </small>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check-lg me-1"></i>Save Report
+          </button>
+        </div>
       </div>
-      <button class="btn btn-primary px-4" type="submit">Save</button>
-    </div>
+    </form>
   </div>
-</form>
+</div>
 
 {% endblock %}

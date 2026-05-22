@@ -1,127 +1,220 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}Consultations{% endblock %}
+{% block page_title %}Consultations{% endblock %}
+{% block nav_patients %}active{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <div class="card shadow-sm border-0 rounded-4">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold text-primary mb-0">
-          <i class="bi bi-people-fill me-2"></i>Consultations
-        </h4>
-      </div>
 
-      <!-- Search -->
-      <form method="get" class="row g-2 mb-4">
-        <div class="col-md-4">
-          <input 
-            type="text" 
-            name="q" 
-            value="{{ request.GET.q }}" 
-            class="form-control" 
-            placeholder="Search by patient name or doctor..."
-          >
-        </div>
-        <div class="col-md-2">
-          <button type="submit" class="btn btn-outline-primary w-100">
-            <i class="bi bi-search"></i> Search
-          </button>
-        </div>
-      </form>
-
-      <!-- Table -->
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>#</th>
-              <th>Patient</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for consultation in page_obj %}
-              <tr>
-                <td>{{ consultation.id }}</td>
-                <td>{{ consultation.patient.name }}</td>
-                <td>{{ consultation.date|date:"M d, Y H:i" }}</td>
-                <td>
-                  {% if consultation.patient.queues.last.status == 'pending' %}
-                    <span class="badge bg-warning text-dark">Pending</span>
-                  {% elif consultation.patient.queues.last.status == 'completed' %}
-                    <span class="badge bg-success">Completed</span>
-                  {% elif consultation.patient.queues.last.status == 'inlab' %}
-                    <span class="badge bg-info text-dark">Sent to Lab</span>
-                  {% else %}
-                    <span class="badge bg-secondary">Unknown</span>
-                  {% endif %}
-                </td>
-                <td>
-                  <div class="btn-group">
-                    <a href="{% url 'consultation_detail' consultation.id %}" 
-                       class="btn btn-sm btn-outline-primary">
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <a href="{% url 'consultation_pdf' consultation.id %}" 
-                       class="btn btn-sm btn-outline-secondary">
-                      <i class="bi bi-file-earmark-pdf"></i>
-                    </a>
-                  </div>
-                </td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="6" class="text-center text-muted py-4">
-                  No consultations found.
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      <!-- Pagination Controls -->
-      {% if page_obj.has_other_pages %}
-      <nav aria-label="Patient pagination" class="mt-4">
-        <ul class="pagination justify-content-center">
-          {% if page_obj.has_previous %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
-                Previous
-              </a>
-            </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Previous</span></li>
-          {% endif %}
-
-          {% for num in page_obj.paginator.page_range %}
-            {% if page_obj.number == num %}
-              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
-              </li>
-            {% endif %}
-          {% endfor %}
-
-          {% if page_obj.has_next %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
-                Next
-              </a>
-            </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Next</span></li>
-          {% endif %}
-        </ul>
-      </nav>
-      {% endif %}
-    
-    </div>
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">Consultations</h1>
+    <p class="page-subheading">All clinic consultation records</p>
+  </div>
+  <div>
+    <span class="badge rounded-pill"
+          style="background:#eff6ff;color:#2563eb;font-size:.875rem;padding:.45em .9em;border:1px solid #bfdbfe;font-weight:600">
+      <i class="bi bi-journal-medical me-1"></i>
+      {{ page_obj.paginator.count }} total
+    </span>
   </div>
 </div>
+
+<!-- Search card -->
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+      <div class="search-box flex-grow-1" style="max-width:420px">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" class="form-control" placeholder="Search by patient name, doctor, or diagnosis…"
+               value="{{ query }}">
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-search me-1"></i> Search
+      </button>
+      {% if query %}
+      <a href="?" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg me-1"></i> Clear
+      </a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- Table card -->
+<div class="card">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-table me-1"></i>
+    <span>Consultation Records</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Patient</th>
+          <th>Consult #</th>
+          <th>Doctor</th>
+          <th>Diagnosis</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for consultation in page_obj %}
+        <tr>
+          <!-- Date -->
+          <td>
+            <span class="text-muted small">{{ consultation.date|date:"M j, Y" }}</span>
+          </td>
+
+          <!-- Patient -->
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:32px;height:32px;border-radius:50%;background:#eff6ff;color:#2563eb;display:grid;place-items:center;font-weight:700;font-size:.8125rem;flex-shrink:0">
+                {{ consultation.patient.name|first|upper }}
+              </div>
+              <a href="{% url 'patient_detail' consultation.patient.id %}"
+                 class="fw-semibold text-decoration-none text-dark">
+                {{ consultation.patient.name }}
+              </a>
+            </div>
+          </td>
+
+          <!-- Consultation number -->
+          <td>
+            <span class="badge fw-normal"
+                  style="background:#f1f5f9;color:#475569;font-size:.8125rem;border:1px solid #e2e8f0">
+              #{{ consultation.consultation_number }}
+            </span>
+          </td>
+
+          <!-- Doctor -->
+          <td>
+            {% if consultation.doctor %}
+              <span class="text-muted small">Dr. {{ consultation.doctor.name }}</span>
+            {% else %}
+              <span class="text-muted small fst-italic">Unassigned</span>
+            {% endif %}
+          </td>
+
+          <!-- Diagnosis (truncated) -->
+          <td>
+            {% if consultation.diagnosis %}
+              <span class="text-muted small" title="{{ consultation.diagnosis }}">
+                {{ consultation.diagnosis|truncatechars:60 }}
+              </span>
+            {% else %}
+              <span class="text-muted small fst-italic">—</span>
+            {% endif %}
+          </td>
+
+          <!-- Status badge -->
+          <td>
+            {% if consultation.status == 'draft' %}
+              <span class="badge rounded-pill fw-normal"
+                    style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0">
+                Draft
+              </span>
+            {% elif consultation.status == 'active' %}
+              <span class="badge rounded-pill fw-normal"
+                    style="background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe">
+                Active
+              </span>
+            {% elif consultation.status == 'completed' %}
+              <span class="badge rounded-pill fw-normal"
+                    style="background:#dcfce7;color:#166534;border:1px solid #bbf7d0">
+                Completed
+              </span>
+            {% else %}
+              <span class="badge rounded-pill fw-normal"
+                    style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0">
+                {{ consultation.status|capfirst }}
+              </span>
+            {% endif %}
+          </td>
+
+          <!-- Actions -->
+          <td class="text-end">
+            <div class="d-flex gap-1 justify-content-end">
+              <a href="{% url 'consultation_detail' consultation.id %}"
+                 class="btn btn-sm btn-outline-primary btn-icon"
+                 title="View consultation">
+                <i class="bi bi-eye"></i>
+              </a>
+              <a href="{% url 'consultation_pdf' consultation.id %}"
+                 class="btn btn-sm btn-outline-secondary btn-icon"
+                 title="Export PDF" target="_blank">
+                <i class="bi bi-file-earmark-pdf"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-5 text-muted">
+            <i class="bi bi-journal-x display-6 d-block mb-2 opacity-50"></i>
+            {% if query %}
+              No consultations found for &ldquo;{{ query }}&rdquo;.
+            {% else %}
+              No consultations have been recorded yet.
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div class="card-body border-top d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <span class="text-muted small">
+      Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+    </span>
+    <nav>
+      <ul class="pagination pagination-sm mb-0 gap-1">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+            <i class="bi bi-chevron-left"></i>
+          </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+          <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+
+</div>
+
 {% endblock %}

@@ -1,121 +1,172 @@
 {% extends 'base.html' %}
-{% load static %}
 {% block title %}Purchase Orders{% endblock %}
+{% block page_title %}Purchase Orders{% endblock %}
+{% block nav_inventory %}active{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-  <div class="card shadow-sm border-0 rounded-4">
-    <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold text-primary mb-0">
-          <i class="bi bi-receipt me-2"></i>Purchase Orders
-        </h4>
-        <a href="{% url 'po_create' %}" class="btn btn-primary">
-          <i class="bi bi-plus-lg me-1"></i>New PO
-        </a>
-      </div>
-
-      <!-- Search -->
-      <form method="get" class="row g-2 mb-4">
-        <div class="col-md-4">
-          <input 
-            type="text" 
-            name="q" 
-            value="{{ query }}" 
-            class="form-control" 
-            placeholder="Search by supplier or PO number..."
-          >
-        </div>
-        <div class="col-md-2">
-          <button type="submit" class="btn btn-outline-primary w-100">
-            <i class="bi bi-search"></i> Search
-          </button>
-        </div>
-      </form>
-
-      <!-- Table -->
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>#</th>
-              <th>PO Number</th>
-              <th>Supplier</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for po in page_obj %}
-              <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ po.po_number }}</td>
-                <td>{{ po.supplier.name }}</td>
-                <td>{{ po.created_at|date:"M d, Y" }}</td>
-                <td>
-                  {% if po.status == 'draft' %}
-                    <span class="badge bg-warning text-dark">Draft</span>
-                  {% elif po.status == 'received' %}
-                    <span class="badge bg-success">Received</span>
-                  {% elif po.status == 'cancelled' %}
-                    <span class="badge bg-danger">Cancelled</span>
-                  {% endif %}
-                </td>
-                <td>
-                  <div class="btn-group">
-                    {% if po.status == 'draft' %}
-                      <a href="{% url 'po_receive' po.id %}" 
-                         class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-box-arrow-in-down"></i>
-                      </a>
-                    {% endif %}
-                    
-                  </div>
-                </td>
-              </tr>
-            {% empty %}
-              <tr>
-                <td colspan="6" class="text-center text-muted py-4">
-                  No purchase orders found.
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      {% if is_paginated %}
-      <nav>
-        <ul class="pagination justify-content-center">
-          {% if page_obj.has_previous %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
-                Previous
-              </a>
-            </li>
-          {% endif %}
-
-          {% for i in page_obj.paginator.page_range %}
-            <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-              <a class="page-link" href="?page={{ i }}{% if query %}&q={{ query }}{% endif %}">
-                {{ i }}
-              </a>
-            </li>
-          {% endfor %}
-
-          {% if page_obj.has_next %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
-                Next
-              </a>
-            </li>
-          {% endif %}
-        </ul>
-      </nav>
-      {% endif %}
-    </div>
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">Purchase Orders</h1>
+    <p class="page-subheading">Manage supplier orders and stock receiving</p>
   </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'inventory_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Dashboard
+    </a>
+    <a href="{% url 'po_create' %}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-lg me-1"></i>New PO
+    </a>
+  </div>
+</div>
+
+<!-- Search -->
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-6">
+        <label class="form-label">Search</label>
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input type="text" name="q" value="{{ query }}" class="form-control"
+                 placeholder="Supplier name or PO number…">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">&nbsp;</label>
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1">
+            <i class="bi bi-search me-1"></i>Search
+          </button>
+          {% if query %}
+          <a href="{% url 'po_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span>
+      <i class="bi bi-receipt me-2 text-muted"></i>
+      {% if page_obj.paginator.count %}
+        {{ page_obj.paginator.count }} order{{ page_obj.paginator.count|pluralize }}
+      {% else %}
+        No purchase orders found
+      {% endif %}
+    </span>
+    <a href="{% url 'po_create' %}" class="btn btn-sm btn-primary">
+      <i class="bi bi-plus-lg me-1"></i>New PO
+    </a>
+  </div>
+  <div class="card-body p-0">
+    {% if page_obj.object_list %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>PO Number</th>
+            <th>Supplier</th>
+            <th>Status</th>
+            <th>Lines</th>
+            <th>Expected Date</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for po in page_obj %}
+          <tr>
+            <td>
+              <code class="text-primary fw-500">{{ po.number }}</code>
+            </td>
+            <td class="fw-500">{{ po.supplier.name|default:"—" }}</td>
+            <td>
+              {% if po.status == "DRAFT" %}
+                <span class="badge badge-waiting">Draft</span>
+              {% elif po.status == "ORDERED" %}
+                <span class="badge badge-progress">Ordered</span>
+              {% elif po.status == "RECEIVED" %}
+                <span class="badge badge-completed">Received</span>
+              {% elif po.status == "CANCELLED" %}
+                <span class="badge badge-urgent">Cancelled</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="text-muted">{{ po.lines.count }} line{{ po.lines.count|pluralize }}</span>
+            </td>
+            <td class="text-muted small">
+              {% if po.expected_date %}
+                {{ po.expected_date|date:"M d, Y" }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ po.created_at|date:"M d, Y" }}</td>
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end">
+                {% if po.status == "DRAFT" or po.status == "ORDERED" %}
+                <a href="{% url 'po_receive' po.pk %}" class="btn btn-sm btn-outline-success" title="Receive">
+                  <i class="bi bi-box-arrow-in-down me-1"></i>Receive
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-receipt fs-2 d-block mb-2 opacity-25"></i>
+      No purchase orders found.
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div class="card-body border-top py-3">
+    <nav aria-label="PO pagination">
+      <ul class="pagination pagination-sm mb-0 justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+            <i class="bi bi-chevron-left"></i>
+          </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+          </li>
+          {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

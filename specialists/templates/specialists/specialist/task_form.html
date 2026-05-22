@@ -1,38 +1,121 @@
-{% extends "specialists/base.html" %}
-{% load crispy_forms_tags %}
-{% block title %}New Task | Specialists Hub{% endblock %}
+{% extends 'base.html' %}
 
-{% block content_inner %}
+{% block title %}New Specialist Task{% endblock %}
+{% block page_title %}New Specialist Task{% endblock %}
+{% block nav_specialists %}active{% endblock %}
 
-<div class="d-flex justify-content-between align-items-start align-items-sm-center mb-4">
-  <div>
-    <h3 class="fw-bold mb-1">Create Specialist Task</h3>
-    <div class="text-secondary">
-      Assign specialist + role, link consultation, choose a billable service.
-    </div>
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">New Specialist Task</h1>
+    <p class="page-subheading">
+      <a href="{% url 'specialists:dashboard' %}" class="text-decoration-none" style="color:var(--accent);">Specialist Hub</a>
+      &rsaquo;
+      <a href="{% url 'specialists:task_list' %}" class="text-decoration-none" style="color:var(--accent);">Tasks</a>
+      &rsaquo; New
+    </p>
   </div>
-  <a class="btn btn-outline-secondary" href="{% url 'specialists:task_list' %}">
-    ← Back
+  <a href="{% url 'specialists:task_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back to Tasks
   </a>
 </div>
 
-<form method="post" novalidate>
-  {% csrf_token %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-person-badge me-2 text-primary"></i>Task Details
+        </div>
+        <div class="card-body">
 
-  <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-body p-4">
-      {{ form|crispy }}
-    </div>
+          <!-- Patient & Consultation -->
+          <p class="form-section-title">Patient</p>
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.patient.id_for_label }}">
+                Patient <span class="text-danger">*</span>
+              </label>
+              {{ form.patient }}
+              {% if form.patient.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.patient.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.consultation.id_for_label }}">Consultation</label>
+              {{ form.consultation }}
+              {% if form.consultation.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.consultation.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
 
-    <div class="card-footer bg-white border-0 p-4 d-flex justify-content-between">
-      <div class="text-muted small align-self-center">
-        Make sure the correct service is selected for billing.
+          <!-- Assignment -->
+          <p class="form-section-title">Assignment</p>
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.assigned_to.id_for_label }}">Assign To</label>
+              {{ form.assigned_to }}
+              {% if form.assigned_to.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.assigned_to.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.role.id_for_label }}">
+                Role <span class="text-danger">*</span>
+              </label>
+              {{ form.role }}
+              {% if form.role.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.role.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Service & Status -->
+          <p class="form-section-title">Service &amp; Status</p>
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.service.id_for_label }}">Service (Billable)</label>
+              {{ form.service }}
+              {% if form.service.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.service.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.status.id_for_label }}">Status</label>
+              {{ form.status }}
+              {% if form.status.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.status.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <p class="form-section-title">Notes</p>
+          <div class="mb-2">
+            <label class="form-label" for="{{ form.notes.id_for_label }}">Clinical Notes</label>
+            {{ form.notes }}
+            {% if form.notes.errors %}
+            <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.notes.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+        </div>
+        <div class="card-body border-top d-flex justify-content-between align-items-center" style="border-top:1px solid var(--border);">
+          <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            Select a service so billing becomes one click.
+          </small>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check-lg me-1"></i>Create Task
+          </button>
+        </div>
       </div>
-      <button class="btn btn-primary px-4" type="submit">
-        Create Task
-      </button>
-    </div>
+    </form>
   </div>
-</form>
+</div>
 
 {% endblock %}

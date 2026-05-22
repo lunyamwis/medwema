@@ -1,284 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Laboratory Results</title>
-
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lab Results — {{ consultation.patient.name|default:"Patient" }}</title>
   <style>
+    /* ── Base ─────────────────────────────────────────────────────────── */
+    @page {
+      size: A4;
+      margin: 18mm 16mm 20mm;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
     body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      font-size: 14px;
-      line-height: 1.7;
-      color: #2c3e50;
-      background-color: #ffffff;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 10pt;
+      line-height: 1.55;
+      color: #1e293b;
+      background: #ffffff;
     }
 
-    /* Layout container */
-    .report-shell{
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 18px 18px 28px;
-    }
-
-    /* Header */
+    /* ── Header ─────────────────────────────────────────────────────────── */
     .report-header {
-      text-align: center;
-      padding: 16px 12px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      border-bottom: 3px solid #1d4ed8;
+      padding-bottom: 12px;
       margin-bottom: 18px;
-      border: 1px solid #e9ecef;
-      border-radius: 14px;
-      background: #fbfcfe;
     }
+
+    .report-header-left {}
 
     .report-title {
-      font-size: 20px;
+      font-size: 18pt;
       font-weight: 800;
-      letter-spacing: 0.6px;
-      color: #1f3c88; /* corporate blue */
-      margin-bottom: 4px;
+      color: #1d4ed8;
+      letter-spacing: .5px;
+      margin: 0 0 2px;
       text-transform: uppercase;
     }
 
     .report-subtitle {
-      font-size: 14px;
-      color: #6c757d;
-      margin-bottom: 0;
+      font-size: 10pt;
+      color: #64748b;
+      margin: 0;
     }
 
-    .meta-row {
-      margin-top: 10px;
-      font-size: 13px;
-      color: #6c757d;
+    .report-meta {
+      text-align: right;
+      font-size: 8.5pt;
+      color: #64748b;
     }
 
-    .meta-pill {
+    .report-meta-item { margin-bottom: 2px; }
+
+    .report-confidential {
       display: inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #e9ecef;
-      background: #ffffff;
-      margin: 4px 6px;
+      margin-top: 6px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      font-size: 7.5pt;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: #475569;
+      text-transform: uppercase;
     }
 
-    /* Section title */
+    /* ── Section title ───────────────────────────────────────────────────── */
     .section-title {
-      font-size: 16px;
+      font-size: 9pt;
       font-weight: 700;
-      margin-top: 22px;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: #1d4ed8;
+      border-bottom: 1.5px solid #dbeafe;
+      padding-bottom: 5px;
+      margin: 18px 0 10px;
+    }
+
+    /* ── Patient summary table ───────────────────────────────────────────── */
+    .patient-table {
+      width: 100%;
+      border-collapse: collapse;
       margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid #1f3c88;
-      letter-spacing: 0.2px;
     }
 
-    /* Tables */
-    .table {
-      margin-bottom: 18px;
-    }
-
-    /* Patient summary table */
-    .summary-table {
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    .summary-table th {
-      background-color: #f4f6f9;
-      font-weight: 700;
-      width: 22%;
-      color: #334155;
-      white-space: nowrap;
-    }
-
-    .summary-table td,
-    .summary-table th {
-      padding: 12px 14px;
-      vertical-align: middle;
-    }
-
-    /* Results table */
-    .results-table {
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    .results-table thead th {
-      background-color: #eef2f7;
-      font-weight: 700;
-      padding: 18px 14px;
-      color: #334155;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
-
-    .results-table td {
-      padding: 16px 14px;
+    .patient-table th,
+    .patient-table td {
+      padding: 7px 10px;
+      border: 1px solid #e2e8f0;
+      font-size: 9.5pt;
       vertical-align: top;
     }
 
-    .results-table tbody tr:hover {
-      background-color: #f9fbfd;
-    }
-
-    .result-value {
-      font-weight: 800;
-      color: #1f3c88;
-    }
-
-    .results-table th:nth-child(3),
-    .results-table td:nth-child(3) { width: 28%; }
-
-    .results-table {
-      table-layout: fixed;
-      width: 100%;
-    }
-    .results-table th:nth-child(2),
-    .results-table td:nth-child(2) { 
-      width: 10%; 
+    .patient-table th {
+      background: #f1f5f9;
+      font-weight: 700;
+      color: #334155;
+      width: 22%;
       white-space: nowrap;
     }
-    .results-table th:nth-child(1),
-    .results-table td:nth-child(1) { 
-      width: 20%; 
-    }
-    .interpretation {
-      font-size: 13px;
-      line-height: 1.6;
-      color: #495057;
-      min-width: 220px;
+
+    /* ── Results table ───────────────────────────────────────────────────── */
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+      page-break-inside: auto;
     }
 
-    /* Small utility text */
-    .small-text {
-      font-size: 13px;
-      color: #6c757d;
+    .results-table thead tr {
+      background: #1d4ed8;
+      color: #ffffff;
     }
 
-    /* Footer */
+    .results-table thead th {
+      padding: 8px 10px;
+      font-size: 8.5pt;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      text-align: left;
+      border: none;
+    }
+
+    .results-table tbody tr { page-break-inside: avoid; }
+
+    .results-table tbody tr:nth-child(even) td { background: #f8fafc; }
+
+    .results-table tbody td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 9.5pt;
+      vertical-align: top;
+    }
+
+    .results-table tbody tr:last-child td { border-bottom: none; }
+
+    .result-value {
+      font-weight: 700;
+      color: #1e40af;
+    }
+
+    .result-abnormal {
+      font-weight: 700;
+      color: #dc2626;
+    }
+
+    .badge-normal {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 7.5pt;
+      font-weight: 700;
+    }
+
+    .badge-abnormal {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 99px;
+      background: #fee2e2;
+      color: #991b1b;
+      font-size: 7.5pt;
+      font-weight: 700;
+    }
+
+    /* ── Signature / footer strip ───────────────────────────────────────── */
+    .signature-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 32px;
+      gap: 24px;
+    }
+
+    .signature-box {
+      flex: 1;
+      border-top: 1px solid #94a3b8;
+      padding-top: 6px;
+      font-size: 8.5pt;
+      color: #64748b;
+    }
+
+    .signature-label {
+      font-weight: 700;
+      color: #334155;
+      font-size: 9pt;
+    }
+
+    /* ── Page footer ─────────────────────────────────────────────────────── */
     .report-footer {
-      margin-top: 26px;
-      padding-top: 14px;
-      border-top: 1px solid #dee2e6;
+      margin-top: 24px;
+      padding-top: 10px;
+      border-top: 1px solid #e2e8f0;
       text-align: center;
-      font-size: 13px;
-      color: #6c757d;
+      font-size: 8pt;
+      color: #94a3b8;
     }
 
-    /* Print tweaks */
+    /* ── Print tweaks ────────────────────────────────────────────────────── */
     @media print {
-      .report-shell { max-width: 100%; padding: 0; }
-      .report-header { border: 0; background: #fff; }
-      .meta-pill { border: 0; padding: 0; margin: 0 10px; }
-      .results-table tbody tr:hover { background: transparent; }
+      body { font-size: 9.5pt; }
     }
   </style>
 </head>
-
 <body>
-  <div class="report-shell">
 
-    <!-- HEADER -->
-    <div class="report-header">
-      <div class="report-title">Laboratory Results Report</div>
-      <p class="report-subtitle mb-0">Bahari Medical Clinic — Diagnostic Laboratory</p>
-
-      <div class="meta-row">
-        <span class="meta-pill">Confidential Medical Record</span>
-        <span class="meta-pill">For Clinical Use</span>
-        <span class="meta-pill">Generated: {% now "Y-m-d H:i" %}</span>
+  <!-- ── Report header ───────────────────────────────────────────────── -->
+  <div class="report-header">
+    <div class="report-header-left">
+      <div class="report-title">Lab Results Report</div>
+      <div class="report-subtitle">
+        {% if clinic %}{{ clinic.name }}{% else %}Medwema Medical Clinic{% endif %}
+        &mdash; Diagnostic Laboratory
       </div>
     </div>
+    <div class="report-meta">
+      <div class="report-meta-item">Generated: {% now "Y-m-d H:i" %}</div>
+      {% if consultation %}
+      <div class="report-meta-item">Consultation #{{ consultation.id }}</div>
+      {% endif %}
+      <div><span class="report-confidential">Confidential Medical Record</span></div>
+    </div>
+  </div>
 
-    <!-- PATIENT SUMMARY -->
-    {% if consultation %}
-    <div class="section-title">Patient Summary</div>
-    <table class="table table-bordered summary-table">
+  <!-- ── Patient summary ─────────────────────────────────────────────── -->
+  {% if consultation %}
+  <div class="section-title">Patient Summary</div>
+  <table class="patient-table">
+    <tr>
+      <th>Patient Name</th>
+      <td>{{ consultation.patient.name }}</td>
+      <th>Consultation Date</th>
+      <td>{{ consultation.date|date:"Y-m-d H:i" }}</td>
+    </tr>
+    <tr>
+      <th>Patient ID</th>
+      <td>{{ consultation.patient.id }}</td>
+      <th>Clinician</th>
+      <td>
+        {% if consultation.doctor %}
+          Dr. {{ consultation.doctor.name }}
+        {% else %}
+          &mdash;
+        {% endif %}
+      </td>
+    </tr>
+    {% if consultation.patient.date_of_birth %}
+    <tr>
+      <th>Date of Birth</th>
+      <td>{{ consultation.patient.date_of_birth|date:"Y-m-d" }}</td>
+      <th>Gender</th>
+      <td>{{ consultation.patient.get_gender_display|default:"&mdash;" }}</td>
+    </tr>
+    {% endif %}
+  </table>
+  {% endif %}
+
+  <!-- ── Test Results ─────────────────────────────────────────────────── -->
+  <div class="section-title">Test Results</div>
+
+  {% if results %}
+  <table class="results-table">
+    <thead>
       <tr>
-        <th>Patient</th>
-        <td>{{ consultation.patient.name }}</td>
-        <th>Consultation Date</th>
-        <td>{{ consultation.date|date:"Y-m-d H:i" }}</td>
+        <th style="width:4%">#</th>
+        <th style="width:22%">Test Name</th>
+        <th style="width:16%">Parameter</th>
+        <th style="width:15%">Result</th>
+        <th style="width:8%">Unit</th>
+        <th style="width:18%">Reference Range</th>
+        <th style="width:10%">Status</th>
+        <th style="width:7%">Date</th>
       </tr>
+    </thead>
+    <tbody>
+      {% for result in results %}
       <tr>
-        <th>Patient ID</th>
-        <td>{{ consultation.patient.id }}</td>
-        <th>Clinician</th>
+        <td style="color:#64748b;font-weight:600">{{ forloop.counter }}</td>
+        <td style="font-weight:600">{{ result.lab_test.name|default:"&mdash;" }}</td>
+        <td>{{ result.result_name|default:"&mdash;" }}</td>
         <td>
-          {% if consultation.clinician %}
-            {{ consultation.clinician }}
+          {% if result.is_abnormal %}
+            <span class="result-abnormal">{{ result.result_value|default:"&mdash;" }}</span>
           {% else %}
-            —
+            <span class="result-value">{{ result.result_value|default:"&mdash;" }}</span>
           {% endif %}
         </td>
+        <td style="color:#64748b">{{ result.lab_test.unit|default:"&mdash;" }}</td>
+        <td style="color:#64748b;font-size:8.5pt">
+          {% if result.lab_test %}
+            {{ result.lab_test.reference_range_display }}
+          {% else %}
+            &mdash;
+          {% endif %}
+        </td>
+        <td>
+          {% if result.is_abnormal %}
+            <span class="badge-abnormal">Abnormal</span>
+          {% else %}
+            <span class="badge-normal">Normal</span>
+          {% endif %}
+        </td>
+        <td style="font-size:8.5pt;color:#64748b;white-space:nowrap">
+          {{ result.result_date|date:"Y-m-d" }}
+        </td>
       </tr>
-    </table>
-    {% endif %}
-
-    <!-- RESULTS TITLE -->
-    <div class="section-title">Test Results</div>
-
-    <!-- RESULTS TABLE -->
-    <div class="table-responsive">
-      {% for result in results %}
-      <table class="table table-bordered results-table align-middle">
-        <thead>
-          <tr>
-            <th style="width: 10%;">Result</th>
-            <th style="width: 5%; ">Reference Range</th>
-            <th style="width: 28%;">Interpretation</th>
-          </tr>
-        </thead>
-        <tbody>
-          <p>{{forloop.counter}}. -{{ result.lab_test.name }}</p>
-
-          <tr>
-            
-            <td class="result-value">
-              {{ result.result_value|linebreaksbr }}
-            </td>
-
-            
-            <td>
-              {% if result.lab_test.reference_min or result.lab_test.reference_max %}
-                {{ result.lab_test.reference_min }} – {{ result.lab_test.reference_max }}
-              {% else %}
-                —
-              {% endif %}
-            </td>
-
-            <td class="interpretation">
-              {% if result.lab_test.description %}
-                <div class="interpretation-lines">
-                  {{ result.lab_test.description|linebreaksbr }}
-                </div>
-              {% else %}
-                —
-              {% endif %}
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="6" class="text-center small-text py-4">
-              No lab results available for this consultation.
-            </td>
-          </tr>
-        </tbody>
-      </table>
       {% endfor %}
-    </div>
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#64748b;font-style:italic">No lab results available for this consultation.</p>
+  {% endif %}
 
-    <!-- FOOTER -->
-    <div class="report-footer">
-      Bahari Medical Clinic | Accredited Diagnostic Laboratory | Confidential Medical Record
+  <!-- ── Signatures ───────────────────────────────────────────────────── -->
+  <div class="signature-row">
+    <div class="signature-box">
+      <div style="height:36px"></div>
+      <div class="signature-label">Lab Technician</div>
+      <div>Name: _________________________</div>
     </div>
-
-    <div class="text-center small-text mt-2">
-      If you have questions about this report, contact the laboratory front desk.
+    <div class="signature-box">
+      <div style="height:36px"></div>
+      <div class="signature-label">Reviewing Clinician</div>
+      <div>
+        {% if consultation and consultation.doctor %}
+          Dr. {{ consultation.doctor.name }}
+        {% else %}
+          Name: _________________________
+        {% endif %}
+      </div>
     </div>
-
+    <div class="signature-box">
+      <div style="height:36px"></div>
+      <div class="signature-label">Date Reviewed</div>
+      <div>Date: _________________________</div>
+    </div>
   </div>
+
+  <!-- ── Footer ───────────────────────────────────────────────────────── -->
+  <div class="report-footer">
+    {% if clinic %}{{ clinic.name }}{% else %}Medwema Medical Clinic{% endif %}
+    &mdash; Accredited Diagnostic Laboratory &mdash; Confidential Medical Record &mdash; For Clinical Use Only
+  </div>
+
 </body>
 </html>

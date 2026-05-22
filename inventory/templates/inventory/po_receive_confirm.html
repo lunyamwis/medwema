@@ -1,41 +1,127 @@
 {% extends 'base.html' %}
-{% load django_bootstrap5 %}
+{% block title %}Receive {{ po.number }}{% endblock %}
+{% block page_title %}Receive PO{% endblock %}
+{% block nav_inventory %}active{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="card shadow border-0 rounded-4">
-    <div class="card-header bg-success text-white fw-bold fs-5">
-      ✅ Confirm Goods Received for PO #{{ po.id }}
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb mb-1">
+      <a href="{% url 'inventory_dashboard' %}">Inventory</a>
+      <i class="bi bi-chevron-right"></i>
+      <a href="{% url 'po_list' %}">Purchase Orders</a>
+      <i class="bi bi-chevron-right"></i>
+      <span>Receive</span>
     </div>
-    <div class="card-body bg-light">
-      <p><strong>Supplier:</strong> {{ po.supplier }}</p>
-      <p><strong>Date Ordered:</strong> {{ po.date_ordered|date:"M d, Y" }}</p>
+    <h1 class="page-heading">Receive Purchase Order</h1>
+    <p class="page-subheading">Confirm receipt of goods for <code>{{ po.number }}</code></p>
+  </div>
+  <a href="{% url 'po_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+</div>
 
-      <table class="table table-striped">
-        <thead class="table-light">
-          <tr><th>Item</th><th>Ordered</th><th>Received</th></tr>
-        </thead>
-        <tbody>
-          {% for item in po.items.all %}
-            <tr>
-              <td>{{ item.product.name }}</td>
-              <td>{{ item.quantity_ordered }}</td>
-              <td>
-                <input type="number" name="received_{{ item.id }}" class="form-control form-control-sm" value="{{ item.quantity_ordered }}">
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<div class="row g-4 justify-content-center">
+  <div class="col-lg-8">
 
-      <form method="post">
-        {% csrf_token %}
-        <div class="d-flex justify-content-between mt-3">
-          <a href="{% url 'po_list' %}" class="btn btn-outline-secondary">Cancel</a>
-          <button type="submit" class="btn btn-success">Confirm Receipt</button>
+    <!-- PO summary -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <i class="bi bi-file-earmark-check me-2 text-muted"></i>Order Summary
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="text-muted small mb-1">PO Number</div>
+            <div class="fw-600"><code>{{ po.number }}</code></div>
+          </div>
+          <div class="col-sm-6">
+            <div class="text-muted small mb-1">Supplier</div>
+            <div class="fw-600">{{ po.supplier.name|default:"—" }}</div>
+          </div>
+          <div class="col-sm-6">
+            <div class="text-muted small mb-1">Status</div>
+            <div>
+              {% if po.status == "DRAFT" %}
+                <span class="badge badge-waiting">Draft</span>
+              {% elif po.status == "ORDERED" %}
+                <span class="badge badge-progress">Ordered</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="text-muted small mb-1">Expected Date</div>
+            <div>{{ po.expected_date|date:"M d, Y"|default:"—" }}</div>
+          </div>
+          {% if po.notes %}
+          <div class="col-12">
+            <div class="text-muted small mb-1">Notes</div>
+            <div>{{ po.notes }}</div>
+          </div>
+          {% endif %}
         </div>
+      </div>
+    </div>
+
+    <!-- Lines -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <i class="bi bi-list-ul me-2 text-muted"></i>Items to Receive
+      </div>
+      <div class="card-body p-0">
+        {% if po.lines.all %}
+        <table class="table mb-0">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Ordered Qty</th>
+              <th>Unit Price</th>
+              <th>Line Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for line in po.lines.all %}
+            <tr>
+              <td class="fw-500">{{ line.item.name }}</td>
+              <td>
+                <span class="fw-600">{{ line.quantity }}</span>
+                <span class="text-muted small">{{ line.item.unit }}</span>
+              </td>
+              <td class="text-muted">{{ line.unit_price }}</td>
+              <td class="fw-500">{{ line.line_total }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-4">No order lines.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Warning + confirmation -->
+    <div class="alert alert-warning d-flex gap-2 align-items-start mb-4">
+      <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+      <div>
+        <strong>Confirm receipt?</strong><br>
+        This will add all ordered quantities to <strong>Main Store</strong> and mark this PO as
+        <strong>Received</strong>. This action cannot be undone.
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+      <a href="{% url 'po_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg me-1"></i>Cancel
+      </a>
+      <form method="post" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success px-4">
+          <i class="bi bi-box-arrow-in-down me-1"></i>Confirm Receipt
+        </button>
       </form>
     </div>
+
   </div>
 </div>
 {% endblock %}

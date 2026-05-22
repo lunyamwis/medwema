@@ -1,24 +1,118 @@
 {% extends "base.html" %}
+
+{% block title %}Edit Bill #{{ bill.id }}{% endblock %}
+{% block page_title %}Edit Bill{% endblock %}
+{% block nav_billing %}active{% endblock %}
+
 {% block content %}
 
-<h3>Edit Bill #{{ bill.id }}</h3>
-
-<form method="post">
-    {% csrf_token %}
-
-    <div class="mb-3">
-        <label>Total Amount</label>
-        {{ form.total_amount }}
-        {{ form.total_amount.errors }}
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb mb-1">
+      <a href="{% url 'billing_dashboard' %}">Billing</a>
+      <i class="bi bi-chevron-right" style="font-size:.7rem;"></i>
+      <a href="{% url 'bill_detail' bill.pk %}">Bill #{{ bill.id }}</a>
+      <i class="bi bi-chevron-right" style="font-size:.7rem;"></i>
+      <span>Edit</span>
     </div>
+    <h1 class="page-heading">Edit Bill #{{ bill.id }}</h1>
+    <p class="page-subheading">{{ bill.patient.name }}</p>
+  </div>
+</div>
 
-    <button type="submit" class="btn btn-primary">
-        Save Changes
-    </button>
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-pencil-square me-2 text-primary"></i>Bill Details
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
 
-    <a href="{% url 'bill_detail' bill.id %}" class="btn btn-secondary">
-        Cancel
-    </a>
-</form>
+          <!-- Non-field errors -->
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger mb-3">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+          </div>
+          {% endif %}
 
+          <div class="mb-4">
+            <label for="{{ form.total_amount.id_for_label }}" class="form-label">
+              Total Amount
+            </label>
+            <div class="input-group">
+              <span class="input-group-text">KES</span>
+              {{ form.total_amount }}
+            </div>
+            {% if form.total_amount.errors %}
+            <div class="text-danger small mt-1">{{ form.total_amount.errors|join:", " }}</div>
+            {% endif %}
+            <div class="form-text">Base total before any discount.</div>
+          </div>
+
+          <div class="mb-4">
+            <label for="{{ form.discount.id_for_label }}" class="form-label">
+              Discount
+            </label>
+            <div class="input-group">
+              <span class="input-group-text">KES</span>
+              {{ form.discount }}
+            </div>
+            {% if form.discount.errors %}
+            <div class="text-danger small mt-1">{{ form.discount.errors|join:", " }}</div>
+            {% endif %}
+            <div class="form-text">Amount to subtract from the total.</div>
+          </div>
+
+          <div class="mb-4">
+            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+            {{ form.notes }}
+            {% if form.notes.errors %}
+            <div class="text-danger small mt-1">{{ form.notes.errors|join:", " }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Preview net amount -->
+          <div class="d-flex justify-content-between align-items-center p-3 rounded mb-4"
+               style="background:var(--accent-soft);border:1px solid #bfdbfe;">
+            <span class="fw-500 text-primary">Net Amount (calculated)</span>
+            <span class="fw-700 text-primary fs-6" id="netPreview">
+              KES {{ bill.net_amount|floatformat:2 }}
+            </span>
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end">
+            <a href="{% url 'bill_detail' bill.pk %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-floppy-disk me-1"></i>Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  const totalInput    = document.getElementById("{{ form.total_amount.id_for_label }}");
+  const discountInput = document.getElementById("{{ form.discount.id_for_label }}");
+  const preview       = document.getElementById("netPreview");
+
+  function updatePreview() {
+    const total    = parseFloat(totalInput.value)    || 0;
+    const discount = parseFloat(discountInput.value) || 0;
+    const net      = Math.max(0, total - discount);
+    preview.textContent = "KES " + net.toFixed(2);
+  }
+
+  if (totalInput)    totalInput.addEventListener("input", updatePreview);
+  if (discountInput) discountInput.addEventListener("input", updatePreview);
+})();
+</script>
 {% endblock %}

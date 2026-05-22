@@ -1,56 +1,128 @@
 {% extends "base.html" %}
-{% load static %}
+
+{% block title %}Paystack Transactions{% endblock %}
+{% block page_title %}Paystack Transactions{% endblock %}
+{% block nav_billing %}active{% endblock %}
 
 {% block content %}
 
-<div class="container mt-5">
-    <a href="/billing/" class="btn btn-outline-secondary mb-3">Back to Dashboard</a>
-  <h2 class="mb-4 text-primary fw-bold">Recent Transactions</h2>
-
-  {% if transactions %}
-  <div class="table-responsive">
-    <table class="table table-hover table-striped align-middle">
-      <thead class="table-primary">
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col">Reference</th>
-          <th scope="col">Status</th>
-          <th scope="col">Amount (KES)</th>
-          <th scope="col">Customer</th>
-          <th scope="col">Paid At</th>
-          <th scope="col">Channel</th>
-          <th scope="col">Gateway Response</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for tx in transactions %}
-        <tr>
-          <th scope="row">{{ forloop.counter }}</th>
-          <td>{{ tx.reference }}</td>
-          <td>
-            {% if tx.status == "Success" %}
-            <span class="badge bg-success">{{ tx.status }}</span>
-            {% elif tx.status == "Failed" %}
-            <span class="badge bg-danger">{{ tx.status }}</span>
-            {% elif tx.status == "Abandoned" %}
-            <span class="badge bg-warning text-dark">{{ tx.status }}</span>
-            {% else %}
-            <span class="badge bg-secondary">{{ tx.status }}</span>
-            {% endif %}
-          </td>
-          <td>{{ tx.amount }}</td>
-          <td>{{ tx.customer_name }}</td>
-          <td>{{ tx.paid_at|default:"Pending" }}</td>
-          <td>{{ tx.channel|default:"-" }}</td>
-          <td>{{ tx.gateway }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">Paystack Transactions</h1>
+    <p class="page-subheading">Recent transactions processed via Paystack for your clinic</p>
   </div>
-  {% else %}
-  <p class="text-muted">No transactions found.</p>
-  {% endif %}
+  <a href="{% url 'billing_dashboard' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Dashboard
+  </a>
 </div>
 
+<!-- Search -->
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <div class="search-box">
+      <i class="bi bi-search"></i>
+      <input type="text" id="txn-search" class="form-control"
+             placeholder="Filter by reference, customer or channel…">
+    </div>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-arrow-left-right me-2 text-primary"></i>Recent Transactions</span>
+    <span class="badge bg-secondary" id="txn-count">{{ transactions|length }}</span>
+  </div>
+  <div class="card-body p-0">
+    {% if transactions %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Reference</th>
+            <th>Customer</th>
+            <th class="text-end">Amount</th>
+            <th>Channel</th>
+            <th>Gateway Response</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="txn-tbody">
+          {% for tx in transactions %}
+          <tr>
+            <td class="text-muted small">{{ forloop.counter }}</td>
+            <td>
+              <span class="font-monospace small">{{ tx.reference }}</span>
+            </td>
+            <td>
+              <div class="fw-500 small">{{ tx.customer_name }}</div>
+            </td>
+            <td class="text-end fw-600">
+              {{ tx.currency }} {{ tx.amount|floatformat:2 }}
+            </td>
+            <td>
+              <span class="badge rounded-pill
+                {% if tx.channel == 'card' %}bg-primary
+                {% elif tx.channel == 'mobile_money' %}bg-success
+                {% elif tx.channel == 'bank' %}bg-info
+                {% else %}bg-secondary{% endif %}"
+                style="font-size:.75rem;">
+                {{ tx.channel|default:"—" }}
+              </span>
+            </td>
+            <td class="text-muted small">{{ tx.gateway }}</td>
+            <td>
+              {% if tx.status == "Success" %}
+                <span class="badge badge-paid rounded-pill">{{ tx.status }}</span>
+              {% elif tx.status == "Failed" %}
+                <span class="badge badge-urgent rounded-pill">{{ tx.status }}</span>
+              {% elif tx.status == "Abandoned" %}
+                <span class="badge badge-unpaid rounded-pill">{{ tx.status }}</span>
+              {% elif tx.status == "Pending" %}
+                <span class="badge badge-progress rounded-pill">{{ tx.status }}</span>
+              {% else %}
+                <span class="badge bg-secondary rounded-pill">{{ tx.status|default:"—" }}</span>
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ tx.paid_at|default:"Pending" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-arrow-left-right" style="font-size:2.5rem;opacity:.3;display:block;margin-bottom:.75rem;"></i>
+      No Paystack transactions found for your clinic.
+      <div class="mt-2 small">
+        Ensure your clinic has a Paystack subaccount configured.
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+  const input = document.getElementById("txn-search");
+  const countEl = document.getElementById("txn-count");
+  if (!input) return;
+  input.addEventListener("input", function () {
+    const term = this.value.toLowerCase();
+    let visible = 0;
+    document.querySelectorAll("#txn-tbody tr").forEach(function (row) {
+      const match = row.textContent.toLowerCase().includes(term);
+      row.style.display = match ? "" : "none";
+      if (match) visible++;
+    });
+    if (countEl) countEl.textContent = visible;
+  });
+})();
+</script>
 {% endblock %}

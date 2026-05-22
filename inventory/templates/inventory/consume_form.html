@@ -1,21 +1,97 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
+{% block title %}Record Consumption{% endblock %}
+{% block page_title %}Record Consumption{% endblock %}
+{% block nav_inventory %}active{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="card shadow-lg border-0 rounded-4">
-    <div class="card-header bg-warning fw-bold fs-5 text-dark">
-      💊 Record Item Consumption
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb mb-1">
+      <a href="{% url 'inventory_dashboard' %}">Inventory</a>
+      <i class="bi bi-chevron-right"></i>
+      <span>Consume Item</span>
     </div>
-    <div class="card-body bg-light">
-      <form method="post">
-        {% csrf_token %}
-        {{ form|crispy }}
+    <h1 class="page-heading">Record Item Consumption</h1>
+    <p class="page-subheading">Deduct stock used during a consultation or procedure</p>
+  </div>
+  <a href="{% url 'inventory_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Dashboard
+  </a>
+</div>
 
-        <div class="d-flex justify-content-end mt-4">
-          <button type="submit" class="btn btn-success px-4">✅ Record Consumption</button>
-        </div>
-      </form>
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-dash-circle me-2 text-muted"></i>Consumption Details
+      </div>
+      <div class="card-body">
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="form-section-title">Item</div>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <label class="form-label" for="{{ form.item.id_for_label }}">
+                Item <span class="text-danger">*</span>
+              </label>
+              {{ form.item }}
+              {% if form.item.errors %}
+              <div class="text-danger small mt-1">{{ form.item.errors.as_text }}</div>
+              {% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.from_stock.id_for_label }}">
+                Stock Location <span class="text-danger">*</span>
+              </label>
+              {{ form.from_stock }}
+              {% if form.from_stock.errors %}
+              <div class="text-danger small mt-1">{{ form.from_stock.errors.as_text }}</div>
+              {% endif %}
+              <div class="form-text">Select the stock location to deduct from.</div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label" for="{{ form.quantity.id_for_label }}">
+                Quantity <span class="text-danger">*</span>
+              </label>
+              {{ form.quantity }}
+              {% if form.quantity.errors %}
+              <div class="text-danger small mt-1">{{ form.quantity.errors.as_text }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="form-section-title">Context</div>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <label class="form-label" for="{{ form.consultation.id_for_label }}">
+                Consultation
+              </label>
+              {{ form.consultation }}
+              {% if form.consultation.errors %}
+              <div class="text-danger small mt-1">{{ form.consultation.errors.as_text }}</div>
+              {% endif %}
+              <div class="form-text">Link to a patient consultation (optional).</div>
+            </div>
+            <div class="col-12">
+              <label class="form-label" for="{{ form.notes.id_for_label }}">Notes</label>
+              {{ form.notes }}
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{% url 'inventory_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-warning px-4">
+              <i class="bi bi-check-circle me-1"></i>Record Consumption
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </div>

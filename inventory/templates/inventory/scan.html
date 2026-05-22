@@ -18,7 +18,7 @@ input.addEventListener('keydown', function(e){
     const code = input.value.trim();
     if (!code) return;
     // call API to look up item by barcode
-    fetch(`/api/inventory/items/?search=${encodeURIComponent(code)}`)
+    fetch(`/inventory/api/items/?search=${encodeURIComponent(code)}`)
       .then(r=>r.json())
       .then(data=>{
         // DRF items endpoint returns results in data.results if pagination enabled,

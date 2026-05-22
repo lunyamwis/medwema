@@ -1,381 +1,350 @@
 {% extends 'base.html' %}
-{% load i18n %}
 {% load static %}
-{% load django_bootstrap5 %}
-{% load webpush_notifications %}
 
-{% block title %}Patients - Clinic Manager{% endblock %}
+{% block title %}Patients{% endblock %}
+{% block page_title %}Patient Dashboard{% endblock %}
+{% block nav_patients %}active{% endblock %}
 
 {% block content %}
+<audio id="notif-sound" src="{% static 'sounds/notification-ding-dong-432437.mp3' %}" preload="auto"></audio>
 
-<button id="enable-notifications" class="btn btn-sm btn-outline-primary mb-3">
-  Enable Lab Alerts 🔔
-</button>
-
-<audio id="notification-sound" src="{% static 'sounds/notification-ding-dong-432437.mp3' %}" preload="auto"></audio>
-
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h2 class="fw-bold">Patients</h2>
-  <a href="{% url 'register_patient' %}" class="btn btn-success btn-sm">+ Add Patient</a>
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">Patients</h1>
+    <p class="page-subheading">Manage patient records and queue</p>
+  </div>
+  <a href="{% url 'register_patient' %}" class="btn btn-primary">
+    <i class="bi bi-person-plus-fill me-1"></i> Register Patient
+  </a>
 </div>
 
-<div class="card shadow-sm">
-  <div class="card-body">
-    <!-- Search Form -->
-    <form method="get" class="mb-3 d-flex">
-      <input 
-        type="text" 
-        name="q" 
-        class="form-control me-2" 
-        placeholder="Search by name" 
-        value="{{ query }}">
-      <button type="submit" class="btn btn-primary">Search</button>
-    </form>
-
-    <!-- Patient Table -->
-    {% if page_obj %}
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead class="table-light">
-            <tr>
-              <th scope="col">#</th>
-              <th>Name</th>
-              <th>Date of Birth</th>
-              <th>Phone Number</th>
-              <th>Doctor</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for patient in page_obj %}
-              <tr>
-                <th scope="row">{{ patient.id }}</th>
-                <td>
-                  <a href="{% url 'patient_detail' patient.id %}" class="text-decoration-none fw-semibold">
-                    {{ patient.name }}
-                  </a>
-                </td>
-                <td>{{ patient.date_of_birth|date:"M d, Y" }}</td>
-                <td>{{ patient.phone_number }}</td>
-                <td>
-                  {% if patient.doctor %}
-                    <form method="post" action="{% url 'add_to_queue' patient.doctor.id patient.id %}">
-                      {% csrf_token %}
-                      <button type="submit" class="btn btn-outline-success btn-sm">Add to Queue</button>
-                    </form>
-                  {% else %}
-                    <form method="post" action="{% url 'add_to_queue_select' patient.id %}">
-                      {% csrf_token %}
-                      <select name="doctor_id" class="form-select form-select-sm d-inline w-auto" required>
-                        <option value="">Select Doctor</option>
-                        {% for doctor in request.user.clinics.last.doctors.all %}
-                          <option value="{{ doctor.id }}">{{ doctor.name }}</option>
-                        {% endfor %}
-                      </select>
-                      <button type="submit" class="btn btn-outline-success btn-sm">Queue</button>
-                    </form>
-                  {% endif %}
-                </td>
-
-                <td>
-                  <a href="{% url 'patient_edit' patient.id %}" class="btn btn-outline-primary btn-sm">
-                    Edit
-                  </a>
-                  <button type="button" class="btn btn-sm btn-outline-secondary"
-                          data-bs-toggle="modal"
-                          data-bs-target="#sendToLabModal"
-                          data-patient="{{ patient.name }}"
-                          data-consultation-id="{{ patient.consultations.last.id }}"
-                          data-patient-id="{{ patient.id }}">
-                  🧾 Send to Lab
-                  </button>
-                  <div class="modal fade" id="sendToLabModal" tabindex="-1" aria-labelledby="sendToLabModalLabel" aria-hidden="true">
-                      <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content rounded-4 shadow">
-                          <div class="modal-header bg-primary text-white">
-                            <h5 class="modal-title" id="sendToLabModalLabel">🧪 Send to Lab</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                          </div>
-
-                          <form method="post" action="{% url 'send_to_lab' 0 0 %}" id="sendToLabForm">
-                            {% csrf_token %}
-                            <input type="hidden" name="patient_id" id="patient-id-field" value="{{ patient.id }}">
-                            <div class="modal-body">
-                              <p class="text-muted">Select lab tests for <strong id="labPatientName"></strong>.</p>
-
-                              <!-- Search Input -->
-                              <input type="text" id="labSearchInput" class="form-control mb-2" placeholder="Search lab tests...">
-                              
-                              <!-- Dropdown -->
-                              <div id="labTestsCheckboxes" style="max-height: 200px; overflow-y: auto;">
-                                {% for lab in lab_tests %}
-                                  <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" 
-                                          name="lab_tests" 
-                                          value="{{ lab.id }}" 
-                                          id="labTest{{ lab.id }}">
-                                    <label class="form-check-label" for="labTest{{ lab.id }}">
-                                      {{ lab.name }}
-                                    </label>
-                                  </div>
-                                {% endfor %}
-                              </div>
-
-                              
-                            </div>
-
-                            <div class="modal-footer">
-                              <button type="submit" class="btn btn-success w-100">Send to Lab</button>
-                            </div>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>
+      <div>
+        <div class="stat-value">{{ page_obj.paginator.count }}</div>
+        <div class="stat-label">Total Patients</div>
       </div>
-
-      <!-- Pagination Controls -->
-      {% if page_obj.has_other_pages %}
-      <nav aria-label="Patient pagination" class="mt-4">
-        <ul class="pagination justify-content-center">
-          {% if page_obj.has_previous %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
-                Previous
-              </a>
-            </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Previous</span></li>
-          {% endif %}
-
-          {% for num in page_obj.paginator.page_range %}
-            {% if page_obj.number == num %}
-              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
-              </li>
-            {% endif %}
-          {% endfor %}
-
-          {% if page_obj.has_next %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
-                Next
-              </a>
-            </li>
-          {% else %}
-            <li class="page-item disabled"><span class="page-link">Next</span></li>
-          {% endif %}
-        </ul>
-      </nav>
-      {% endif %}
-    {% else %}
-      <p class="text-muted mb-0">No patients have been added yet.</p>
-    {% endif %}
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
+      <div>
+        <div class="stat-value" id="waiting-count">{{ waiting_count }}</div>
+        <div class="stat-label">In Queue</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+      <div>
+        <div class="stat-value" id="completed-count">{{ completed_count }}</div>
+        <div class="stat-label">Seen Today</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon purple"><i class="bi bi-bell-fill"></i></div>
+      <div>
+        <button id="btn-enable-notif" class="btn btn-sm btn-outline-primary mt-1">Enable Alerts</button>
+        <div class="stat-label">Push Notifications</div>
+      </div>
+    </div>
   </div>
 </div>
 
-{% block extra_scripts %}
+<!-- Search + table -->
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+    <span><i class="bi bi-table me-1"></i> Patient List</span>
+    <form method="get" class="d-flex gap-2 mb-0" style="max-width:340px">
+      <div class="search-box flex-grow-1">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" class="form-control form-control-sm" placeholder="Search name or phone…" value="{{ query }}">
+      </div>
+      <button type="submit" class="btn btn-sm btn-primary">Search</button>
+      {% if query %}<a href="?" class="btn btn-sm btn-outline-secondary">Clear</a>{% endif %}
+    </form>
+  </div>
 
-<script src="{% url 'javascript-catalog' %}"></script>
-<script src="{% static 'js/service-worker.js' %}"></script>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const sendToLabModal = document.getElementById("sendToLabModal");
-  const sendToLabForm = document.getElementById("sendToLabForm");
-  const patientNameEl = document.getElementById("labPatientName");
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Age / Gender</th>
+          <th>Phone</th>
+          <th>Doctor</th>
+          <th>Registered</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for patient in page_obj %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <div style="width:34px;height:34px;border-radius:50%;background:#eff6ff;color:#2563eb;display:grid;place-items:center;font-weight:700;font-size:.875rem;flex-shrink:0">
+                {{ patient.name|first|upper }}
+              </div>
+              <div>
+                <a href="{% url 'patient_detail' patient.id %}" class="fw-semibold text-decoration-none text-dark">
+                  {{ patient.name }}
+                </a>
+                <div style="font-size:.75rem;color:#64748b">{{ patient.patient_number|default:"" }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            {{ patient.age }} yrs
+            <span class="badge bg-light text-secondary ms-1">{{ patient.get_gender_display }}</span>
+          </td>
+          <td>{{ patient.phone_number }}</td>
+          <td>
+            {% if patient.doctor %}
+              <span class="text-muted small">Dr. {{ patient.doctor.name }}</span>
+            {% else %}
+              <span class="text-muted small fst-italic">Unassigned</span>
+            {% endif %}
+          </td>
+          <td><span class="text-muted small">{{ patient.date_registered|date:"M j, Y" }}</span></td>
+          <td class="text-end">
+            <div class="d-flex gap-1 justify-content-end flex-wrap">
+              {% if patient.doctor %}
+              <form method="post" action="{% url 'add_to_queue' patient.doctor.id patient.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-success" title="Add to queue">
+                  <i class="bi bi-plus-circle-fill"></i> Queue
+                </button>
+              </form>
+              {% else %}
+              <button type="button" class="btn btn-sm btn-success"
+                      data-bs-toggle="modal" data-bs-target="#selectDoctorModal{{ patient.id }}">
+                <i class="bi bi-plus-circle-fill"></i> Queue
+              </button>
+              <!-- Select doctor modal -->
+              <div class="modal fade" id="selectDoctorModal{{ patient.id }}" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">Select Doctor — {{ patient.name }}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="post" action="{% url 'add_to_queue_select' patient.id %}">
+                      {% csrf_token %}
+                      <div class="modal-body">
+                        <label class="form-label">Doctor</label>
+                        <select name="doctor_id" class="form-select" required>
+                          <option value="">— Choose doctor —</option>
+                          {% for doc in doctors %}
+                            <option value="{{ doc.id }}">Dr. {{ doc.name }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Add to Queue</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
 
-  sendToLabModal.addEventListener("show.bs.modal", (event) => {
-    const button = event.relatedTarget;
-    const patientName = button.getAttribute("data-patient");
-    const consultationId = 0;
-    const patientId = button.getAttribute("data-patient-id");
-    console.log('testing',patientId);
-    const sendToLabBaseUrl = "{% url 'send_to_lab' 0 0 %}";
+              <button type="button" class="btn btn-sm btn-outline-secondary"
+                      data-bs-toggle="modal" data-bs-target="#labModal"
+                      data-patient="{{ patient.name }}"
+                      data-patient-id="{{ patient.id }}"
+                      data-consultation-id="{{ patient.consultations.last.id|default:0 }}">
+                <i class="bi bi-eyedropper"></i> Lab
+              </button>
 
-    // Update modal content
-    patientNameEl.textContent = patientName;
-    // Update form action dynamically
-    let url = sendToLabBaseUrl.replace("/0/0/", `/${consultationId}/${patientId}/`);
+              <a href="{% url 'patient_edit' patient.id %}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center py-5 text-muted">
+            <i class="bi bi-people display-6 d-block mb-2"></i>
+            No patients found{% if query %} for "{{ query }}"{% endif %}.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-    sendToLabForm.action = url;
-  });
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div class="card-body border-top d-flex align-items-center justify-content-between">
+    <span class="text-muted small">
+      Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+    </span>
+    <nav>
+      <ul class="pagination pagination-sm mb-0 gap-1">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+            <i class="bi bi-chevron-left"></i>
+          </a>
+        </li>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+          {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+            </li>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
 
-  // Optional: search inside dropdown
-  const searchInput = document.getElementById("labSearchInput");
-  const checkboxesContainer = document.getElementById("labTestsCheckboxes");
-
-  searchInput.addEventListener("input", function () {
-      const search = this.value.toLowerCase();
-      
-      // Loop over each checkbox div
-      Array.from(checkboxesContainer.querySelectorAll(".form-check")).forEach(div => {
-          const label = div.querySelector("label").textContent.toLowerCase();
-          div.style.display = label.includes(search) ? "" : "none";
-      });
-  });
-
-    
-});
-
-
-</script>
-<script>
-
-(async () => {
-  if (!('serviceWorker' in navigator)) return;
-
-  
-  // Fetch VAPID public key from Django endpoint
-  let vapidPublicKey;
-  try {
-    const res = await fetch('/notifications/generate-vapid/');
-    const data =  await res.json();
-    console.log(data.public_key)
-    vapidPublicKey = data.public_key;
-    console.log('Fetched VAPID key:', vapidPublicKey);
-  } catch (err) {
-    console.error('Failed to fetch VAPID key:', err);
-    return;
-  }
-
-  
-
-
-
-
-
-  const VAPID_PUBLIC_KEY = vapidPublicKey
-
-  function urlBase64ToUint8Array(base64String) {
-      const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-      const base64 = (base64String + padding)
-          .replace(/-/g, "+")
-          .replace(/_/g, "/");
-
-      const rawData = atob(base64);
-      const outputArray = new Uint8Array(rawData.length);
-
-      for (let i = 0; i < rawData.length; ++i) {
-          outputArray[i] = rawData.charCodeAt(i);
-      }
-      return outputArray;
-  }
-
-  // Ask for notification permission
-  const permission = await Notification.requestPermission();
-  if (permission !== "granted") {
-      console.log("Notification permission denied.");
-      return;
-  }
-
-  // Register service worker
-  const registration = await navigator.serviceWorker.register("{% static 'js/service-worker.js' %}");
-  console.log("Service worker registered:", registration);
-
-  // Subscribe
-  const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-  });
-
-  console.log("%cSUBSCRIPTION OBJECT:", "color: green; font-weight: bold;");
-  console.log(JSON.stringify(subscription, null, 2));
-  // Add audio element dynamically
-  const audio = new Audio("/static/sounds/notification-ding-dong-432437.mp3");
-  audio.preload = "auto";
-
-  // Listen for messages from the service worker
-  navigator.serviceWorker.addEventListener("message", (event) => {
-      console.log("Message from service worker:", event.data);
-      if (event.data.playSound) {
-          audio.play().catch(err => console.log("Audio play blocked:", err));
-      }
-  });
-
-
-
-
-
-
-
-
-// Extract JSON subscription (has keys)
-const subJSON = subscription.toJSON();
-
-console.log("SUB JSON:", JSON.stringify(subJSON, null, 2));
-
-// Validate keys
-if (!subJSON.keys || !subJSON.keys.p256dh || !subJSON.keys.auth) {
-    throw new Error('Subscription keys are missing');
-}
-
-// Prepare payload for Django
-const payload = {
-    subscription: {
-        endpoint: subJSON.endpoint,
-        expirationTime: subJSON.expirationTime,
-        keys: subJSON.keys
-    },
-    browser: navigator.userAgent.includes("Chrome") ? "chrome" : "firefox",
-    user_agent: navigator.userAgent,
-    status_type: "subscribe",
-    group: ""
-};
-
-const response = await fetch("/webpush/save_information", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}"
-    },
-    body: JSON.stringify(payload)
-});
-
-if (!response.ok) {
-    const err = await response.text();
-    console.error("Error response body:", err);
-    throw new Error("Subscription saving failed");
-}
-
-console.log("Push subscription saved");
-  
-
-
-})();
-</script>
-
-<script>
-var wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-var wsHost = window.location.host;
-var wsUrl = `${wsProtocol}://${wsHost}/ws/patients/`;
-
-var socket = new WebSocket(wsUrl);
-
-socket.onmessage = function(event) {
-    const data = JSON.parse(event.data);
-    console.log("New patient alert:", data.message);
-    // Play audio
-   
-};
-socket.onopen = function(event) {
-    console.log("WebSocket connection established.");
-};
-socket.onclose = function(event) {
-    console.log("WebSocket connection closed.");
-};
-socket.onerror = function(error) {
-    console.error("WebSocket error:", error);
-};
-</script>
+<!-- Global send-to-lab modal -->
+<div class="modal fade" id="labModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-eyedropper me-1"></i> Send to Lab — <span id="labPatientName"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="" id="sendToLabForm">
+        {% csrf_token %}
+        <input type="hidden" name="patient_id" id="labPatientIdField">
+        <div class="modal-body">
+          <div class="search-box mb-3">
+            <i class="bi bi-search"></i>
+            <input type="text" id="labSearchInput" class="form-control" placeholder="Filter lab tests…">
+          </div>
+          <div id="labTestsContainer" style="max-height:260px;overflow-y:auto">
+            {% for lab in request.user.clinics.last.labs.first.tests.all %}
+            <div class="form-check lab-test-item">
+              <input class="form-check-input" type="checkbox" name="lab_tests" value="{{ lab.id }}" id="lt{{ lab.id }}">
+              <label class="form-check-label" for="lt{{ lab.id }}">{{ lab.name }}</label>
+            </div>
+            {% empty %}
+            <p class="text-muted small mb-0">No lab tests configured. Add them in the admin panel.</p>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Send to Lab</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 {% endblock %}
 
+{% block extra_scripts %}
+<script>
+(function () {
+  // Lab modal
+  const labModal = document.getElementById("labModal");
+  if (labModal) {
+    labModal.addEventListener("show.bs.modal", function (e) {
+      const btn = e.relatedTarget;
+      document.getElementById("labPatientName").textContent = btn.dataset.patient;
+      document.getElementById("labPatientIdField").value = btn.dataset.patientId;
+      const cId = btn.dataset.consultationId || 0;
+      const form = document.getElementById("sendToLabForm");
+      form.action = `/emr/send-to-lab/${cId}/${btn.dataset.patientId}/`;
+    });
+    document.getElementById("labSearchInput").addEventListener("input", function () {
+      const q = this.value.toLowerCase();
+      document.querySelectorAll(".lab-test-item").forEach(function (el) {
+        el.style.display = el.querySelector("label").textContent.toLowerCase().includes(q) ? "" : "none";
+      });
+    });
+  }
 
+  // Live queue counts via API
+  function updateCounts() {
+    fetch("/patients/api/patient-queue-count/")
+      .then(r => r.json()).then(d => {
+        const el = document.getElementById("waiting-count");
+        if (el) el.textContent = d.count;
+      });
+    fetch("/patients/api/patient-complete-count/")
+      .then(r => r.json()).then(d => {
+        const el = document.getElementById("completed-count");
+        if (el) el.textContent = d.count;
+      });
+  }
+  setInterval(updateCounts, 15000);
+
+  // WebSocket for patient alerts
+  const wsProto = location.protocol === "https:" ? "wss" : "ws";
+  const ws = new WebSocket(`${wsProto}://${location.host}/ws/patients/`);
+  ws.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+    const audio = document.getElementById("notif-sound");
+    if (audio) audio.play().catch(() => {});
+    updateCounts();
+  };
+
+  // Push notification setup
+  document.getElementById("btn-enable-notif")?.addEventListener("click", async function () {
+    if (!("serviceWorker" in navigator)) { alert("Service workers not supported."); return; }
+    try {
+      const res = await fetch("/notifications/generate-vapid/");
+      const { public_key } = await res.json();
+      const perm = await Notification.requestPermission();
+      if (perm !== "granted") { alert("Permission denied."); return; }
+      const reg = await navigator.serviceWorker.register("{% static 'js/service-worker.js' %}");
+      function urlBase64ToUint8Array(b64) {
+        const pad = "=".repeat((4 - b64.length % 4) % 4);
+        const base64 = (b64 + pad).replace(/-/g, "+").replace(/_/g, "/");
+        const raw = atob(base64);
+        const out = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+        return out;
+      }
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(public_key),
+      });
+      const subJSON = sub.toJSON();
+      await fetch("/webpush/save_information", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
+        body: JSON.stringify({
+          subscription: { endpoint: subJSON.endpoint, expirationTime: subJSON.expirationTime, keys: subJSON.keys },
+          browser: navigator.userAgent.includes("Chrome") ? "chrome" : "firefox",
+          user_agent: navigator.userAgent,
+          status_type: "subscribe",
+          group: "",
+        }),
+      });
+      this.textContent = "Alerts enabled ✓";
+      this.classList.replace("btn-outline-primary", "btn-success");
+      this.disabled = true;
+    } catch (err) {
+      console.error(err);
+      alert("Failed to enable notifications.");
+    }
+  });
+})();
+</script>
 {% endblock %}

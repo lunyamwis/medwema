@@ -1,24 +1,183 @@
 {% extends 'base.html' %}
-{% block content %}
-<div class="container py-4">
-  <h3>Inventory Dashboard</h3>
-  <h5>Low stock</h5>
-  <ul>
-    {% for item in low_stock_items %}
-      <li><a href="{% url 'item_detail' item.pk %}">{{ item.name }}</a> — total: {{ item.total_stock }} (reorder level: {{ item.reorder_level }})</li>
-    {% empty %}
-      <li>No low stock items</li>
-    {% endfor %}
-  </ul>
+{% block title %}Inventory Dashboard{% endblock %}
+{% block page_title %}Inventory{% endblock %}
+{% block nav_inventory %}active{% endblock %}
 
-  <h5>Recent movements</h5>
-  <table class="table">
-    <thead><tr><th>When</th><th>Type</th><th>Item</th><th>Qty</th></tr></thead>
-    <tbody>
-      {% for m in recent_movements %}
-        <tr><td>{{ m.created_at }}</td><td>{{ m.get_movement_type_display }}</td><td>{{ m.item.name }}</td><td>{{ m.quantity }}</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+{% block content %}
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">Inventory Dashboard</h1>
+    <p class="page-subheading">Track stock levels, movements, and purchase orders</p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'item_list' %}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-boxes me-1"></i>Items
+    </a>
+    <a href="{% url 'po_list' %}" class="btn btn-outline-primary btn-sm">
+      <i class="bi bi-receipt me-1"></i>Purchase Orders
+    </a>
+    <a href="{% url 'movement_create' %}" class="btn btn-primary btn-sm">
+      <i class="bi bi-arrow-left-right me-1"></i>Record Movement
+    </a>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-boxes"></i></div>
+      <div>
+        <div class="stat-value">{{ total_items_count }}</div>
+        <div class="stat-label">Total Items</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon {% if low_stock_items %}red{% else %}green{% endif %}">
+        <i class="bi bi-exclamation-triangle{% if not low_stock_items %}-fill{% endif %}"></i>
+      </div>
+      <div>
+        <div class="stat-value {% if low_stock_items %}text-danger{% endif %}">{{ low_stock_items|length }}</div>
+        <div class="stat-label">Low Stock Alerts</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-cart-check"></i></div>
+      <div>
+        <div class="stat-value">{{ pos_pending_count }}</div>
+        <div class="stat-label">Pending POs</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="stat-card">
+      <div class="stat-icon purple"><i class="bi bi-arrow-left-right"></i></div>
+      <div>
+        <div class="stat-value">{{ movements_today }}</div>
+        <div class="stat-label">Movements Today</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Low stock alerts -->
+{% if low_stock_items %}
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+    <span>Low Stock Alerts</span>
+    <span class="badge bg-danger ms-1">{{ low_stock_items|length }}</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>SKU</th>
+            <th>Category</th>
+            <th>Current Stock</th>
+            <th>Reorder Level</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in low_stock_items %}
+          <tr>
+            <td class="fw-500">{{ item.name }}</td>
+            <td><code class="text-muted small">{{ item.sku|default:"—" }}</code></td>
+            <td>{{ item.category.name|default:"—" }}</td>
+            <td>
+              <span class="fw-600 text-danger">{{ item.total_stock }}</span>
+              <span class="text-muted small">{{ item.unit }}</span>
+            </td>
+            <td>
+              <span class="text-muted">{{ item.reorder_level }} {{ item.unit }}</span>
+            </td>
+            <td class="text-end">
+              <a href="{% url 'item_detail' item.pk %}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye me-1"></i>View
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Recent stock movements -->
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-clock-history me-2 text-muted"></i>Recent Stock Movements</span>
+    <a href="{% url 'movement_create' %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-plus-lg me-1"></i>Record
+    </a>
+  </div>
+  <div class="card-body p-0">
+    {% if recent_movements %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Type</th>
+            <th>Quantity</th>
+            <th>From → To</th>
+            <th>Reference</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in recent_movements %}
+          <tr>
+            <td class="fw-500">{{ m.item.name }}</td>
+            <td>
+              {% if m.movement_type == "IN" %}
+                <span class="badge badge-completed">IN</span>
+              {% elif m.movement_type == "OUT" %}
+                <span class="badge badge-urgent">OUT</span>
+              {% elif m.movement_type == "TRANSFER" %}
+                <span class="badge badge-progress">TRANSFER</span>
+              {% else %}
+                <span class="badge badge-waiting">ADJUST</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="fw-600">{{ m.quantity }}</span>
+              <span class="text-muted small">{{ m.item.unit }}</span>
+            </td>
+            <td class="text-muted small">
+              {% if m.from_location %}{{ m.from_location.name }}{% else %}—{% endif %}
+              {% if m.from_location and m.to_location %}<i class="bi bi-arrow-right mx-1"></i>{% endif %}
+              {% if m.to_location %}{{ m.to_location.name }}{% elif not m.from_location %}—{% endif %}
+            </td>
+            <td>
+              {% if m.reference %}
+                <code class="small text-muted">{{ m.reference }}</code>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="text-muted small">{{ m.created_at|date:"M d, Y H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-arrow-left-right fs-2 d-block mb-2 opacity-25"></i>
+      No stock movements yet.
+    </div>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}

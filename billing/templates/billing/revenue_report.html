@@ -1,34 +1,193 @@
-{% extends 'base.html' %}
-{% block content %}
-<div class="container mt-4">
-  <h3>📊 Revenue Report</h3>
-  <form method="get" class="row g-3 mb-3">
-    <div class="col-md-4">
-      <input type="date" name="start" value="{{ start_date }}" class="form-control">
-    </div>
-    <div class="col-md-4">
-      <input type="date" name="end" value="{{ end_date }}" class="form-control">
-    </div>
-    <div class="col-md-4">
-      <button type="submit" class="btn btn-primary w-100">Filter</button>
-    </div>
-  </form>
+{% extends "base.html" %}
 
-  <h5>Total Revenue: <span class="text-success fw-bold">{{ total_revenue }}</span></h5>
-  <h5>Tithe (10%): <span class="text-success fw-bold">{{ tithe }}</span></h5>
-  <table class="table table-striped mt-3">
-    <thead><tr><th>Reference</th><th>Bill</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
-    <tbody>
-      {% for p in payments %}
-      <tr>
-        <td>{{ p.reference }}</td>
-        <td>{{ p.bill.id }}</td>
-        <td>{{ p.amount }}</td>
-        <td>{{ p.status }}</td>
-        <td>{{ p.paid_at }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+{% block title %}Revenue Report{% endblock %}
+{% block page_title %}Revenue Report{% endblock %}
+{% block nav_billing %}active{% endblock %}
+{% block nav_revenue %}active{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">Revenue Report</h1>
+    <p class="page-subheading">
+      {{ start_date|date:"M d, Y" }} &mdash; {{ end_date|date:"M d, Y" }}
+    </p>
+  </div>
+  <div class="d-flex gap-2 no-print">
+    <button onclick="window.print()" class="btn btn-outline-secondary">
+      <i class="bi bi-printer me-1"></i>Print
+    </button>
+    <a href="{% url 'billing_dashboard' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Dashboard
+    </a>
+  </div>
 </div>
+
+<!-- Filters -->
+<div class="card mb-4 no-print">
+  <div class="card-body py-3">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-sm-auto">
+        <label class="form-label mb-1" style="font-size:.8125rem;">From</label>
+        <input type="date" name="start" value="{{ start_date|date:'Y-m-d' }}" class="form-control">
+      </div>
+      <div class="col-sm-auto">
+        <label class="form-label mb-1" style="font-size:.8125rem;">To</label>
+        <input type="date" name="end" value="{{ end_date|date:'Y-m-d' }}" class="form-control">
+      </div>
+      <div class="col-sm col-md-4">
+        <label class="form-label mb-1" style="font-size:.8125rem;">Patient</label>
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input type="text" name="q" class="form-control" placeholder="Search patient name…" value="{{ query }}">
+        </div>
+      </div>
+      <div class="col-sm-auto">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-funnel me-1"></i>Apply
+        </button>
+        {% if query %}
+        <a href="?start={{ start_date|date:'Y-m-d' }}&end={{ end_date|date:'Y-m-d' }}" class="btn btn-outline-secondary ms-1">Clear</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
+      <div>
+        <div class="stat-value" style="font-size:1.5rem;">KES {{ total_revenue|floatformat:2 }}</div>
+        <div class="stat-label">Total Revenue</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-piggy-bank-fill"></i></div>
+      <div>
+        <div class="stat-value" style="font-size:1.5rem;">KES {{ tithe|floatformat:2 }}</div>
+        <div class="stat-label">Tithe (10%)</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-receipt-cutoff"></i></div>
+      <div>
+        <div class="stat-value">{{ page_obj.paginator.count }}</div>
+        <div class="stat-label">Transactions{% if query %} (filtered){% endif %}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Revenue by method (inline bar chart) -->
+{% if revenue_by_method %}
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="bi bi-bar-chart-fill me-2 text-primary"></i>Revenue by Payment Method
+  </div>
+  <div class="card-body">
+    {% for method, amount in revenue_by_method.items %}
+    {% with pct=amount|default:0 %}
+    <div class="mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="fw-500 small">
+          {% if method == "CASH" %}<i class="bi bi-cash me-1 text-success"></i>Cash
+          {% elif method == "CARD" %}<i class="bi bi-credit-card me-1 text-primary"></i>Card
+          {% elif method == "MPESA" %}<i class="bi bi-phone me-1 text-success"></i>M-Pesa
+          {% elif method == "ONLINE" %}<i class="bi bi-globe me-1 text-info"></i>Online
+          {% else %}<i class="bi bi-three-dots me-1 text-secondary"></i>{{ method }}
+          {% endif %}
+        </span>
+        <span class="fw-600 small">KES {{ amount|floatformat:2 }}</span>
+      </div>
+      <div class="progress" style="height:8px;border-radius:9999px;background:#e2e8f0;">
+        {% if total_revenue and total_revenue > 0 %}
+        {% widthratio amount total_revenue 100 as bar_pct %}
+        <div class="progress-bar bg-primary" role="progressbar"
+             style="width:{{ bar_pct }}%;border-radius:9999px;"
+             aria-valuenow="{{ bar_pct }}" aria-valuemin="0" aria-valuemax="100">
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Payments table -->
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-table me-2 text-primary"></i>Payment Transactions</span>
+    <span class="badge bg-secondary">{{ page_obj.paginator.count }}</span>
+  </div>
+  <div class="card-body p-0">
+    {% if page_obj.object_list %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>Receipt #</th>
+            <th>Patient</th>
+            <th>Method</th>
+            <th class="text-end">Amount</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for payment in page_obj %}
+          <tr>
+            <td class="text-muted small font-monospace">{{ payment.receipt_number|default:"—" }}</td>
+            <td>
+              <a href="{% url 'bill_detail' payment.bill.pk %}" class="text-primary text-decoration-none">
+                {{ payment.bill.patient.name }}
+              </a>
+              <div class="text-muted" style="font-size:.75rem;">Bill #{{ payment.bill.pk }}</div>
+            </td>
+            <td>
+              <span class="badge rounded-pill
+                {% if payment.payment_method == 'CASH' %}bg-success
+                {% elif payment.payment_method == 'CARD' %}bg-primary
+                {% elif payment.payment_method == 'MPESA' %}bg-success
+                {% elif payment.payment_method == 'ONLINE' %}bg-info
+                {% else %}bg-secondary{% endif %}"
+                style="font-size:.75rem;">
+                {{ payment.get_payment_method_display }}
+              </span>
+            </td>
+            <td class="text-end fw-600 text-success">KES {{ payment.amount|floatformat:2 }}</td>
+            <td class="text-muted small">
+              {{ payment.paid_at|date:"M d, Y H:i"|default:"—" }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="background:#f8fafc;">
+            <td colspan="3" class="fw-600 text-end pe-3">Total (period)</td>
+            <td class="text-end fw-700 text-primary">KES {{ total_revenue|floatformat:2 }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    {% include "partials/pagination.html" %}
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-graph-down" style="font-size:2.5rem;opacity:.3;display:block;margin-bottom:.75rem;"></i>
+      {% if query %}No payments match &ldquo;{{ query }}&rdquo; in the selected period.{% else %}No payments found for the selected date range.{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
 {% endblock %}

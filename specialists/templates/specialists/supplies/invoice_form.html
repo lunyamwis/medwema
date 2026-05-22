@@ -1,38 +1,105 @@
-{% extends "specialists/base.html" %}
-{% load crispy_forms_tags %}
-{% block title %}New Supply Invoice | Specialists Hub{% endblock %}
+{% extends 'base.html' %}
 
-{% block content_inner %}
+{% block title %}Record Supply Invoice{% endblock %}
+{% block page_title %}Record Supply Invoice{% endblock %}
+{% block nav_specialists %}active{% endblock %}
 
-<div class="d-flex justify-content-between align-items-start align-items-sm-center mb-4">
-  <div>
-    <h3 class="fw-bold mb-1">New Supply Invoice</h3>
-    <div class="text-secondary">
-      Record vendor invoice and attach a scan/photo if needed.
-    </div>
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">Record Supply Invoice</h1>
+    <p class="page-subheading">
+      <a href="{% url 'specialists:dashboard' %}" class="text-decoration-none" style="color:var(--accent);">Specialist Hub</a>
+      &rsaquo;
+      <a href="{% url 'specialists:supply_invoice_list' %}" class="text-decoration-none" style="color:var(--accent);">Supplies</a>
+      &rsaquo; New
+    </p>
   </div>
-  <a class="btn btn-outline-secondary" href="{% url 'specialists:supply_invoice_list' %}">
-    ← Back
+  <a href="{% url 'specialists:supply_invoice_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back
   </a>
 </div>
 
-<form method="post" enctype="multipart/form-data" novalidate>
-  {% csrf_token %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-7">
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-receipt-cutoff me-2 text-primary"></i>Invoice Details
+        </div>
+        <div class="card-body">
 
-  <div class="card border-0 shadow-sm rounded-4">
-    <div class="card-body p-4">
-      {{ form|crispy }}
-    </div>
+          <!-- Vendor info -->
+          <p class="form-section-title">Vendor</p>
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.vendor.id_for_label }}">
+                Vendor Name <span class="text-danger">*</span>
+              </label>
+              {{ form.vendor }}
+              {% if form.vendor.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.vendor.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.invoice_number.id_for_label }}">Invoice Number</label>
+              {{ form.invoice_number }}
+              {% if form.invoice_number.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.invoice_number.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
 
-    <div class="card-footer bg-white border-0 p-4 d-flex justify-content-between align-items-center">
-      <div class="text-secondary small">
-        Tip: Upload a clear invoice image to simplify future audits and stock reconciliation.
+          <!-- Invoice details -->
+          <p class="form-section-title">Invoice Details</p>
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.invoice_date.id_for_label }}">
+                Invoice Date <span class="text-danger">*</span>
+              </label>
+              {{ form.invoice_date }}
+              {% if form.invoice_date.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.invoice_date.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="{{ form.total_amount.id_for_label }}">
+                Total Amount (KES) <span class="text-danger">*</span>
+              </label>
+              {{ form.total_amount }}
+              {% if form.total_amount.errors %}
+              <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.total_amount.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Attachment -->
+          <p class="form-section-title">Attachment</p>
+          <div class="mb-2">
+            <label class="form-label" for="{{ form.attachment.id_for_label }}">Invoice File (optional)</label>
+            {{ form.attachment }}
+            <div class="form-text">Upload a clear invoice image or PDF to simplify future audits.</div>
+            {% if form.attachment.errors %}
+            <div class="text-danger" style="font-size:.8125rem;margin-top:.25rem;">{{ form.attachment.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+        </div>
+        <div class="card-body border-top d-flex justify-content-between align-items-center" style="border-top:1px solid var(--border);">
+          <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            Upload invoice copies to simplify future audits and stock reconciliation.
+          </small>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check-lg me-1"></i>Save Invoice
+          </button>
+        </div>
       </div>
-      <button class="btn btn-primary px-4" type="submit">
-        Save Invoice
-      </button>
-    </div>
+    </form>
   </div>
-</form>
+</div>
 
 {% endblock %}

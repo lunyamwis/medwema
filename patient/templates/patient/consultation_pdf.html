@@ -1,95 +1,718 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Consultation {{ consultation.id }}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Consultation Report — {{ consultation.patient.name }}</title>
   <style>
-    body { font-family: sans-serif; font-size: 12px; margin: 20px; }
-    h2 { margin-top: 0; }
-    .section { margin-bottom: 12px; }
-    .meta { font-size: 11px; color: #555; }
+    /* ── Page setup ── */
+    @page {
+      size: A4;
+      margin: 20mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Helvetica Neue", Arial, "Liberation Sans", sans-serif;
+      font-size: 10pt;
+      color: #1e293b;
+      background: #fff;
+      line-height: 1.5;
+    }
+
+    /* ── Header ── */
+    .doc-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding-bottom: 14px;
+      border-bottom: 3px solid #1e3a5f;
+      margin-bottom: 16px;
+    }
+    .clinic-logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .clinic-icon-box {
+      width: 48px;
+      height: 48px;
+      background: #1e3a5f;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .clinic-icon-box svg {
+      width: 28px;
+      height: 28px;
+      fill: #fff;
+    }
+    .clinic-name {
+      font-size: 18pt;
+      font-weight: 700;
+      color: #1e3a5f;
+      letter-spacing: -0.5px;
+    }
+    .clinic-tagline {
+      font-size: 8pt;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .report-title-area {
+      text-align: right;
+    }
+    .report-label {
+      font-size: 14pt;
+      font-weight: 700;
+      color: #1e3a5f;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .report-meta {
+      font-size: 8.5pt;
+      color: #64748b;
+      margin-top: 4px;
+      line-height: 1.6;
+    }
+    .report-meta strong {
+      color: #1e293b;
+    }
+
+    /* ── Patient info box ── */
+    .patient-box {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 24px;
+      align-items: flex-start;
+    }
+    .patient-box-field {
+      min-width: 140px;
+    }
+    .pf-label {
+      font-size: 7.5pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+    .pf-value {
+      font-size: 10pt;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 8pt;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .status-draft    { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+    .status-active   { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+    .status-completed{ background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+
+    /* ── Section heading ── */
+    .section {
+      margin-bottom: 14px;
+      page-break-inside: avoid;
+    }
+    .section-title {
+      background: #1e3a5f;
+      color: #fff;
+      font-size: 9pt;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 6px 10px;
+      border-radius: 4px 4px 0 0;
+      margin-bottom: 0;
+    }
+    .section-body {
+      border: 1px solid #dee2e6;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      padding: 10px 12px;
+    }
+
+    /* ── Field rows ── */
+    .field-row {
+      margin-bottom: 8px;
+    }
+    .field-row:last-child {
+      margin-bottom: 0;
+    }
+    .field-label {
+      font-size: 7.5pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+    .field-value {
+      font-size: 10pt;
+      color: #1e293b;
+      line-height: 1.55;
+    }
+    .field-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 20px;
+    }
+    .field-grid .field-row {
+      min-width: 130px;
+      flex: 1;
+    }
+
+    /* ── Allergy highlight ── */
+    .allergy-value {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+      border-radius: 4px;
+      padding: 3px 8px;
+      display: inline-block;
+      font-size: 9.5pt;
+    }
+
+    /* ── Vitals table ── */
+    .vitals-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .vitals-table th,
+    .vitals-table td {
+      border: 1px solid #dee2e6;
+      padding: 6px 10px;
+      text-align: center;
+      font-size: 9.5pt;
+    }
+    .vitals-table th {
+      background: #f8fafc;
+      font-weight: 600;
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #475569;
+    }
+    .vitals-table td {
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .vitals-unit {
+      font-weight: 400;
+      font-size: 8pt;
+      color: #64748b;
+    }
+
+    /* ── Systems grid ── */
+    .systems-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .system-cell {
+      flex: 1;
+      min-width: 120px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 7px 9px;
+      background: #f8fafc;
+    }
+    .system-tag {
+      font-size: 7.5pt;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #1e3a5f;
+      margin-bottom: 3px;
+    }
+    .system-text {
+      font-size: 9.5pt;
+      color: #1e293b;
+      line-height: 1.5;
+    }
+
+    /* ── General tables (prescriptions, lab results) ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .data-table th,
+    .data-table td {
+      border: 1px solid #dee2e6;
+      padding: 6px 9px;
+      font-size: 9.5pt;
+      text-align: left;
+      vertical-align: top;
+    }
+    .data-table th {
+      background: #f8fafc;
+      font-weight: 600;
+      font-size: 8pt;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #475569;
+    }
+    .data-table tbody tr:nth-child(even) td {
+      background: #fbfcfe;
+    }
+    .badge-normal   { background: #dcfce7; color: #166534; border-radius: 999px; padding: 1px 8px; font-size: 8pt; font-weight: 600; }
+    .badge-abnormal { background: #fee2e2; color: #991b1b; border-radius: 999px; padding: 1px 8px; font-size: 8pt; font-weight: 600; }
+
+    /* ── Empty state ── */
+    .empty-note {
+      font-size: 9pt;
+      color: #94a3b8;
+      font-style: italic;
+      padding: 6px 0;
+    }
+
+    /* ── Footer ── */
+    .doc-footer {
+      margin-top: 24px;
+      padding-top: 10px;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+      font-size: 8pt;
+      color: #94a3b8;
+    }
+    .doc-footer strong {
+      color: #475569;
+    }
+
+    /* ── Print helpers ── */
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
   </style>
 </head>
+
 <body>
-  <h2>Consultation — {{ consultation.patient.name }}</h2>
-  <div class="meta">Date: {{ consultation.created_at|date:"Y-m-d H:i" }} | Doctor: {{ consultation.doctor }}</div>
 
-  <div class="section">
-    <strong>Chief complaints</strong>
-    <div>{{ consultation.chief_complaints }}</div>
-  </div>
-
-  <div class="section">
-    <strong>History</strong>
-    <div>{{ consultation.history_presenting_illness }}</div>
-  </div>
-
-  <div class="section">
-    <strong>Vitals</strong>
-    <div>
-      Temp: {{ consultation.temperature }} &nbsp; | &nbsp;
-      BP: {{ consultation.bp }} &nbsp; | &nbsp;
-      Pulse: {{ consultation.pulse }} &nbsp; | &nbsp;
-      SpO₂: {{ consultation.spo2 }} &nbsp; | &nbsp;
-      RR: {{ consultation.respiration_rate }} &nbsp; | &nbsp;
-      Weight: {{ consultation.weight }}
+  <!-- ═══════════ DOCUMENT HEADER ═══════════ -->
+  <div class="doc-header">
+    <div class="clinic-logo-area">
+      <div class="clinic-icon-box">
+        <!-- Simple hospital cross SVG icon -->
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 3H5C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="clinic-name">Medwema</div>
+        <div class="clinic-tagline">Electronic Medical Records System</div>
+      </div>
+    </div>
+    <div class="report-title-area">
+      <div class="report-label">Consultation Report</div>
+      <div class="report-meta">
+        <strong>Consult #:</strong> {{ consultation.consultation_number }}<br>
+        <strong>Date:</strong> {{ consultation.date|date:"M j, Y" }}<br>
+        <strong>Printed:</strong> {% now "M j, Y" %}
+      </div>
     </div>
   </div>
 
-  <div class="section">
-    <strong>Examination</strong>
-    <div>General: {{ consultation.general_examination }}</div>
-    <div>HEENT: {{ consultation.heent }} | CVS: {{ consultation.cvs }} | PA: {{ consultation.pa }}</div>
-    <div>MSS: {{ consultation.mss }} | RR: {{ consultation.rr }} | CMS: {{ consultation.cms }}</div>
-  </div>
-
-  <div class="section">
-    <strong>Investigations</strong>
-    <div>Imaging: {{ consultation.imaging }} | Laboratory: {{ consultation.laboratory }}</div>
-  </div>
-
-  <div class="section">
-    <strong>Diagnosis</strong>
-    <div>{{ consultation.diagnosis }}</div>
-  </div>
-
-  <div class="section">
-    <strong>Management</strong>
-    <div>{{ consultation.management }}</div>
-  </div>
-
-  <div class="section">
-    <strong>Medication</strong>
-    <div>{{ consultation.medication }}</div>
-  </div>
-
-  <div class="section">
-    <strong>Return Date</strong>
-    <div>{{ consultation.return_date }}</div>
-  </div>
-
-  <div class="section my-3">
-    <h5 class="mb-2"><strong>Prescription</strong></h5>
-
-    {% if consultation.prescription_set.exists %}
-      <ul class="list-group">
-        {% for prescription in consultation.prescription_set.all %}
-          <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start">
-            <div>
-              <span class="fw-bold">{{ forloop.counter }}. {{ prescription.item }}</span> - 
-              <span>{{ prescription.quantity }}</span>
-            </div>
-            <div class="text-muted small">
-              {{ prescription.prescribed_at|date:"M d, Y H:i" }}<br>
-              {{ prescription.instructions|default:"No instructions." }}
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <div class="alert alert-secondary py-2">No prescriptions.</div>
+  <!-- ═══════════ PATIENT INFO BOX ═══════════ -->
+  <div class="patient-box">
+    <div class="patient-box-field">
+      <div class="pf-label">Patient Name</div>
+      <div class="pf-value">{{ consultation.patient.name }}</div>
+    </div>
+    {% if consultation.patient.patient_number %}
+    <div class="patient-box-field">
+      <div class="pf-label">Patient #</div>
+      <div class="pf-value">{{ consultation.patient.patient_number }}</div>
+    </div>
     {% endif %}
+    {% if consultation.patient.age %}
+    <div class="patient-box-field">
+      <div class="pf-label">Age</div>
+      <div class="pf-value">{{ consultation.patient.age }} yrs</div>
+    </div>
+    {% endif %}
+    {% if consultation.patient.gender %}
+    <div class="patient-box-field">
+      <div class="pf-label">Gender</div>
+      <div class="pf-value">{{ consultation.patient.get_gender_display }}</div>
+    </div>
+    {% endif %}
+    <div class="patient-box-field">
+      <div class="pf-label">Attending Doctor</div>
+      <div class="pf-value">
+        {% if consultation.doctor %}Dr. {{ consultation.doctor.name }}{% else %}—{% endif %}
+      </div>
+    </div>
+    <div class="patient-box-field">
+      <div class="pf-label">Status</div>
+      <div class="pf-value">
+        {% if consultation.status == 'draft' %}
+          <span class="status-badge status-draft">Draft</span>
+        {% elif consultation.status == 'active' %}
+          <span class="status-badge status-active">Active</span>
+        {% elif consultation.status == 'completed' %}
+          <span class="status-badge status-completed">Completed</span>
+        {% else %}
+          <span class="status-badge status-draft">{{ consultation.status|capfirst }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CLINICAL HISTORY ═══════════ -->
+  {% if consultation.chief_complaints or consultation.history_of_presenting_illness or consultation.past_medical_history or consultation.past_surgical_history or consultation.drug_allergies or consultation.current_medication or consultation.comorbid_factors or consultation.sexual_history or consultation.family_planning_history or consultation.vaccination_history %}
+  <div class="section">
+    <div class="section-title">Clinical History</div>
+    <div class="section-body">
+
+      {% if consultation.chief_complaints %}
+      <div class="field-row">
+        <div class="field-label">Chief Complaints</div>
+        <div class="field-value">{{ consultation.chief_complaints|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+
+      {% if consultation.history_of_presenting_illness %}
+      <div class="field-row">
+        <div class="field-label">History of Presenting Illness</div>
+        <div class="field-value">{{ consultation.history_of_presenting_illness|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+
+      {% if consultation.past_medical_history or consultation.past_surgical_history %}
+      <div class="field-grid">
+        {% if consultation.past_medical_history %}
+        <div class="field-row">
+          <div class="field-label">Past Medical History</div>
+          <div class="field-value">{{ consultation.past_medical_history|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+        {% if consultation.past_surgical_history %}
+        <div class="field-row">
+          <div class="field-label">Past Surgical History</div>
+          <div class="field-value">{{ consultation.past_surgical_history|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if consultation.drug_allergies or consultation.current_medication %}
+      <div class="field-grid">
+        {% if consultation.drug_allergies %}
+        <div class="field-row">
+          <div class="field-label">Drug Allergies</div>
+          <div class="field-value"><span class="allergy-value">{{ consultation.drug_allergies }}</span></div>
+        </div>
+        {% endif %}
+        {% if consultation.current_medication %}
+        <div class="field-row">
+          <div class="field-label">Current Medication</div>
+          <div class="field-value">{{ consultation.current_medication|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if consultation.comorbid_factors %}
+      <div class="field-row">
+        <div class="field-label">Comorbid Factors</div>
+        <div class="field-value">{{ consultation.comorbid_factors|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+
+      {% if consultation.sexual_history or consultation.family_planning_history or consultation.vaccination_history %}
+      <div class="field-grid">
+        {% if consultation.sexual_history %}
+        <div class="field-row">
+          <div class="field-label">Sexual History</div>
+          <div class="field-value">{{ consultation.sexual_history|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+        {% if consultation.family_planning_history %}
+        <div class="field-row">
+          <div class="field-label">Family Planning History</div>
+          <div class="field-value">{{ consultation.family_planning_history|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+        {% if consultation.vaccination_history %}
+        <div class="field-row">
+          <div class="field-label">Vaccination History</div>
+          <div class="field-value">{{ consultation.vaccination_history|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══════════ VITAL SIGNS ═══════════ -->
+  {% if consultation.temperature or consultation.blood_pressure or consultation.pulse or consultation.spo2 or consultation.respiration_rate or consultation.weight %}
+  <div class="section">
+    <div class="section-title">Vital Signs</div>
+    <div class="section-body" style="padding: 0;">
+      <table class="vitals-table">
+        <thead>
+          <tr>
+            {% if consultation.temperature %}<th>Temperature</th>{% endif %}
+            {% if consultation.blood_pressure %}<th>Blood Pressure</th>{% endif %}
+            {% if consultation.pulse %}<th>Pulse</th>{% endif %}
+            {% if consultation.spo2 %}<th>SpO&#8322;</th>{% endif %}
+            {% if consultation.respiration_rate %}<th>Resp. Rate</th>{% endif %}
+            {% if consultation.weight %}<th>Weight</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            {% if consultation.temperature %}
+            <td>{{ consultation.temperature }} <span class="vitals-unit">&deg;C</span></td>
+            {% endif %}
+            {% if consultation.blood_pressure %}
+            <td>{{ consultation.blood_pressure }} <span class="vitals-unit">mmHg</span></td>
+            {% endif %}
+            {% if consultation.pulse %}
+            <td>{{ consultation.pulse }} <span class="vitals-unit">bpm</span></td>
+            {% endif %}
+            {% if consultation.spo2 %}
+            <td>{{ consultation.spo2 }} <span class="vitals-unit">%</span></td>
+            {% endif %}
+            {% if consultation.respiration_rate %}
+            <td>{{ consultation.respiration_rate }} <span class="vitals-unit">br/min</span></td>
+            {% endif %}
+            {% if consultation.weight %}
+            <td>{{ consultation.weight }} <span class="vitals-unit">kg</span></td>
+            {% endif %}
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══════════ PHYSICAL EXAMINATION ═══════════ -->
+  {% if consultation.general_examination or consultation.heent or consultation.cvs or consultation.pa or consultation.mss or consultation.rr or consultation.cns %}
+  <div class="section">
+    <div class="section-title">Physical Examination</div>
+    <div class="section-body">
+
+      {% if consultation.general_examination %}
+      <div class="field-row">
+        <div class="field-label">General Examination</div>
+        <div class="field-value">{{ consultation.general_examination|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+
+      {% if consultation.heent or consultation.cvs or consultation.pa or consultation.mss or consultation.rr or consultation.cns %}
+      <div class="systems-grid" style="margin-top:8px">
+        {% if consultation.heent %}
+        <div class="system-cell">
+          <div class="system-tag">HEENT</div>
+          <div class="system-text">{{ consultation.heent|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+        {% if consultation.cvs %}
+        <div class="system-cell">
+          <div class="system-tag">CVS</div>
+          <div class="system-text">{{ consultation.cvs|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+        {% if consultation.pa %}
+        <div class="system-cell">
+          <div class="system-tag">PA</div>
+          <div class="system-text">{{ consultation.pa|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+        {% if consultation.mss %}
+        <div class="system-cell">
+          <div class="system-tag">MSS</div>
+          <div class="system-text">{{ consultation.mss|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+        {% if consultation.rr %}
+        <div class="system-cell">
+          <div class="system-tag">RR</div>
+          <div class="system-text">{{ consultation.rr|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+        {% if consultation.cns %}
+        <div class="system-cell">
+          <div class="system-tag">CNS</div>
+          <div class="system-text">{{ consultation.cns|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══════════ INVESTIGATIONS ═══════════ -->
+  {% if consultation.imaging or consultation.laboratory or consultation.lab_findings %}
+  <div class="section">
+    <div class="section-title">Investigations</div>
+    <div class="section-body">
+      <div class="field-grid">
+        {% if consultation.imaging %}
+        <div class="field-row">
+          <div class="field-label">Imaging</div>
+          <div class="field-value">{{ consultation.imaging|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+        {% if consultation.laboratory %}
+        <div class="field-row">
+          <div class="field-label">Laboratory</div>
+          <div class="field-value">{{ consultation.laboratory|linebreaksbr }}</div>
+        </div>
+        {% endif %}
+      </div>
+      {% if consultation.lab_findings %}
+      <div class="field-row" style="margin-top:{% if consultation.imaging or consultation.laboratory %}8px{% else %}0{% endif %}">
+        <div class="field-label">Lab Findings</div>
+        <div class="field-value">{{ consultation.lab_findings|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══════════ DIAGNOSIS & MANAGEMENT ═══════════ -->
+  {% if consultation.diagnosis or consultation.management or consultation.medication or consultation.return_date %}
+  <div class="section">
+    <div class="section-title">Diagnosis &amp; Management</div>
+    <div class="section-body">
+
+      {% if consultation.diagnosis %}
+      <div class="field-row">
+        <div class="field-label">Diagnosis</div>
+        <div class="field-value" style="font-weight:600;font-size:11pt">{{ consultation.diagnosis|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+
+      {% if consultation.management %}
+      <div class="field-row">
+        <div class="field-label">Management Plan</div>
+        <div class="field-value">{{ consultation.management|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+
+      {% if consultation.medication %}
+      <div class="field-row">
+        <div class="field-label">Medication Notes</div>
+        <div class="field-value">{{ consultation.medication|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+
+      {% if consultation.return_date %}
+      <div class="field-row">
+        <div class="field-label">Return Date</div>
+        <div class="field-value">{{ consultation.return_date|date:"M j, Y" }}</div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══════════ PRESCRIPTIONS ═══════════ -->
+  <div class="section">
+    <div class="section-title">Prescriptions</div>
+    <div class="section-body" style="padding:0">
+      {% with prescriptions=consultation.prescriptions.all %}
+      {% if prescriptions %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Drug / Item</th>
+            <th>Dosage</th>
+            <th>Frequency</th>
+            <th>Duration</th>
+            <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rx in prescriptions %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td><strong>{{ rx.item }}</strong>
+              {% if rx.instructions %}<br><span style="font-size:8.5pt;color:#64748b">{{ rx.instructions }}</span>{% endif %}
+            </td>
+            <td>{{ rx.dosage|default:"—" }}</td>
+            <td>{{ rx.frequency|default:"—" }}</td>
+            <td>{{ rx.duration|default:"—" }}</td>
+            <td>{{ rx.quantity|default:"—" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="padding:10px 12px"><span class="empty-note">No prescriptions recorded for this consultation.</span></div>
+      {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+
+  <!-- ═══════════ LAB RESULTS ═══════════ -->
+  <div class="section">
+    <div class="section-title">Lab Results</div>
+    <div class="section-body" style="padding:0">
+      {% with lab_results=consultation.lab_results.all %}
+      {% if lab_results %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Test</th>
+            <th>Result Name</th>
+            <th>Value</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for lr in lab_results %}
+          <tr>
+            <td><strong>{{ lr.lab_test.name }}</strong></td>
+            <td>{{ lr.result_name|default:"—" }}</td>
+            <td>{{ lr.result_value|default:"—" }}</td>
+            <td>
+              {% if lr.is_abnormal %}
+                <span class="badge-abnormal">Abnormal</span>
+              {% else %}
+                <span class="badge-normal">Normal</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div style="padding:10px 12px"><span class="empty-note">No lab results recorded for this consultation.</span></div>
+      {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+
+  <!-- ═══════════ FOOTER ═══════════ -->
+  <div class="doc-footer">
+    Generated by <strong>Medwema EMR</strong> &nbsp;&middot;&nbsp; {{ consultation.date|date:"M j, Y" }}
+    &nbsp;&middot;&nbsp; Consultation #{{ consultation.consultation_number }}
+    &nbsp;&middot;&nbsp; Patient: {{ consultation.patient.name }}
   </div>
 
 </body>

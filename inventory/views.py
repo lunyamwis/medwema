@@ -1,38 +1,73 @@
-# inventory/views.py
-from django.shortcuts import render, get_object_or_404, redirect
+from __future__ import annotations
+
+import logging
+
 from django.contrib import messages
-from .models import Item, Stock, StockMovement, PurchaseOrder, PurchaseOrderLine, StockMovement, Location, ItemCategory, Supplier, ConsumptionRecord
-from .forms import PurchaseOrderForm, PurchaseOrderLineFormset, StockMovementForm, ConsumptionForm
+
+logger = logging.getLogger(__name__)
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Q, Sum
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
 from rest_framework import viewsets, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
-from .serializers import ItemSerializer, StockSerializer, ConsumptionSerializer
+
+from inventory.forms import (
+    PurchaseOrderForm,
+    PurchaseOrderLineFormset,
+    StockMovementForm,
+    ConsumptionForm,
+)
+from inventory.models import (
+    Item,
+    Stock,
+    StockMovement,
+    PurchaseOrder,
+    PurchaseOrderLine,
+    Location,
+    ItemCategory,
+    Supplier,
+    ConsumptionRecord,
+)
+from inventory.serializers import ItemSerializer, StockSerializer, ConsumptionSerializer
+from inventory.services import stock_receive_po, stock_consume
+
+
+# ─── Helpers ─────────────────────────────────────────────────────────────────
+
+def _get_clinic(user):
+    return user.clinics.select_related().last()
+
+
+# ─── REST Viewsets ────────────────────────────────────────────────────────────
 
 class ItemViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Item.objects.all().order_by('name')
+    queryset = Item.objects.all().order_by("name")
     serializer_class = ItemSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['category__id']
-    search_fields = ['name','sku','barcode']
-    ordering_fields = ['name','reorder_level']
+    filterset_fields = ["category__id"]
+    search_fields = ["name", "sku", "barcode"]
+    ordering_fields = ["name", "reorder_level"]
+
 
 class StockViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Stock.objects.select_related('item','location').all()
+    queryset = Stock.objects.select_related("item", "location").all()
     serializer_class = StockSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
-    search_fields = ['item__name','location__name']
+    search_fields = ["item__name", "location__name"]
+
 
 class ConsumptionViewSet(viewsets.ModelViewSet):
-    queryset = ConsumptionRecord.objects.select_related('item','from_stock','consultation').all()
+    queryset = ConsumptionRecord.objects.select_related(
+        "item", "from_stock", "consultation"
+    ).all()
     serializer_class = ConsumptionSerializer
 
     def perform_create(self, serializer):
         cr = serializer.save(used_by=self.request.user)
-        # update stock levels and create StockMovement
         if cr.from_stock:
             stock = cr.from_stock
             stock.quantity -= cr.quantity
@@ -42,153 +77,228 @@ class ConsumptionViewSet(viewsets.ModelViewSet):
                 quantity=cr.quantity,
                 from_location=stock.location,
                 to_location=None,
-                movement_type='OUT',
-                reference=f'CONSULT-{cr.consultation.id if cr.consultation else ""}',
-                created_by=self.request.user
+                movement_type="OUT",
+                reference=f"CONSULT-{cr.consultation.id if cr.consultation else ''}",
+                created_by=self.request.user,
             )
 
+
+# ─── Dashboard ────────────────────────────────────────────────────────────────
 
 @login_required
 def dashboard(request):
-    # simple dashboard
-    low_stock_items = [i for i in Item.objects.all() if i.total_stock() <= i.reorder_level]
-    recent_movements = StockMovement.objects.select_related('item','from_location','to_location').order_by('-created_at')[:20]
+    clinic = _get_clinic(request.user)
+
+    all_items = Item.objects.filter(clinic=clinic, is_active=True).prefetch_related("stocks")
+    low_stock_items = [item for item in all_items if item.is_low_stock()]
+    total_items_count = Item.objects.filter(clinic=clinic).count()
+
+    recent_movements = (
+        StockMovement.objects.filter(item__clinic=clinic)
+        .select_related("item", "from_location", "to_location", "created_by")
+        .order_by("-created_at")[:15]
+    )
+
+    pos_pending_count = PurchaseOrder.objects.filter(
+        clinic=clinic, status__in=["DRAFT", "ORDERED"]
+    ).count()
+
+    today = timezone.localdate()
+    movements_today = StockMovement.objects.filter(
+        item__clinic=clinic, created_at__date=today
+    ).count()
+
     context = {
-        'low_stock_items': low_stock_items,
-        'recent_movements': recent_movements,
+        "low_stock_items": low_stock_items,
+        "recent_movements": recent_movements,
+        "total_items_count": total_items_count,
+        "pos_pending_count": pos_pending_count,
+        "movements_today": movements_today,
     }
-    return render(request, 'inventory/dashboard.html', context)
+    return render(request, "inventory/dashboard.html", context)
+
+
+# ─── Items ────────────────────────────────────────────────────────────────────
 
 @login_required
 def item_list(request):
-    qs = Item.objects.all()
-    q = request.GET.get('q')
+    clinic = _get_clinic(request.user)
+    q = request.GET.get("q", "").strip()
+    category_id = request.GET.get("category", "")
+
+    qs = Item.objects.filter(clinic=clinic).select_related("category", "preferred_supplier")
+
     if q:
-        qs = qs.filter(name__icontains=q) | qs.filter(sku__icontains=q)
-    return render(request, 'inventory/item_list.html', {'items': qs})
+        qs = qs.filter(Q(name__icontains=q) | Q(sku__icontains=q) | Q(barcode__icontains=q))
 
-@login_required
-def item_detail(request, pk):
-    item = get_object_or_404(Item, pk=pk)
-    stocks = item.stocks.select_related('location')
-    movements = item.movements.select_related('from_location','to_location','created_by').all()
-    return render(request, 'inventory/item_detail.html', {'item': item, 'stocks': stocks, 'movements': movements})
+    if category_id:
+        qs = qs.filter(category__id=category_id)
 
-@login_required
-def create_po(request):
-    if request.method == 'POST':
-        form = PurchaseOrderForm(request.POST)
-        formset = PurchaseOrderLineFormset(request.POST)
-        if form.is_valid() and formset.is_valid():
-            with transaction.atomic():
-                po = form.save(commit=False)
-                po.created_by = request.user
-                po.save()
-                formset.instance = po
-                formset.save()
-            messages.success(request, "Purchase order created.")
-            return redirect('po_detail', pk=po.pk)
-    else:
-        form = PurchaseOrderForm()
-        formset = PurchaseOrderLineFormset()
-    return render(request, 'inventory/po_form.html', {'form': form, 'formset': formset})
+    categories = ItemCategory.objects.filter(clinic=clinic)
 
-@login_required
-def receive_po(request, pk):
-    po = get_object_or_404(PurchaseOrder, pk=pk)
-    if request.method == 'POST':
-        # mark received and create Stock + StockMovement entries
-        with transaction.atomic():
-            for line in po.lines.all():
-                # create/update stock at default location (e.g., Main Store)
-                default_loc, _ = Location.objects.get_or_create(name='Main Store')
-                stock, _ = Stock.objects.get_or_create(item=line.item, location=default_loc)
-                stock.quantity += line.quantity
-                stock.save()
-                StockMovement.objects.create(
-                    item=line.item,
-                    quantity=line.quantity,
-                    from_location=None,
-                    to_location=default_loc,
-                    movement_type='IN',
-                    reference=po.number,
-                    created_by=request.user
-                )
-            po.status = 'RECEIVED'
-            po.save()
-        messages.success(request, 'PO received and stock updated.')
-        return redirect('po_detail', pk=po.pk)
-    return render(request, 'inventory/po_receive_confirm.html', {'po': po})
-
-@login_required
-def stock_movement_create(request):
-    if request.method == 'POST':
-        form = StockMovementForm(request.POST)
-        if form.is_valid():
-            movement = form.save(commit=False)
-            movement.created_by = request.user
-            movement.save()
-            # update stock levels
-            if movement.from_location:
-                from_stock, _ = Stock.objects.get_or_create(item=movement.item, location=movement.from_location)
-                from_stock.quantity -= movement.quantity
-                from_stock.save()
-            if movement.to_location:
-                to_stock, _ = Stock.objects.get_or_create(item=movement.item, location=movement.to_location)
-                to_stock.quantity += movement.quantity
-                to_stock.save()
-            messages.success(request, 'Stock movement recorded.')
-            return redirect('movement_list')
-    else:
-        form = StockMovementForm()
-    return render(request, 'inventory/movement_form.html', {'form': form})
-
-@login_required
-def consume_item(request):
-    if request.method == 'POST':
-        form = ConsumptionForm(request.POST)
-        if form.is_valid():
-            cr = form.save(commit=False)
-            cr.used_by = request.user
-            cr.save()
-            # subtract from stock
-            stock = cr.from_stock
-            stock.quantity -= cr.quantity
-            stock.save()
-            StockMovement.objects.create(
-                item=cr.item,
-                quantity=cr.quantity,
-                from_location=stock.location,
-                to_location=None,
-                movement_type='OUT',
-                reference=f'CONSULT-{cr.consultation.id}' if cr.consultation else None,
-                created_by=request.user
-            )
-            messages.success(request, 'Item consumed and stock updated.')
-            return redirect('inventory_dashboard')
-    else:
-        form = ConsumptionForm()
-    return render(request, 'inventory/consume_form.html', {'form': form})
-
-
-@login_required
-def po_list(request):
-    query = request.GET.get("q", "")
-    po_list = PurchaseOrder.objects.all().select_related("supplier")
-
-    if query:
-        po_list = po_list.filter(
-            Q(supplier__name__icontains=query) |
-            Q(po_number__icontains=query)
-        )
-
-    paginator = Paginator(po_list.order_by("-created_at"), 10)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
+    paginator = Paginator(qs, 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
 
     context = {
         "page_obj": page_obj,
-        "query": query,
-        "is_paginated": page_obj.has_other_pages(),
+        "query": q,
+        "categories": categories,
+        "selected_category": category_id,
+    }
+    return render(request, "inventory/item_list.html", context)
+
+
+@login_required
+def item_detail(request, pk):
+    clinic = _get_clinic(request.user)
+    item = get_object_or_404(Item, pk=pk, clinic=clinic)
+    stocks = item.stocks.select_related("location").all()
+    movements = (
+        item.movements.select_related("from_location", "to_location", "created_by")
+        .order_by("-created_at")[:20]
+    )
+    context = {
+        "item": item,
+        "stocks": stocks,
+        "movements": movements,
+    }
+    return render(request, "inventory/item_detail.html", context)
+
+
+# ─── Purchase Orders ──────────────────────────────────────────────────────────
+
+@login_required
+def po_list(request):
+    clinic = _get_clinic(request.user)
+    q = request.GET.get("q", "").strip()
+
+    qs = PurchaseOrder.objects.filter(clinic=clinic).select_related("supplier").prefetch_related("lines")
+
+    if q:
+        qs = qs.filter(
+            Q(supplier__name__icontains=q) | Q(number__icontains=q)
+        )
+
+    paginator = Paginator(qs.order_by("-created_at"), 20)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    context = {
+        "page_obj": page_obj,
+        "query": q,
     }
     return render(request, "inventory/po_list.html", context)
+
+
+@login_required
+def create_po(request):
+    clinic = _get_clinic(request.user)
+
+    if request.method == "POST":
+        form = PurchaseOrderForm(request.POST, clinic=clinic)
+        formset = PurchaseOrderLineFormset(request.POST, form_kwargs={"clinic": clinic})
+        if form.is_valid() and formset.is_valid():
+            with transaction.atomic():
+                po = form.save(commit=False)
+                po.clinic = clinic
+                po.created_by = request.user
+                po.number = (
+                    f"PO{timezone.now().strftime('%Y%m%d')}-"
+                    f"{PurchaseOrder.objects.count() + 1:04d}"
+                )
+                po.save()
+                formset.instance = po
+                formset.save()
+            logger.info("PO %s created by %s", po.number, request.user.username)
+            messages.success(request, f"Purchase order {po.number} created.")
+            return redirect("po_list")
+    else:
+        form = PurchaseOrderForm(clinic=clinic)
+        formset = PurchaseOrderLineFormset(form_kwargs={"clinic": clinic})
+
+    return render(request, "inventory/po_form.html", {"form": form, "formset": formset})
+
+
+@login_required
+def receive_po(request, pk):
+    clinic = _get_clinic(request.user)
+    po = get_object_or_404(PurchaseOrder, pk=pk, clinic=clinic)
+
+    if request.method == "POST":
+        if po.status in ("RECEIVED", "CANCELLED"):
+            logger.warning("Attempt to receive PO %s with status %s by %s", po.number, po.status, request.user.username)
+            messages.error(request, f"PO {po.number} cannot be received (status: {po.status}).")
+            return redirect("po_list")
+
+        default_location, _ = Location.objects.get_or_create(
+            clinic=clinic, name="Main Store"
+        )
+        with transaction.atomic():
+            stock_receive_po(po=po, location=default_location)
+        logger.info("PO %s received by %s, stock updated", po.number, request.user.username)
+        messages.success(request, f"PO {po.number} received. Stock updated.")
+        return redirect("po_list")
+
+    return render(request, "inventory/po_receive_confirm.html", {"po": po})
+
+
+# ─── Stock Movements ──────────────────────────────────────────────────────────
+
+@login_required
+def stock_movement_create(request):
+    clinic = _get_clinic(request.user)
+    if request.method == "POST":
+        form = StockMovementForm(request.POST, clinic=clinic)
+        if form.is_valid():
+            with transaction.atomic():
+                movement = form.save(commit=False)
+                movement.created_by = request.user
+                movement.save()
+                if movement.from_location:
+                    from_stock, _ = Stock.objects.get_or_create(
+                        item=movement.item, location=movement.from_location
+                    )
+                    from_stock.quantity -= movement.quantity
+                    from_stock.save(update_fields=["quantity", "last_updated"])
+                if movement.to_location:
+                    to_stock, _ = Stock.objects.get_or_create(
+                        item=movement.item, location=movement.to_location
+                    )
+                    to_stock.quantity += movement.quantity
+                    to_stock.save(update_fields=["quantity", "last_updated"])
+            logger.info("Stock movement recorded for item '%s' qty=%s by %s", movement.item, movement.quantity, request.user.username)
+            messages.success(request, "Stock movement recorded.")
+            return redirect("inventory_dashboard")
+    else:
+        form = StockMovementForm(clinic=clinic)
+
+    return render(request, "inventory/movement_form.html", {"form": form})
+
+
+# ─── Consumption ──────────────────────────────────────────────────────────────
+
+@login_required
+def consume_item(request):
+    clinic = _get_clinic(request.user)
+    if request.method == "POST":
+        form = ConsumptionForm(request.POST, clinic=clinic)
+        if form.is_valid():
+            cd = form.cleaned_data
+            try:
+                stock_consume(
+                    item=cd["item"],
+                    from_stock=cd["from_stock"],
+                    quantity=cd["quantity"],
+                    consultation=cd.get("consultation"),
+                    used_by=request.user,
+                    notes=cd.get("notes", ""),
+                )
+                logger.info("Consumption recorded: item '%s' qty=%s by %s", cd["item"], cd["quantity"], request.user.username)
+                messages.success(request, "Item consumption recorded and stock updated.")
+                return redirect("inventory_dashboard")
+            except ValueError as exc:
+                logger.warning("Consumption failed for item '%s': %s", cd.get("item"), exc)
+                messages.error(request, str(exc))
+    else:
+        form = ConsumptionForm(clinic=clinic)
+
+    return render(request, "inventory/consume_form.html", {"form": form})

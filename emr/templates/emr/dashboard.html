@@ -2,115 +2,415 @@
 {% load static %}
 
 {% block title %}Laboratory Dashboard{% endblock %}
+{% block page_title %}Laboratory Dashboard{% endblock %}
+{% block nav_lab %}active{% endblock %}
+
 {% block content %}
 
-<div class="container py-4">
-
-  <div>
-    <p class="text-muted">Welcome to the laboratory dashboard. Here you can manage lab tests and results.</p>
+{# ── Page header ─────────────────────────────────────────────────────────── #}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">Laboratory Dashboard</h1>
+    <p class="page-subheading">Manage lab tests, track the queue and review results</p>
   </div>
-  <hr/>
+  <div class="d-flex align-items-center gap-2">
+    <audio id="notification-sound" src="{% static 'sounds/notification-ding-dong-432437.mp3' %}" preload="auto"></audio>
+    <button id="enable-notifications" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-bell-fill me-1"></i>Enable Alerts
+    </button>
+  </div>
+</div>
 
-  <button id="enable-notifications" class="btn btn-sm btn-outline-primary mb-3">
-    Enable Lab Alerts 🔔
-  </button>
+{# ── Stat cards ───────────────────────────────────────────────────────────── #}
+{% with waiting_count=0 progress_count=0 %}
+{# We count inline so no extra query is needed #}
+<div class="row g-3 mb-4">
 
-
-  <audio id="notification-sound" src="{% static 'sounds/notification-ding-dong-432437.mp3' %}" preload="auto"></audio>
-
-  <!-- Tabs Navigation -->
-    <p>  🧍‍♂️ Lab Queue </p>
-      
-  <div >
-  
-  
-
-    <!-- Lab Queue Tab -->
-    <div>
-      <h4 class="fw-bold text-primary mb-3">🧍‍♂️ Lab Queue</h4>
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <p class="text-muted mb-0">This section will show patients waiting for lab tests, or tests in progress.</p>
-          <!-- You can insert your Lab Queue table or logic here -->
-           <table class="table table-hover mb-0 align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>#</th>
-                <th>Patient</th>
-                <th>Test</th>
-                <th>Status</th>
-                <th>Time Added</th>
-                <th class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for item in lab_queue %}
-              <tr>
-                <td>{{ item.queue_number }}</td>
-                <td>{{ item.patient.name }}</td>
-                <td>{{ item.lab_test.name }}</td>
-                <td>
-                  <span class="badge 
-                    {% if item.status == 'waiting' %}bg-warning
-                    {% elif item.status == 'in_progress' %}bg-info
-                    {% elif item.status == 'completed' %}bg-success
-                    {% else %}bg-secondary{% endif %}">
-                    {{ item.status|title }}
-                  </span>
-                </td>
-                <td>{{ item.created_at|date:"M d, Y H:i" }}</td>
-                <td class="text-end">
-                  {% if item.status == 'waiting' %}
-                    <a href="{% url 'start_lab_test' item.id %}" class="btn btn-sm btn-outline-primary">Start</a>
-                  {% elif item.status == 'in_progress' or item.status == 'inlab' %}
-                    <a href="{% url 'complete_lab_test' item.id %}" class="btn btn-sm btn-outline-success">Verify</a>
-                  {% else %}
-                    <span class="text-muted">Done</span>
-                  {% endif %}
-                  <a href="{% url 'add_result' item.consultation.id %}" class="btn btn-primary">Receive Test</a>
-                </td>
-              </tr>
-              {% empty %}
-              <tr>
-                <td colspan="6" class="text-center text-muted py-3">No pending lab tests in queue.</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+  {# Count waiting items #}
+  {% with waiting=lab_queue|length %}
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
+      <div>
+        <div class="stat-value">
+          {% for item in lab_queue %}{% if item.status == 'waiting' %}{% with c=forloop.counter %}{% endwith %}{% endif %}{% endfor %}
+          {# Inline count — use a tag-free trick: render all, show via JS #}
+          <span id="stat-waiting">—</span>
         </div>
+        <div class="stat-label">Waiting</div>
       </div>
     </div>
   </div>
 
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="bi bi-activity"></i></div>
+      <div>
+        <div class="stat-value"><span id="stat-progress">—</span></div>
+        <div class="stat-label">In Progress</div>
+      </div>
+    </div>
+  </div>
 
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="bi bi-check2-circle"></i></div>
+      <div>
+        <div class="stat-value"><span id="stat-total">{{ lab_queue|length }}</span></div>
+        <div class="stat-label">Active Queue Items</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon purple"><i class="bi bi-clipboard2-pulse-fill"></i></div>
+      <div>
+        <div class="stat-value">{{ history_page_obj.paginator.count }}</div>
+        <div class="stat-label">Total Results Recorded</div>
+      </div>
+    </div>
+  </div>
+  {% endwith %}
 
 </div>
-{% block extra_scripts %}
-<script>
+{% endwith %}
 
-// Poll every 5 seconds
-// setInterval(checkNewPatients, 7000);
-// const socket = new WebSocket("ws://localhost:8000/ws/lab-queue/");
-var wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
-var wsHost = window.location.host;
-var wsUrl = `${wsProtocol}://${wsHost}/ws/lab-queue/`;
+{# ── Active Queue ─────────────────────────────────────────────────────────── #}
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-eyedropper me-2 text-primary"></i>Active Lab Queue</span>
+    <span class="badge bg-primary rounded-pill">{{ lab_queue|length }} item{{ lab_queue|length|pluralize }}</span>
+  </div>
+  <div class="card-body p-0">
+    {% if lab_queue %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead>
+          <tr>
+            <th style="width:60px">#</th>
+            <th>Patient</th>
+            <th>Test</th>
+            <th>Ordered</th>
+            <th>Status</th>
+            <th class="text-end" style="width:220px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in lab_queue %}
+          <tr>
+            <td class="fw-semibold text-muted">{{ item.queue_number }}</td>
+            <td>
+              <div class="fw-semibold">{{ item.patient.name }}</div>
+              {% if item.consultation %}
+              <div class="text-muted" style="font-size:.8125rem">Consult #{{ item.consultation.id }}</div>
+              {% endif %}
+            </td>
+            <td>
+              {% if item.lab_test %}
+                <span class="fw-medium">{{ item.lab_test.name }}</span>
+                {% if item.lab_test.category %}
+                <div class="text-muted" style="font-size:.75rem">{{ item.lab_test.get_category_display }}</div>
+                {% endif %}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td style="white-space:nowrap;font-size:.8125rem">{{ item.created_at|date:"M j, Y" }}<br>
+              <span class="text-muted">{{ item.created_at|time:"H:i" }}</span>
+            </td>
+            <td>
+              {% if item.status == 'waiting' %}
+                <span class="queue-status qs-waiting"><i class="bi bi-hourglass-split"></i> Waiting</span>
+              {% elif item.status == 'in_progress' %}
+                <span class="queue-status qs-in-progress"><i class="bi bi-activity"></i> In Progress</span>
+              {% elif item.status == 'completed' %}
+                <span class="queue-status qs-completed"><i class="bi bi-check2-circle"></i> Completed</span>
+              {% else %}
+                <span class="queue-status qs-skipped">{{ item.status|title }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              <div class="d-flex justify-content-end gap-1 flex-wrap">
+                {% if item.status == 'waiting' %}
+                  <form method="post" action="{% url 'start_lab_test' item.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-play-fill me-1"></i>Start
+                    </button>
+                  </form>
+                {% elif item.status == 'in_progress' %}
+                  {% if item.consultation %}
+                  <a href="{% url 'add_result' item.consultation.id %}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-pencil-fill me-1"></i>Enter Results
+                  </a>
+                  {% endif %}
+                  <form method="post" action="{% url 'complete_lab_test' item.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-success">
+                      <i class="bi bi-check2 me-1"></i>Complete
+                    </button>
+                  </form>
+                {% endif %}
+                {% if item.consultation %}
+                <a href="{% url 'view_lab_results' item.consultation.id %}" class="btn btn-sm btn-outline-secondary btn-icon" title="View results">
+                  <i class="bi bi-eye"></i>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="d-flex flex-column align-items-center justify-content-center py-5 text-center text-muted">
+      <i class="bi bi-check2-all" style="font-size:2.5rem;opacity:.3"></i>
+      <p class="mt-3 mb-0 fw-medium">No pending lab tests</p>
+      <p style="font-size:.875rem">The queue is clear. Results will appear here when doctors send patients to the lab.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
 
-var socket = new WebSocket(wsUrl);
+{# ── Results History ───────────────────────────────────────────────────────── #}
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <span><i class="bi bi-clipboard2-pulse-fill me-2 text-primary"></i>Results History</span>
+  </div>
 
-socket.onmessage = function(event) {
-    const data = JSON.parse(event.data);
-    console.log("New patient alert:", data.message);
-    // Play audio
-    
-};
+  {# Search / filter strip #}
+  <div class="card-body border-bottom pb-3">
+    <form method="get" class="row g-2 align-items-end" id="history-filter-form">
+      <div class="col-12 col-sm-6 col-lg-3">
+        <label class="form-label" for="id_patient">Patient name</label>
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input type="text" id="id_patient" name="patient"
+                 class="form-control" placeholder="Search patient…"
+                 value="{{ patient_query }}">
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-lg-3">
+        <label class="form-label" for="id_lab_test">Lab test</label>
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input type="text" id="id_lab_test" name="lab_test"
+                 class="form-control" placeholder="Search test…"
+                 value="{{ lab_test_query }}">
+        </div>
+      </div>
+      <div class="col-6 col-lg-2">
+        <label class="form-label" for="id_date_from">From</label>
+        <input type="date" id="id_date_from" name="date_from"
+               class="form-control" value="{{ date_from }}">
+      </div>
+      <div class="col-6 col-lg-2">
+        <label class="form-label" for="id_date_to">To</label>
+        <input type="date" id="id_date_to" name="date_to"
+               class="form-control" value="{{ date_to }}">
+      </div>
+      <div class="col-12 col-lg-2 d-flex gap-2">
+        <button type="submit" class="btn btn-primary flex-grow-1">
+          <i class="bi bi-funnel-fill me-1"></i>Filter
+        </button>
+        <a href="{% url 'lab_dashboard' %}" class="btn btn-outline-secondary btn-icon" title="Clear filters">
+          <i class="bi bi-x-lg"></i>
+        </a>
+      </div>
+    </form>
+  </div>
 
-// Unlock audio on user interaction
-document.getElementById('enable-notifications').addEventListener('click', function() {
-    const audio = document.getElementById('notification-sound');
-    audio.play().catch(err => console.log(err));
-    this.style.display = 'none'; // hide button
-});
-</script>
+  <div class="card-body p-0">
+    {% if history_page_obj.object_list %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Test</th>
+            <th>Result</th>
+            <th>Ref. Range</th>
+            <th>Status</th>
+            <th style="white-space:nowrap">Date</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for result in history_page_obj %}
+          <tr>
+            <td>
+              {% if result.consultation and result.consultation.patient %}
+                <span class="fw-medium">{{ result.consultation.patient.name }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>{{ result.lab_test.name|default:"—" }}</td>
+            <td>
+              {% if result.is_abnormal %}
+                <span class="fw-semibold text-danger">{{ result.result_value }}</span>
+                {% if result.lab_test.unit %}<span class="text-muted ms-1" style="font-size:.8125rem">{{ result.lab_test.unit }}</span>{% endif %}
+              {% else %}
+                {{ result.result_value|default:"—" }}
+                {% if result.lab_test.unit %}<span class="text-muted ms-1" style="font-size:.8125rem">{{ result.lab_test.unit }}</span>{% endif %}
+              {% endif %}
+            </td>
+            <td style="font-size:.8125rem;color:var(--text-muted)">
+              {% if result.lab_test %}{{ result.lab_test.reference_range_display }}{% else %}—{% endif %}
+            </td>
+            <td>
+              {% if result.is_abnormal %}
+                <span class="badge badge-urgent">Abnormal</span>
+              {% else %}
+                <span class="badge badge-completed">Normal</span>
+              {% endif %}
+            </td>
+            <td style="white-space:nowrap;font-size:.8125rem">{{ result.result_date|date:"M j, Y" }}</td>
+            <td class="text-end">
+              <div class="d-flex justify-content-end gap-1">
+                {% if result.consultation %}
+                <a href="{% url 'view_lab_results' result.consultation.id %}"
+                   class="btn btn-sm btn-outline-primary btn-icon" title="View results">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a href="{% url 'edit_lab_results' result.consultation.id %}"
+                   class="btn btn-sm btn-outline-secondary btn-icon" title="Edit results">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'print_lab_results' result.consultation.id %}"
+                   class="btn btn-sm btn-outline-dark btn-icon" title="Print PDF" target="_blank">
+                  <i class="bi bi-printer"></i>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Pagination #}
+    {% if history_page_obj.has_other_pages %}
+    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top" style="font-size:.8125rem;color:var(--text-muted)">
+      <span>
+        Showing {{ history_page_obj.start_index }}–{{ history_page_obj.end_index }}
+        of {{ history_page_obj.paginator.count }} results
+      </span>
+      <nav>
+        <ul class="pagination pagination-sm mb-0">
+          {% if history_page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ history_page_obj.previous_page_number }}&patient={{ patient_query }}&lab_test={{ lab_test_query }}&date_from={{ date_from }}&date_to={{ date_to }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+          {% endif %}
+
+          {% for num in history_page_obj.paginator.page_range %}
+            {% if history_page_obj.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > history_page_obj.number|add:"-3" and num < history_page_obj.number|add:"3" %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ num }}&patient={{ patient_query }}&lab_test={{ lab_test_query }}&date_from={{ date_from }}&date_to={{ date_to }}">{{ num }}</a>
+            </li>
+            {% endif %}
+          {% endfor %}
+
+          {% if history_page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ history_page_obj.next_page_number }}&patient={{ patient_query }}&lab_test={{ lab_test_query }}&date_from={{ date_from }}&date_to={{ date_to }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+          {% else %}
+          <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="d-flex flex-column align-items-center justify-content-center py-5 text-center text-muted">
+      <i class="bi bi-clipboard2-x" style="font-size:2.5rem;opacity:.3"></i>
+      <p class="mt-3 mb-0 fw-medium">No results found</p>
+      <p style="font-size:.875rem">
+        {% if patient_query or lab_test_query or date_from or date_to %}
+          Try adjusting your filters or <a href="{% url 'lab_dashboard' %}">clear all</a>.
+        {% else %}
+          Lab results will appear here once they are recorded.
+        {% endif %}
+      </p>
+    </div>
+    {% endif %}
+  </div>
+</div>
 
 {% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+(function () {
+  "use strict";
+
+  // ── Count stat cards from the rendered queue rows ──────────────────────
+  var waitingCount  = 0;
+  var progressCount = 0;
+  document.querySelectorAll("tbody tr").forEach(function (row) {
+    var badge = row.querySelector(".queue-status");
+    if (!badge) return;
+    if (badge.classList.contains("qs-waiting"))     waitingCount++;
+    if (badge.classList.contains("qs-in-progress")) progressCount++;
+  });
+  var sw = document.getElementById("stat-waiting");
+  var sp = document.getElementById("stat-progress");
+  if (sw) sw.textContent = waitingCount;
+  if (sp) sp.textContent = progressCount;
+
+  // ── WebSocket for real-time queue updates ─────────────────────────────
+  var wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+  var wsUrl      = wsProtocol + "://" + window.location.host + "/ws/lab-queue/";
+  var socket;
+
+  function connectWS() {
+    socket = new WebSocket(wsUrl);
+
+    socket.onmessage = function (event) {
+      try {
+        var data = JSON.parse(event.data);
+        console.log("Lab queue update:", data.message);
+        var audio = document.getElementById("notification-sound");
+        if (audio) audio.play().catch(function () {});
+        // Reload the page to show updated queue
+        location.reload();
+      } catch (e) {}
+    };
+
+    socket.onclose = function () {
+      // Reconnect after 5 s
+      setTimeout(connectWS, 5000);
+    };
+  }
+
+  try { connectWS(); } catch (e) {}
+
+  // ── Enable notifications button ───────────────────────────────────────
+  var enableBtn = document.getElementById("enable-notifications");
+  if (enableBtn) {
+    enableBtn.addEventListener("click", function () {
+      var audio = document.getElementById("notification-sound");
+      if (audio) audio.play().catch(function () {});
+      enableBtn.innerHTML = '<i class="bi bi-bell-fill me-1"></i>Alerts On';
+      enableBtn.classList.replace("btn-outline-primary", "btn-success");
+      enableBtn.disabled = true;
+    });
+  }
+})();
+</script>
 {% endblock %}

@@ -1,70 +1,614 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Consultation #{{ consultation.consultation_number }} — {{ consultation.patient.name }}{% endblock %}
+{% block page_title %}Consultation Detail{% endblock %}
+{% block nav_patients %}active{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-  <div class="d-flex justify-content-between align-items-center">
-    <h3>Consultation — {{ consultation.patient.name }}</h3>
-    <div>
-      <a class="btn btn-outline-secondary" href="{% url 'consultation_pdf' consultation.id %}">Export PDF</a>
+
+<!-- ── Page Header ── -->
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb mb-1">
+      <a href="{% url 'patient_list' %}">Patients</a>
+      <i class="bi bi-chevron-right" style="font-size:.65rem"></i>
+      <a href="{% url 'patient_detail' consultation.patient.id %}">{{ consultation.patient.name }}</a>
+      <i class="bi bi-chevron-right" style="font-size:.65rem"></i>
+      <span>Consultation</span>
     </div>
+    <h1 class="page-heading d-flex align-items-center gap-2 flex-wrap">
+      Consultation
+      <span class="badge fw-normal" style="background:#eff6ff;color:#2563eb;font-size:.8rem;border:1px solid #bfdbfe">
+        #{{ consultation.consultation_number }}
+      </span>
+      {% if consultation.status == 'draft' %}
+        <span class="badge fw-normal" style="background:#f1f5f9;color:#475569;font-size:.75rem">Draft</span>
+      {% elif consultation.status == 'active' %}
+        <span class="badge fw-normal" style="background:#dbeafe;color:#1e40af;font-size:.75rem">Active</span>
+      {% elif consultation.status == 'completed' %}
+        <span class="badge fw-normal" style="background:#dcfce7;color:#166534;font-size:.75rem">Completed</span>
+      {% endif %}
+    </h1>
+    <p class="page-subheading">
+      {{ consultation.patient.name }}
+      {% if consultation.patient.patient_number %}&nbsp;&middot;&nbsp;<span>{{ consultation.patient.patient_number }}</span>{% endif %}
+      &nbsp;&middot;&nbsp;
+      <i class="bi bi-calendar3 me-1"></i>{{ consultation.date|date:"M j, Y" }}
+      {% if consultation.doctor %}&nbsp;&middot;&nbsp;<i class="bi bi-person-badge me-1"></i>Dr. {{ consultation.doctor.name }}{% endif %}
+    </p>
   </div>
 
-  <div class="mt-3">
-    <h5>Chief complaints</h5>
-    <p>{{ consultation.chief_complaints }}</p>
+  <div class="d-flex gap-2 flex-wrap no-print">
+    <a href="{% url 'edit_consultation' consultation.patient.id consultation.id %}" class="btn btn-outline-primary">
+      <i class="bi bi-pencil me-1"></i> Edit
+    </a>
+    <a href="{% url 'consultation_pdf' consultation.id %}" class="btn btn-outline-secondary" target="_blank">
+      <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+    </a>
+    <a href="{% url 'patient_detail' consultation.patient.id %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i> Back to Patient
+    </a>
+  </div>
+</div>
 
-    <h5>History</h5>
-    <p>{{ consultation.history_presenting_illness }}</p>
+<!-- ═══════════════════════════════════════════════════════════════
+     CLINICAL HISTORY
+═══════════════════════════════════════════════════════════════ -->
+{% if consultation.chief_complaints or consultation.history_of_presenting_illness or consultation.past_medical_history or consultation.past_surgical_history or consultation.drug_allergies or consultation.current_medication or consultation.comorbid_factors or consultation.sexual_history or consultation.family_planning_history or consultation.vaccination_history %}
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-clipboard2-pulse text-primary"></i>
+    <span>Clinical History</span>
+  </div>
+  <div class="card-body">
 
-    <h5>Vitals</h5>
-    <ul>
-      <li>Temp: {{ consultation.temperature }}</li>
-      <li>BP: {{ consultation.bp }}</li>
-      <li>Pulse: {{ consultation.pulse }}</li>
-      <li>SpO₂: {{ consultation.spo2 }}</li>
-      <li>RR: {{ consultation.respiration_rate }}</li>
-      <li>Weight: {{ consultation.weight }}</li>
-    </ul>
-
-    <h5>Examination</h5>
-    <p>General: {{ consultation.general_examination }}</p>
-    <p>HEENT: {{ consultation.heent }} | CVS: {{ consultation.cvs }} | PA: {{ consultation.pa }} | MSS: {{ consultation.mss }} | RR: {{ consultation.rr }} | CMS: {{ consultation.cms }}</p>
-
-    <h5>Investigations</h5>
-    <p>Imaging: {{ consultation.imaging }} | Laboratory: {{ consultation.laboratory }}</p>
-
-    <h5>Diagnosis & Management</h5>
-    <p>{{ consultation.diagnosis }}</p>
-    <p>Management: {{ consultation.management }}</p>
-
-    <h5>Medication</h5>
-    <p>{{ consultation.medication }}</p>
-
-    <h5>Return Date</h5>
-    <p>{{ consultation.return_date }}</p>
-
-    <div class="section my-3">
-    <h5 class="mb-2"><strong>Prescription</strong></h5>
-
-    {% if consultation.prescription_set.exists %}
-      <ul class="list-group">
-        {% for prescription in consultation.prescription_set.all %}
-          <li class="list-group-item d-flex flex-column flex-md-row justify-content-between align-items-start">
-            <div>
-              <span class="fw-bold">{{ forloop.counter }}. {{ prescription.item }}</span> - 
-              <span>{{ prescription.quantity }}</span>
-            </div>
-            <div class="text-muted small">
-              {{ prescription.prescribed_at|date:"M d, Y H:i" }}<br>
-              {{ prescription.instructions|default:"No instructions." }}
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <div class="alert alert-secondary py-2">No prescriptions.</div>
+    {% if consultation.chief_complaints %}
+    <div class="detail-field mb-3">
+      <div class="detail-label">Chief Complaints</div>
+      <div class="detail-value">{{ consultation.chief_complaints|linebreaksbr }}</div>
+    </div>
     {% endif %}
-  </div>
+
+    {% if consultation.history_of_presenting_illness %}
+    <div class="detail-field mb-3">
+      <div class="detail-label">History of Presenting Illness</div>
+      <div class="detail-value">{{ consultation.history_of_presenting_illness|linebreaksbr }}</div>
+    </div>
+    {% endif %}
+
+    {% if consultation.past_medical_history or consultation.past_surgical_history %}
+    <div class="row g-3 mb-3">
+      {% if consultation.past_medical_history %}
+      <div class="col-md-6">
+        <div class="detail-label">Past Medical History</div>
+        <div class="detail-value">{{ consultation.past_medical_history|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+      {% if consultation.past_surgical_history %}
+      <div class="col-md-6">
+        <div class="detail-label">Past Surgical History</div>
+        <div class="detail-value">{{ consultation.past_surgical_history|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if consultation.drug_allergies or consultation.current_medication %}
+    <div class="row g-3 mb-3">
+      {% if consultation.drug_allergies %}
+      <div class="col-md-6">
+        <div class="detail-label">Drug Allergies</div>
+        <div class="detail-value allergy-value">{{ consultation.drug_allergies|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+      {% if consultation.current_medication %}
+      <div class="col-md-6">
+        <div class="detail-label">Current Medication</div>
+        <div class="detail-value">{{ consultation.current_medication|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if consultation.comorbid_factors %}
+    <div class="detail-field mb-3">
+      <div class="detail-label">Comorbid Factors</div>
+      <div class="detail-value">{{ consultation.comorbid_factors|linebreaksbr }}</div>
+    </div>
+    {% endif %}
+
+    {% if consultation.sexual_history or consultation.family_planning_history or consultation.vaccination_history %}
+    <div class="form-section-title mt-2">Additional History</div>
+    <div class="row g-3">
+      {% if consultation.sexual_history %}
+      <div class="col-md-4">
+        <div class="detail-label">Sexual History</div>
+        <div class="detail-value">{{ consultation.sexual_history|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+      {% if consultation.family_planning_history %}
+      <div class="col-md-4">
+        <div class="detail-label">Family Planning History</div>
+        <div class="detail-value">{{ consultation.family_planning_history|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+      {% if consultation.vaccination_history %}
+      <div class="col-md-4">
+        <div class="detail-label">Vaccination History</div>
+        <div class="detail-value">{{ consultation.vaccination_history|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
 
   </div>
 </div>
+{% endif %}
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     VITAL SIGNS
+═══════════════════════════════════════════════════════════════ -->
+{% if consultation.temperature or consultation.blood_pressure or consultation.pulse or consultation.spo2 or consultation.respiration_rate or consultation.weight %}
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-heart-pulse text-danger"></i>
+    <span>Vital Signs</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="vitals-grid">
+
+      {% if consultation.temperature %}
+      <div class="vital-cell">
+        <div class="vital-icon" style="background:#fff7ed;color:#ea580c">
+          <i class="bi bi-thermometer-half"></i>
+        </div>
+        <div class="vital-data">
+          <div class="vital-label">Temperature</div>
+          <div class="vital-value">{{ consultation.temperature }} <span class="vital-unit">°C</span></div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if consultation.blood_pressure %}
+      <div class="vital-cell">
+        <div class="vital-icon" style="background:#fef2f2;color:#dc2626">
+          <i class="bi bi-activity"></i>
+        </div>
+        <div class="vital-data">
+          <div class="vital-label">Blood Pressure</div>
+          <div class="vital-value">{{ consultation.blood_pressure }} <span class="vital-unit">mmHg</span></div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if consultation.pulse %}
+      <div class="vital-cell">
+        <div class="vital-icon" style="background:#fef2f2;color:#e11d48">
+          <i class="bi bi-heart-fill"></i>
+        </div>
+        <div class="vital-data">
+          <div class="vital-label">Pulse</div>
+          <div class="vital-value">{{ consultation.pulse }} <span class="vital-unit">bpm</span></div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if consultation.spo2 %}
+      <div class="vital-cell">
+        <div class="vital-icon" style="background:#eff6ff;color:#2563eb">
+          <i class="bi bi-lungs-fill"></i>
+        </div>
+        <div class="vital-data">
+          <div class="vital-label">SpO₂</div>
+          <div class="vital-value">{{ consultation.spo2 }} <span class="vital-unit">%</span></div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if consultation.respiration_rate %}
+      <div class="vital-cell">
+        <div class="vital-icon" style="background:#f0fdf4;color:#16a34a">
+          <i class="bi bi-wind"></i>
+        </div>
+        <div class="vital-data">
+          <div class="vital-label">Respiration Rate</div>
+          <div class="vital-value">{{ consultation.respiration_rate }} <span class="vital-unit">br/min</span></div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if consultation.weight %}
+      <div class="vital-cell">
+        <div class="vital-icon" style="background:#faf5ff;color:#7c3aed">
+          <i class="bi bi-person-fill"></i>
+        </div>
+        <div class="vital-data">
+          <div class="vital-label">Weight</div>
+          <div class="vital-value">{{ consultation.weight }} <span class="vital-unit">kg</span></div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endif %}
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PHYSICAL EXAMINATION
+═══════════════════════════════════════════════════════════════ -->
+{% if consultation.general_examination or consultation.heent or consultation.cvs or consultation.pa or consultation.mss or consultation.rr or consultation.cns %}
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-person-lines-fill text-primary"></i>
+    <span>Physical Examination</span>
+  </div>
+  <div class="card-body">
+
+    {% if consultation.general_examination %}
+    <div class="detail-field mb-4">
+      <div class="detail-label">General Examination</div>
+      <div class="detail-value">{{ consultation.general_examination|linebreaksbr }}</div>
+    </div>
+    {% endif %}
+
+    {% if consultation.heent or consultation.cvs or consultation.pa or consultation.mss or consultation.rr or consultation.cns %}
+    <div class="form-section-title">Systems Review</div>
+    <div class="row g-3">
+      {% if consultation.heent %}
+      <div class="col-md-4">
+        <div class="system-box">
+          <div class="system-tag">HEENT</div>
+          <div class="system-text">{{ consultation.heent|linebreaksbr }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if consultation.cvs %}
+      <div class="col-md-4">
+        <div class="system-box">
+          <div class="system-tag">CVS</div>
+          <div class="system-text">{{ consultation.cvs|linebreaksbr }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if consultation.pa %}
+      <div class="col-md-4">
+        <div class="system-box">
+          <div class="system-tag">PA</div>
+          <div class="system-text">{{ consultation.pa|linebreaksbr }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if consultation.mss %}
+      <div class="col-md-4">
+        <div class="system-box">
+          <div class="system-tag">MSS</div>
+          <div class="system-text">{{ consultation.mss|linebreaksbr }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if consultation.rr %}
+      <div class="col-md-4">
+        <div class="system-box">
+          <div class="system-tag">RR</div>
+          <div class="system-text">{{ consultation.rr|linebreaksbr }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% if consultation.cns %}
+      <div class="col-md-4">
+        <div class="system-box">
+          <div class="system-tag">CNS</div>
+          <div class="system-text">{{ consultation.cns|linebreaksbr }}</div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endif %}
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     INVESTIGATIONS
+═══════════════════════════════════════════════════════════════ -->
+{% if consultation.imaging or consultation.laboratory or consultation.lab_findings %}
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-eyedropper text-primary"></i>
+    <span>Investigations</span>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      {% if consultation.imaging %}
+      <div class="col-md-6">
+        <div class="detail-label">Imaging</div>
+        <div class="detail-value">{{ consultation.imaging|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+      {% if consultation.laboratory %}
+      <div class="col-md-6">
+        <div class="detail-label">Laboratory</div>
+        <div class="detail-value">{{ consultation.laboratory|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+      {% if consultation.lab_findings %}
+      <div class="col-12">
+        <div class="detail-label">Lab Findings</div>
+        <div class="detail-value">{{ consultation.lab_findings|linebreaksbr }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DIAGNOSIS & MANAGEMENT
+═══════════════════════════════════════════════════════════════ -->
+{% if consultation.diagnosis or consultation.management or consultation.medication or consultation.return_date or consultation.labor_charges %}
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-journal-medical text-primary"></i>
+    <span>Diagnosis &amp; Management</span>
+  </div>
+  <div class="card-body">
+
+    {% if consultation.diagnosis %}
+    <div class="detail-field mb-3">
+      <div class="detail-label">Diagnosis</div>
+      <div class="detail-value diagnosis-value">{{ consultation.diagnosis|linebreaksbr }}</div>
+    </div>
+    {% endif %}
+
+    {% if consultation.management %}
+    <div class="detail-field mb-3">
+      <div class="detail-label">Management Plan</div>
+      <div class="detail-value">{{ consultation.management|linebreaksbr }}</div>
+    </div>
+    {% endif %}
+
+    {% if consultation.medication %}
+    <div class="detail-field mb-3">
+      <div class="detail-label">Medication Notes</div>
+      <div class="detail-value">{{ consultation.medication|linebreaksbr }}</div>
+    </div>
+    {% endif %}
+
+    {% if consultation.return_date or consultation.labor_charges %}
+    <div class="row g-3 mt-1">
+      {% if consultation.return_date %}
+      <div class="col-md-6">
+        <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background:#f8fafc;border:1px solid var(--border)">
+          <div class="stat-icon blue" style="width:38px;height:38px;font-size:.95rem;flex-shrink:0">
+            <i class="bi bi-calendar-check-fill"></i>
+          </div>
+          <div>
+            <div style="font-size:.75rem;color:var(--text-muted);font-weight:500">Return Date</div>
+            <div class="fw-semibold">{{ consultation.return_date|date:"M j, Y" }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if consultation.labor_charges %}
+      <div class="col-md-6">
+        <div class="d-flex align-items-center gap-3 p-3 rounded-3" style="background:#f8fafc;border:1px solid var(--border)">
+          <div class="stat-icon green" style="width:38px;height:38px;font-size:.95rem;flex-shrink:0">
+            <i class="bi bi-receipt-cutoff"></i>
+          </div>
+          <div>
+            <div style="font-size:.75rem;color:var(--text-muted);font-weight:500">Labor Charges</div>
+            <div class="fw-semibold">KES {{ consultation.labor_charges }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endif %}
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     LAB RESULTS
+═══════════════════════════════════════════════════════════════ -->
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-clipboard2-data text-primary"></i>
+    <span>Lab Results</span>
+  </div>
+  {% with lab_results=consultation.lab_results.all %}
+  {% if lab_results %}
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>Test</th>
+          <th>Result Name</th>
+          <th>Value</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for lr in lab_results %}
+        <tr>
+          <td class="fw-medium">{{ lr.lab_test.name }}</td>
+          <td class="text-muted">{{ lr.result_name|default:"—" }}</td>
+          <td>{{ lr.result_value|default:"—" }}</td>
+          <td>
+            {% if lr.is_abnormal %}
+              <span class="badge" style="background:#fee2e2;color:#991b1b">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>Abnormal
+              </span>
+            {% else %}
+              <span class="badge" style="background:#dcfce7;color:#166534">
+                <i class="bi bi-check-circle-fill me-1"></i>Normal
+              </span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-center py-5 text-muted">
+    <i class="bi bi-clipboard2-x display-6 d-block mb-2 opacity-40"></i>
+    <span class="small">No lab results recorded for this consultation</span>
+  </div>
+  {% endif %}
+  {% endwith %}
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     PRESCRIPTIONS
+═══════════════════════════════════════════════════════════════ -->
+<div class="card mb-4">
+  <div class="card-header d-flex align-items-center gap-2">
+    <i class="bi bi-capsule text-primary"></i>
+    <span>Prescriptions</span>
+  </div>
+  {% with prescriptions=consultation.prescriptions.all %}
+  {% if prescriptions %}
+  <div class="table-responsive">
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Item</th>
+          <th>Dosage</th>
+          <th>Frequency</th>
+          <th>Duration</th>
+          <th>Quantity</th>
+          <th>Instructions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rx in prescriptions %}
+        <tr>
+          <td class="text-muted">{{ forloop.counter }}</td>
+          <td class="fw-medium">{{ rx.item }}</td>
+          <td>{{ rx.dosage|default:"—" }}</td>
+          <td>{{ rx.frequency|default:"—" }}</td>
+          <td>{{ rx.duration|default:"—" }}</td>
+          <td>{{ rx.quantity|default:"—" }}</td>
+          <td class="text-muted small">{{ rx.instructions|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-center py-5 text-muted">
+    <i class="bi bi-capsule display-6 d-block mb-2 opacity-40"></i>
+    <span class="small">No prescriptions recorded for this consultation</span>
+  </div>
+  {% endif %}
+  {% endwith %}
+</div>
+
+<!-- Page-scoped styles -->
+<style>
+.detail-label {
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: .3rem;
+}
+.detail-value {
+  font-size: .9375rem;
+  color: var(--text-primary);
+  line-height: 1.65;
+}
+.allergy-value {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-radius: .5rem;
+  padding: .5rem .75rem;
+  border: 1px solid #fecaca;
+  display: inline-block;
+}
+.diagnosis-value {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* Vitals grid */
+.vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+.vital-cell {
+  display: flex;
+  align-items: center;
+  gap: .875rem;
+  padding: 1.125rem 1.25rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.vital-cell:last-child { border-right: none; }
+.vital-icon {
+  width: 42px; height: 42px;
+  border-radius: .625rem;
+  display: grid; place-items: center;
+  flex-shrink: 0; font-size: 1.1rem;
+}
+.vital-label {
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: .2rem;
+}
+.vital-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-primary);
+}
+.vital-unit {
+  font-size: .75rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* Systems boxes */
+.system-box {
+  border: 1px solid var(--border);
+  border-radius: .5rem;
+  padding: .875rem 1rem;
+  background: #f8fafc;
+  height: 100%;
+}
+.system-tag {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: .4rem;
+}
+.system-text {
+  font-size: .875rem;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+@media print {
+  .vitals-grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+
 {% endblock %}

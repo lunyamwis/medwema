@@ -1,78 +1,283 @@
 {% extends "embed_base.html" %}
 
-{% block content %}
+{% block head %}
 <style>
-  .chat-wrap{height:100vh;display:flex;flex-direction:column;padding:12px;gap:10px;box-sizing:border-box}
-  .chat-log{flex:1;width:100%;resize:none;border:1px solid #e5e7eb;border-radius:14px;padding:10px;outline:none;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-            font-size:12px;line-height:1.45;background:#f9fafb}
-  .chat-bar{display:flex;gap:8px}
-  .chat-input{flex:1;border:1px solid #e5e7eb;border-radius:12px;padding:10px 12px;outline:none;font-size:14px}
-  .chat-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.15)}
-  .chat-send{border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;background:#2563eb;color:#fff}
-  .hint{font-size:12px;color:#6b7280}
+  /* ── Shell ── */
+  html, body { height: 100%; overflow: hidden; }
+  #shell {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── Header strip ── */
+  #embed-header {
+    background: linear-gradient(90deg, #075E54 0%, #128C7E 100%);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  #embed-header .room-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+  }
+  #embed-header .room-name {
+    font-weight: 700; color: #fff;
+    font-size: .88rem; text-transform: capitalize;
+  }
+  #embed-header .room-status {
+    font-size: .7rem; color: rgba(255,255,255,.7);
+  }
+  #conn-dot {
+    display: inline-block;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #aaa; margin-right: 3px;
+    vertical-align: middle; transition: background .3s;
+  }
+  #conn-dot.online  { background: #25D366; }
+  #conn-dot.offline { background: #ff4444; }
+
+  /* ── Messages ── */
+  #chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #ECE5DD;
+    background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,.04) 1px, transparent 0);
+    background-size: 22px 22px;
+    scroll-behavior: smooth;
+  }
+
+  /* ── Bubbles ── */
+  .msg-row { display: flex; margin-bottom: .45rem; align-items: flex-end; gap: 6px; }
+  .msg-row.sent { flex-direction: row-reverse; }
+
+  .av {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .62rem; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+  }
+
+  .bubble {
+    max-width: 72%;
+    padding: 5px 9px 4px;
+    border-radius: .9rem;
+    word-break: break-word;
+    font-size: .82rem;
+    line-height: 1.4;
+    box-shadow: 0 1px 2px rgba(0,0,0,.12);
+  }
+  .bubble.recv { background: #fff; border-bottom-left-radius: .2rem; }
+  .bubble.sent { background: #DCF8C6; border-bottom-right-radius: .2rem; }
+
+  .bubble .sname {
+    font-size: .68rem; font-weight: 700;
+    margin-bottom: 1px;
+  }
+  .bubble .mtime {
+    font-size: .62rem; color: #999;
+    text-align: right; margin-top: 2px;
+  }
+  .bubble.sent .mtime { color: #7fba8a; }
+
+  .date-div {
+    text-align: center; margin: 8px 0;
+    font-size: .66rem; color: #666;
+  }
+  .date-div span {
+    background: #d9cfca; padding: 2px 10px;
+    border-radius: 7px; display: inline-block;
+  }
+
+  #empty-state {
+    text-align: center; padding: 2rem 1rem; color: #888;
+  }
+  #empty-state .ei { font-size: 2.2rem; opacity: .4; margin-bottom: .5rem; }
+
+  /* ── Input bar ── */
+  #input-bar {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 8px; background: #F0F0F0; flex-shrink: 0;
+  }
+  #msg-input {
+    flex: 1; border: none; border-radius: 1.2rem;
+    padding: 7px 12px; font-size: .82rem; outline: none;
+    background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    resize: none; max-height: 80px; overflow-y: auto; line-height: 1.35;
+  }
+  #msg-input:focus { box-shadow: 0 0 0 2px rgba(7,94,84,.3); }
+  #send-btn {
+    width: 38px; height: 38px; border-radius: 50%; border: none;
+    display: flex; align-items: center; justify-content: center;
+    background: #25D366; color: #fff; font-size: .95rem;
+    flex-shrink: 0; cursor: pointer; transition: background .2s, transform .1s;
+  }
+  #send-btn:hover  { background: #1ebe57; }
+  #send-btn:active { transform: scale(.9); }
+  #send-btn.idle   { background: #adb5bd; }
 </style>
+{% endblock %}
 
-<div class="chat-wrap">
-  <div class="hint">
-    Room: <b>{{ room_name }}</b> • WebSocket: <span id="ws-status">connecting…</span>
-  </div>
-
-  <textarea id="chat-log" class="chat-log" readonly></textarea>
-
-  <div class="chat-bar">
-    <input id="chat-message-input" class="chat-input" type="text" placeholder="Type a message and hit Enter…" />
-    <button id="chat-message-submit" class="chat-send" type="button">Send</button>
-  </div>
-</div>
-
+{% block content %}
 {{ room_name|json_script:"room-name" }}
+{{ username|json_script:"current-user" }}
+
+<div id="shell">
+
+  <!-- Header -->
+  <div id="embed-header">
+    <div class="room-avatar">
+      <i class="bi {{ room_meta.icon }}"></i>
+    </div>
+    <div style="flex:1;overflow:hidden;">
+      <div class="room-name">{{ room_name }}</div>
+      <div class="room-status">
+        <span id="conn-dot"></span>
+        <span id="conn-label">Connecting…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div id="chat-messages">
+    <div id="empty-state">
+      <div class="ei"><i class="bi bi-chat-square-dots"></i></div>
+      <div style="font-weight:600;font-size:.82rem;margin-bottom:3px;">No messages yet</div>
+      <div style="font-size:.75rem;">Say hello 👋</div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div id="input-bar">
+    <textarea id="msg-input" rows="1" placeholder="Type a message…"></textarea>
+    <button id="send-btn" class="idle"><i class="bi bi-send-fill"></i></button>
+  </div>
+
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  const roomName = JSON.parse(document.getElementById('room-name').textContent);
+(function () {
+  "use strict";
 
-  const chatLog = document.getElementById('chat-log');
-  const messageInput = document.getElementById('chat-message-input');
-  const messageSubmit = document.getElementById('chat-message-submit');
-  const wsStatus = document.getElementById('ws-status');
+  const roomName    = JSON.parse(document.getElementById("room-name").textContent);
+  const currentUser = JSON.parse(document.getElementById("current-user").textContent);
 
-  const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
-  const chatSocket = new WebSocket(`${protocol}${window.location.host}/ws/chat/${encodeURIComponent(roomName)}/`);
+  const msgsEl   = document.getElementById("chat-messages");
+  const emptyEl  = document.getElementById("empty-state");
+  const inputEl  = document.getElementById("msg-input");
+  const sendBtn  = document.getElementById("send-btn");
+  const connDot  = document.getElementById("conn-dot");
+  const connLbl  = document.getElementById("conn-label");
 
-  function appendMessage(sender, message, timestamp) {
-    const time = timestamp ? new Date(timestamp).toLocaleTimeString() : '';
-    chatLog.value += `[${time}] ${sender}: ${message}\n`;
-    chatLog.scrollTop = chatLog.scrollHeight;
+  // Deterministic avatar colours
+  const PAL = ["#6f42c1","#0d6efd","#fd7e14","#198754","#dc3545","#20c997","#0dcaf0","#6610f2"];
+  function aColor(n) {
+    let h = 0;
+    for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) & 0xffffffff;
+    return PAL[Math.abs(h) % PAL.length];
+  }
+  function initials(n) {
+    return n.split(" ").map(w => w[0]).slice(0,2).join("").toUpperCase();
   }
 
-  chatSocket.onopen = () => { wsStatus.textContent = "online"; wsStatus.style.color = "#16a34a"; };
-  chatSocket.onclose = () => { wsStatus.textContent = "offline"; wsStatus.style.color = "#dc2626"; };
+  let lastDate = null;
+  function dateLabel(ts) {
+    if (!ts) return null;
+    const d = new Date(ts), t = new Date();
+    const y = new Date(t); y.setDate(t.getDate() - 1);
+    if (d.toDateString() === t.toDateString()) return "Today";
+    if (d.toDateString() === y.toDateString()) return "Yesterday";
+    return d.toLocaleDateString([], {weekday:"short", day:"numeric", month:"short"});
+  }
+  function fmtTime(ts) {
+    return ts ? new Date(ts).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}) : "";
+  }
 
-  chatSocket.onmessage = (e) => {
+  function appendMsg(sender, message, timestamp) {
+    const isOwn = sender === currentUser;
+    const lbl = dateLabel(timestamp);
+    if (lbl && lbl !== lastDate) {
+      lastDate = lbl;
+      const dd = document.createElement("div");
+      dd.className = "date-div";
+      dd.innerHTML = `<span>${lbl}</span>`;
+      msgsEl.appendChild(dd);
+    }
+    const row = document.createElement("div");
+    row.className = `msg-row ${isOwn ? "sent" : "received"}`;
+    if (!isOwn) {
+      const av = document.createElement("div");
+      av.className = "av";
+      av.style.background = aColor(sender);
+      av.textContent = initials(sender);
+      av.title = sender;
+      row.appendChild(av);
+    }
+    const bub = document.createElement("div");
+    bub.className = `bubble ${isOwn ? "sent" : "recv"}`;
+    const safe = message.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    let html = "";
+    if (!isOwn) html += `<div class="sname" style="color:${aColor(sender)};">${sender}</div>`;
+    html += `<div>${safe}</div>`;
+    html += `<div class="mtime">${fmtTime(timestamp)}${isOwn ? ' <i class="bi bi-check2-all" style="font-size:.65rem;"></i>' : ""}</div>`;
+    bub.innerHTML = html;
+    row.appendChild(bub);
+    msgsEl.appendChild(row);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  const proto = location.protocol === "https:" ? "wss://" : "ws://";
+  const ws = new WebSocket(`${proto}${location.host}/ws/chat/${encodeURIComponent(roomName)}/`);
+
+  ws.onopen = () => {
+    connDot.className = "online";
+    connLbl.textContent = "Online";
+    sendBtn.classList.remove("idle");
+  };
+  ws.onclose = () => {
+    connDot.className = "offline";
+    connLbl.textContent = "Disconnected";
+    sendBtn.classList.add("idle");
+  };
+  ws.onmessage = (e) => {
     const data = JSON.parse(e.data);
-
     if (data.type === "history") {
-      chatLog.value = "";
-      data.messages.forEach(msg => appendMessage(msg.sender, msg.content, msg.timestamp));
+      msgsEl.innerHTML = "";
+      lastDate = null;
+      if (data.messages.length === 0) msgsEl.appendChild(emptyEl);
+      data.messages.forEach(m => appendMsg(m.sender, m.content, m.timestamp));
       return;
     }
     if (data.type === "chat.message") {
-      appendMessage(data.sender, data.message, data.timestamp);
+      if (msgsEl.contains(emptyEl)) emptyEl.remove();
+      appendMsg(data.sender, data.message, data.timestamp);
     }
   };
 
-  messageInput.focus();
-  messageInput.addEventListener("keyup", (e) => {
-    if (e.key === "Enter") messageSubmit.click();
-  });
+  function send() {
+    const msg = inputEl.value.trim();
+    if (!msg || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({message: msg}));
+    inputEl.value = "";
+    inputEl.style.height = "auto";
+  }
 
-  messageSubmit.addEventListener("click", () => {
-    const message = messageInput.value.trim();
-    if (!message) return;
-    chatSocket.send(JSON.stringify({ message }));
-    messageInput.value = "";
+  sendBtn.addEventListener("click", send);
+  inputEl.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+  inputEl.addEventListener("input", function () {
+    this.style.height = "auto";
+    this.style.height = Math.min(this.scrollHeight, 80) + "px";
   });
+  inputEl.focus();
+})();
 </script>
 {% endblock %}

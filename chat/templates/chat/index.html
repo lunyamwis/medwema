@@ -1,23 +1,54 @@
 {% extends "base.html" %}
+{% block title %}Team Chat{% endblock %}
+
 {% block content %}
+<div class="d-flex justify-content-center align-items-start py-4">
+  <div class="w-100" style="max-width: 480px;">
 
-What chat room would you like to enter?<br>
-type either of 'laboratory', 'doctors', 'operations', 'general'
-<input id="room-name-input" type="text" size="100"><br>
-<input id="room-name-submit" type="button" value="Enter">
-{% block extra_scripts %}
-<script>
-document.querySelector('#room-name-input').focus();
-document.querySelector('#room-name-input').onkeyup = function(e) {
-    if (e.key === 'Enter') {  // enter, return
-        document.querySelector('#room-name-submit').click();
-    }
-};
+    <!-- App header -->
+    <div class="rounded-top-4 text-white p-4 d-flex align-items-center gap-3"
+         style="background: linear-gradient(135deg, #075E54 0%, #128C7E 100%);">
+      <div class="rounded-circle bg-white bg-opacity-25 d-flex align-items-center justify-content-center flex-shrink-0"
+           style="width:52px;height:52px;">
+        <i class="bi bi-chat-dots-fill fs-4 text-white"></i>
+      </div>
+      <div>
+        <h4 class="mb-0 fw-bold">Team Chat</h4>
+        <small class="opacity-75">{{ request.user.get_full_name|default:request.user.username }} &mdash; pick a room to join</small>
+      </div>
+    </div>
 
-document.querySelector('#room-name-submit').onclick = function(e) {
-    var roomName = document.querySelector('#room-name-input').value;
-    window.location.pathname = '/chat/' + roomName + '/';
-};
-</script>
-{% endblock %}
+    <!-- Room cards -->
+    <div class="bg-white rounded-bottom-4 shadow-sm overflow-hidden">
+      {% for name, meta in rooms.items %}
+      <a href="/chat/{{ name }}/" class="text-decoration-none">
+        <div class="d-flex align-items-center px-4 py-3 border-bottom room-row"
+             style="transition: background .15s; cursor:pointer;"
+             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''">
+          <!-- Avatar -->
+          <div class="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0"
+               style="width:50px;height:50px;background:{{ meta.color }}1a;">
+            <i class="bi {{ meta.icon }} fs-5" style="color:{{ meta.color }};"></i>
+          </div>
+          <!-- Text -->
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="fw-semibold text-dark text-capitalize">{{ name }}</div>
+            <div class="text-muted small text-truncate">{{ meta.desc }}</div>
+          </div>
+          <!-- Arrow -->
+          <i class="bi bi-chevron-right text-muted ms-2"></i>
+        </div>
+      </a>
+      {% endfor %}
+
+      <!-- Footer note -->
+      <div class="px-4 py-3 text-center">
+        <small class="text-muted">
+          <i class="bi bi-lock-fill me-1"></i>Messages are visible to your clinic only
+        </small>
+      </div>
+    </div>
+
+  </div>
+</div>
 {% endblock %}

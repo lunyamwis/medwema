@@ -1,51 +1,98 @@
-{% extends "specialists/base.html" %}
-{% block title %}Nursing Detail | Specialists Hub{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
 
-{% block content_inner %}
+{% block title %}Nursing Note — {{ obj.patient.name }}{% endblock %}
+{% block page_title %}Nursing Note{% endblock %}
+{% block nav_specialists %}active{% endblock %}
 
-<div class="d-flex justify-content-between align-items-start align-items-sm-center mb-4">
-  <div>
-    <h3 class="fw-bold mb-1">Nursing Note</h3>
-    <div class="text-secondary small">
-      {{ obj.created_at|date:"Y-m-d H:i" }} • {{ obj.get_category_display }}
-    </div>
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-left">
+    <h1 class="page-heading">Nursing Note</h1>
+    <p class="page-subheading">
+      <a href="{% url 'specialists:dashboard' %}" class="text-decoration-none" style="color:var(--accent);">Specialist Hub</a>
+      &rsaquo;
+      <a href="{% url 'specialists:nursing_list' %}" class="text-decoration-none" style="color:var(--accent);">Nursing</a>
+      &rsaquo; {{ obj.patient.name }}
+    </p>
   </div>
-  <a class="btn btn-outline-secondary" href="{% url 'specialists:nursing_list' %}">
-    ← Back
+  <a href="{% url 'specialists:nursing_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back
   </a>
 </div>
 
-<div class="card border-0 shadow-sm rounded-4">
-  <div class="card-body p-4">
+<div class="row g-3">
 
-    <div class="row g-3">
-      <div class="col-12 col-md-6">
-        <div class="text-secondary small">Patient</div>
-        <div class="fw-semibold fs-5">{{ obj.patient.name }}</div>
+  <!-- Note content -->
+  <div class="col-12 col-lg-8">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-clipboard2-pulse me-2 text-primary"></i>Clinical Note</span>
+        {% if obj.category == 'observation' %}
+        <span class="badge" style="background:#dbeafe;color:#1e40af;">Observation</span>
+        {% elif obj.category == 'iv' %}
+        <span class="badge" style="background:#fae8ff;color:#6b21a8;">IV / Fluids</span>
+        {% elif obj.category == 'acute' %}
+        <span class="badge badge-urgent">Acute Management</span>
+        {% elif obj.category == 'suturing' %}
+        <span class="badge" style="background:#fef3c7;color:#92400e;">Suturing</span>
+        {% else %}
+        <span class="badge" style="background:#f1f5f9;color:#64748b;">{{ obj.get_category_display }}</span>
+        {% endif %}
       </div>
+      <div class="card-body">
 
-      <div class="col-12 col-md-6">
-        <div class="text-secondary small">Created By</div>
-        <div class="fw-semibold">{{ obj.created_by|default:"—" }}</div>
+        <div class="row g-3 mb-4">
+          <div class="col-12 col-md-6">
+            <div class="text-muted mb-1" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;">Patient</div>
+            <div style="font-size:1.125rem;font-weight:600;">{{ obj.patient.name }}</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="text-muted mb-1" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;">Created By</div>
+            <div style="font-weight:500;">{{ obj.created_by|default:"—" }}</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="text-muted mb-1" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;">Date &amp; Time</div>
+            <div>{{ obj.created_at|date:"d M Y, H:i" }}</div>
+          </div>
+          {% if obj.consultation %}
+          <div class="col-12 col-md-6">
+            <div class="text-muted mb-1" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;">Consultation</div>
+            <div>#{{ obj.consultation.id }}</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <hr style="border-color:var(--border);">
+
+        <div>
+          <p class="form-section-title">Note</p>
+          <div style="background:#f8fafc;border:1px solid var(--border);border-radius:var(--radius);padding:1rem;white-space:pre-wrap;font-size:.875rem;line-height:1.7;">{{ obj.note }}</div>
+        </div>
+
       </div>
     </div>
-
-    <hr class="my-4">
-
-    <div>
-      <h5 class="fw-bold mb-3">Clinical Note</h5>
-      <div class="border rounded-4 p-3 bg-light" style="white-space: pre-wrap;">
-        {{ obj.note }}
-      </div>
-    </div>
-
   </div>
 
-  <div class="card-footer bg-white border-0 px-4 py-3">
-    <div class="text-secondary small">
-      Tip: Keep notes structured (Assessment, Intervention, Outcome) for quick review.
+  <!-- Vitals snapshot -->
+  <div class="col-12 col-lg-4">
+    <div class="card">
+      <div class="card-header"><i class="bi bi-activity me-2 text-primary"></i>Vitals Snapshot</div>
+      <div class="card-body">
+        {% if obj.vitals_snapshot %}
+        <pre style="font-size:.8125rem;background:#f8fafc;border:1px solid var(--border);border-radius:var(--radius);padding:.75rem;overflow-x:auto;margin:0;">{{ obj.vitals_snapshot|pprint }}</pre>
+        {% else %}
+        <div class="text-center text-muted py-3">
+          <i class="bi bi-heart-pulse d-block mb-2" style="font-size:1.75rem;opacity:.35;"></i>
+          No vitals snapshot recorded.
+        </div>
+        {% endif %}
+      </div>
     </div>
   </div>
+
 </div>
 
 {% endblock %}

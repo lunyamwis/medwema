@@ -1,14 +1,16 @@
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from .utils import generate_vapid_keypair  # wherever your function is
-
-
-
 import json
-from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
-from webpush.forms import SubscriptionForm, WebPushForm
+import logging
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from webpush.forms import SubscriptionForm, WebPushForm
+
+from .utils import generate_vapid_keypair
+
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -35,7 +37,7 @@ def get_or_generate_vapid_keys(request):
         admin.vapid_public_key = public
         admin.vapid_private_key = private
         admin.save()
-        print("🔑 Generated NEW VAPID keys for superuser")
+        logger.info("Generated new VAPID keys for superuser %s", admin.username)
 
     # Return the superuser's keys
     return JsonResponse({
@@ -69,7 +71,7 @@ def save_info(request):
         return JsonResponse({"error": "Invalid status_type"}, status=400)
 
     group_name = data.get("group")
-    print("we are here")
+    logger.debug("save_info: status_type=%s, group=%s", status_type, group_name)
 
     # Use django_webpush forms
     subscription_form = SubscriptionForm(data)
@@ -99,6 +101,8 @@ def save_info(request):
         group_name=group_name
     )
 
+    user_label = request.user.username if request.user.is_authenticated else "anonymous"
+    logger.info("Push subscription %s for user=%s group=%s", status_type, user_label, group_name)
     return JsonResponse(
         {"success": True, "status_type": status_type},
         status=201 if status_type == "subscribe" else 202

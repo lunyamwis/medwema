@@ -1,304 +1,496 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load django_bootstrap5 %}
-{% load crispy_forms_tags %}
 
-{% block title %}{{ doctor.name }} - Details{% endblock %}
+{% block title %}Dr. {{ doctor.name }}{% endblock %}
+{% block page_title %}Doctor Dashboard{% endblock %}
+{% block nav_patients %}active{% endblock %}
 
 {% block content %}
 
-<style>
-    body {
-        background-color: #f8f9fa;
-    }
-    .card {
-        border-radius: 1rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .card-header {
-        background: linear-gradient(90deg, #0d6efd, #0dcaf0);
-        color: white;
-        font-weight: 600;
-        border-top-left-radius: 1rem;
-        border-top-right-radius: 1rem;
-    }
-    .search-input {
-        max-width: 400px;
-    }
-    .pagination .page-item.active .page-link {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-    .tab-content {
-        background: #fff;
-        border-radius: 0 0 1rem 1rem;
-        padding: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-</style>
-<button id="enable-notifications" class="btn btn-sm btn-outline-primary mb-3">
-    Enable Lab Alerts 🔔
-  </button> ||
-<a href="{% url 'pipeline_notification' %}" class="btn btn-sm btn-outline-secondary">Call Next Patient In</a>
+<audio id="notification-sound" src="{% static 'sounds/notification-ding-dong-432437.mp3' %}" preload="auto"></audio>
 
-  <audio id="notification-sound" src="{% static 'sounds/notification-ding-dong-432437.mp3' %}" preload="auto"></audio>
-
-<div class="container my-5">
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4 class="mb-0">{{ doctor.name }} — Details</h4>
-        </div>
-        <div class="card-body">
-            <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
-            <p><strong>Phone:</strong> {{ doctor.phone }}</p>
-            <p><strong>Email:</strong> {{ doctor.email }}</p>
-        </div>
+<!-- ── Page Header ── -->
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb mb-1">
+      <a href="{% url 'patient_list' %}">Patients</a>
+      <i class="bi bi-chevron-right" style="font-size:.65rem"></i>
+      <span>Doctor</span>
     </div>
-
-    <!-- Tabs -->
-    <ul class="nav nav-tabs" id="doctorTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="patients-tab" data-bs-toggle="tab" data-bs-target="#patients" type="button" role="tab">
-                Assigned Patients
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="queue-tab" data-bs-toggle="tab" data-bs-target="#queue" type="button" role="tab">
-                Current Queue
-            </button>
-        </li>
-    </ul>
-
-    <div class="tab-content mt-3">
-        <!-- Assigned Patients -->
-        <div class="tab-pane fade show active" id="patients" role="tabpanel">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Patients Assigned to {{ doctor.name }}</h5>
-                <form method="get" class="d-flex">
-                    <input type="text" name="q" class="form-control form-control-sm search-input me-2"
-                           placeholder="Search patient..." value="{{ query }}">
-                    <button class="btn btn-sm btn-outline-primary" type="submit">Search</button>
-                </form>
-            </div>
-
-            {% if page_obj %}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>#</th>
-                                <th>Patient Name</th>
-                                <th>Age</th>
-                                <th>Gender</th>
-                                <th>Historical Consultations</th>
-                                <th>Date Registered</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for patient in page_obj %}
-                                <tr>
-                                    <td>{{ forloop.counter }}</td>
-                                    <td>{{ patient.name }}</td>
-                                    <td>{{ patient.age }}</td>
-                                    <td>{{ patient.gender }}</td>
-                                    <td>
-                                      <a href="{% url 'patient_consultations' patient.id %}" class="btn btn-sm btn-secondary">consultations</a>
-                                    </td>
-                                    <td>{{ patient.date_registered|date:"M d, Y" }}</td>
-                                    <td>
-                                        <a href="{% url 'add_to_queue' doctor.id patient.id %}"
-                                           class="btn btn-sm btn-success">Add to Queue</a>
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr><td colspan="7" class="text-center text-muted">No patients found.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center">
-                        {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
-                            </li>
-                        {% endif %}
-
-                        {% for num in page_obj.paginator.page_range %}
-                            {% if num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
-                                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                                    <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-            {% else %}
-                <p class="text-muted text-center">No patients assigned yet.</p>
-            {% endif %}
-        </div>
-
-        <!-- Queue Section -->
-        <div class="tab-pane fade" id="queue" role="tabpanel">
-            <h5 class="mb-3">Current Queue for {{ doctor.name }}</h5>
-            {% if queue %}
-                <table class="table table-striped align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Patient</th>
-                            <th>Queue Number</th>
-                            <th>Status</th>
-                            <th>Consultation History</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in queue %}
-                            <tr>
-                                <td>{{ forloop.counter }}</td>
-                                <td>{{ item.patient.name }}</td>
-                                <td>{{ item.queue_number }}</td>
-                                <td>
-                                    <span class="badge {% if item.status == 'waiting' %}bg-warning{% elif item.status == 'in_progress' %}bg-info{% else %}bg-success{% endif %}">
-                                        {{ item.status|title }}
-                                    </span>
-                                </td>
-                              <td>
-                                <a href="{% url 'patient_consultations' item.patient.id %}" class="btn btn-sm btn-secondary">consultations</a>
-                              </td>
-                               
-                              <!-- Inside Queue Table -->
-                                <td>
-                                {% if item.status == "waiting" %}
-                                    <a href="{% url 'start_consultation' item.id %}" class="btn btn-sm btn-primary">
-                                        Start Consultation
-                                    </a>
-                                {% elif item.status == "in_progress"  or item.status == "fromLab" %}
-                                    <div class="btn-group">
-                                        <a href="{% url 'complete_consultation' item.id %}" class="btn btn-sm btn-success">
-                                        ✅ Mark Complete
-                                        </a>
-                                        
-                                        <button type="button" class="btn btn-sm btn-outline-secondary"
-                                                data-bs-toggle="modal"
-                                                data-bs-target="#sendToLabModal"
-                                                data-patient="{{ item.patient.name }}"
-                                                data-consultation-id="{{ item.patient.consultations.last.id }}"
-                                                data-patient-id="{{ item.patient.id }}">
-                                        🧾 Send to Lab
-                                        </button>
-                                    </div>
-                                {% else %}
-                                    <span class="text-muted">Done</span>
-                                {% endif %}
-                                </td>
-
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p class="text-muted text-center">No patients currently in the queue.</p>
-            {% endif %}
-        </div>
-    </div>
+    <h1 class="page-heading">Dr. {{ doctor.name }}</h1>
+    <p class="page-subheading">
+      <i class="bi bi-heart-pulse me-1"></i>{{ doctor.specialization }}
+      <span class="mx-2 text-muted">·</span>
+      <i class="bi bi-telephone me-1"></i>{{ doctor.phone }}
+    </p>
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'pipeline_notification' %}" class="btn btn-outline-primary">
+      <i class="bi bi-broadcast me-1"></i> Pipeline Notification
+    </a>
+  </div>
 </div>
-<!-- Send to Lab Modal -->
+
+<!-- ── Main Grid: Queue (8) + Stats (4) ── -->
+<div class="row g-4">
+
+  <!-- ─────────────────────── LEFT: Queue ─────────────────────── -->
+  <div class="col-lg-8">
+
+    <!-- Queue card -->
+    <div class="card mb-4" id="queue-section">
+      <div class="card-header d-flex align-items-center justify-content-between gap-2">
+        <span><i class="bi bi-person-lines-fill me-2 text-primary"></i>Current Queue</span>
+        <span class="badge bg-light text-secondary fw-normal">
+          {{ queue|length }} patient{{ queue|length|pluralize }}
+        </span>
+      </div>
+
+      {% if queue %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th style="width:48px">#</th>
+              <th>Patient</th>
+              <th>Queue No.</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in queue %}
+            <tr>
+              <td class="text-muted fw-semibold">{{ forloop.counter }}</td>
+
+              <!-- Patient name + priority badge -->
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div style="width:34px;height:34px;border-radius:50%;background:#eff6ff;color:#2563eb;display:grid;place-items:center;font-weight:700;font-size:.875rem;flex-shrink:0">
+                    {{ item.patient.name|first|upper }}
+                  </div>
+                  <div>
+                    <a href="{% url 'patient_detail' item.patient.id %}" class="fw-semibold text-decoration-none text-dark">
+                      {{ item.patient.name }}
+                    </a>
+                    <div class="d-flex gap-1 mt-1 flex-wrap">
+                      {% if item.priority == 'urgent' %}
+                        <span class="badge badge-urgent" style="font-size:.7rem">
+                          <i class="bi bi-exclamation-triangle-fill me-1"></i>Urgent
+                        </span>
+                      {% elif item.priority == 'emergency' %}
+                        <span class="badge text-white fw-semibold" style="background:#7f1d1d;font-size:.7rem">
+                          <i class="bi bi-lightning-fill me-1"></i>Emergency
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              <td>
+                <span class="fw-semibold text-muted" style="font-variant-numeric:tabular-nums">
+                  #{{ item.queue_number }}
+                </span>
+              </td>
+
+              <!-- Status badge -->
+              <td>
+                {% if item.status == 'waiting' %}
+                  <span class="queue-status qs-waiting">Waiting</span>
+                {% elif item.status == 'in_progress' %}
+                  <span class="queue-status qs-in-progress">In Progress</span>
+                {% elif item.status == 'completed' %}
+                  <span class="queue-status qs-completed">Completed</span>
+                {% elif item.status == 'inLab' %}
+                  <span class="queue-status qs-inlab">In Lab</span>
+                {% elif item.status == 'fromLab' %}
+                  <span class="queue-status qs-fromlab">From Lab</span>
+                {% else %}
+                  <span class="queue-status qs-skipped">{{ item.status|title }}</span>
+                {% endif %}
+              </td>
+
+              <!-- Action buttons -->
+              <td class="text-end">
+                {% if item.status == 'waiting' %}
+                  <form method="post" action="{% url 'start_consultation' item.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-primary">
+                      <i class="bi bi-play-fill me-1"></i>Start
+                    </button>
+                  </form>
+
+                {% elif item.status == 'in_progress' or item.status == 'fromLab' %}
+                  <div class="d-flex gap-1 justify-content-end flex-wrap">
+                    <form method="post" action="{% url 'complete_consultation' item.id %}" class="d-inline">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Complete
+                      </button>
+                    </form>
+                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#sendToLabModal"
+                            data-patient="{{ item.patient.name }}"
+                            data-consultation-id="{{ item.patient.consultations.last.id|default:0 }}"
+                            data-patient-id="{{ item.patient.id }}">
+                      <i class="bi bi-eyedropper me-1"></i>Lab
+                    </button>
+                  </div>
+
+                {% else %}
+                  <span class="text-muted small">
+                    <i class="bi bi-check-circle-fill text-success me-1"></i>Done
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% else %}
+      <div class="card-body text-center py-5">
+        <div class="stat-icon blue mx-auto mb-3" style="width:56px;height:56px;font-size:1.6rem">
+          <i class="bi bi-person-check"></i>
+        </div>
+        <p class="text-muted mb-0">The queue is empty. No patients waiting.</p>
+      </div>
+      {% endif %}
+    </div>
+    <!-- /Queue card -->
+
+    <!-- ─── Assigned Patients Card ─── -->
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+        <span><i class="bi bi-people-fill me-2 text-primary"></i>Assigned Patients</span>
+        <form method="get" class="d-flex gap-2 mb-0" style="max-width:320px">
+          <div class="search-box flex-grow-1">
+            <i class="bi bi-search"></i>
+            <input type="text" name="q" class="form-control form-control-sm"
+                   placeholder="Search patient…" value="{{ query }}">
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary">Search</button>
+          {% if query %}
+            <a href="?" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-x-lg"></i>
+            </a>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Age</th>
+              <th>Gender</th>
+              <th>Registered</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for patient in page_obj %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div style="width:32px;height:32px;border-radius:50%;background:#f0fdf4;color:#16a34a;display:grid;place-items:center;font-weight:700;font-size:.8125rem;flex-shrink:0">
+                    {{ patient.name|first|upper }}
+                  </div>
+                  <a href="{% url 'patient_detail' patient.id %}" class="fw-semibold text-decoration-none text-dark">
+                    {{ patient.name }}
+                  </a>
+                </div>
+              </td>
+              <td><span class="text-muted small">{{ patient.age }} yrs</span></td>
+              <td>
+                <span class="badge bg-light text-secondary fw-normal">
+                  {{ patient.get_gender_display }}
+                </span>
+              </td>
+              <td><span class="text-muted small">{{ patient.date_registered|date:"M j, Y" }}</span></td>
+              <td class="text-end">
+                <div class="d-flex gap-1 justify-content-end flex-wrap">
+                  <a href="{% url 'new_consultation' patient.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-journal-plus me-1"></i>Consult
+                  </a>
+                  <form method="post" action="{% url 'add_to_queue' doctor.id patient.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-success" title="Add to queue">
+                      <i class="bi bi-plus-circle-fill me-1"></i>Queue
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-5 text-muted">
+                <i class="bi bi-people display-6 d-block mb-2 opacity-40"></i>
+                No patients found{% if query %} for "<strong>{{ query }}</strong>"{% endif %}.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+      <div class="card-body border-top d-flex align-items-center justify-content-between py-2">
+        <span class="text-muted small">
+          Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+        </span>
+        <nav>
+          <ul class="pagination pagination-sm mb-0 gap-1">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                <i class="bi bi-chevron-left"></i>
+              </a>
+            </li>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+              {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+                <i class="bi bi-chevron-right"></i>
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+      {% endif %}
+
+    </div>
+    <!-- /Assigned Patients card -->
+
+  </div>
+  <!-- /LEFT col -->
+
+  <!-- ─────────────────────── RIGHT: Stats ─────────────────────── -->
+  <div class="col-lg-4">
+
+    <!-- Doctor info card -->
+    <div class="card mb-4">
+      <div class="card-header"><i class="bi bi-person-badge-fill me-2 text-primary"></i>Doctor Profile</div>
+      <div class="card-body">
+        <!-- Avatar -->
+        <div class="text-center mb-3">
+          <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;display:grid;place-items:center;font-weight:700;font-size:1.75rem;margin:0 auto">
+            {{ doctor.name|first|upper }}
+          </div>
+          <div class="fw-semibold mt-2">Dr. {{ doctor.name }}</div>
+          <div class="text-muted small">{{ doctor.specialization }}</div>
+        </div>
+        <hr class="my-2">
+        <div class="d-flex flex-column gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <span class="stat-icon blue" style="width:32px;height:32px;font-size:.9rem"><i class="bi bi-telephone-fill"></i></span>
+            <span class="small">{{ doctor.phone }}</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="stat-icon purple" style="width:32px;height:32px;font-size:.9rem"><i class="bi bi-envelope-fill"></i></span>
+            <span class="small text-truncate">{{ doctor.email }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Queue stats -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-12 col-xl-6">
+        <div class="stat-card">
+          <div class="stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
+          <div>
+            <div class="stat-value">
+              {% with waiting=0 %}
+              {% for item in queue %}{% if item.status == 'waiting' %}{{ forloop.counter0|add:"1" }}{% endif %}{% endfor %}
+              {% endwith %}
+              {{ queue|length }}
+            </div>
+            <div class="stat-label">In Queue</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-12 col-xl-6">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="bi bi-activity"></i></div>
+          <div>
+            <div class="stat-value">{{ page_obj.paginator.count }}</div>
+            <div class="stat-label">Assigned</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick counts by status -->
+    <div class="card">
+      <div class="card-header"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Queue Breakdown</div>
+      <div class="card-body d-flex flex-column gap-3">
+
+        {% with waiting_count=0 inprog_count=0 done_count=0 %}
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <span class="queue-status qs-waiting" style="pointer-events:none">Waiting</span>
+          </div>
+          <span class="fw-semibold">
+            {% for item in queue %}{% if item.status == 'waiting' %}{{ forloop.revcounter0|add:"0" }}{% endif %}{% endfor %}
+            {% regroup queue by status as status_groups %}
+            {% for g in status_groups %}{% if g.grouper == 'waiting' %}{{ g.list|length }}{% endif %}{% endfor %}
+          </span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <span class="queue-status qs-in-progress" style="pointer-events:none">In Progress</span>
+          </div>
+          <span class="fw-semibold">
+            {% for g in status_groups %}{% if g.grouper == 'in_progress' %}{{ g.list|length }}{% endif %}{% endfor %}
+          </span>
+        </div>
+        <div class="d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center gap-2">
+            <span class="queue-status qs-completed" style="pointer-events:none">Completed</span>
+          </div>
+          <span class="fw-semibold">
+            {% for g in status_groups %}{% if g.grouper == 'completed' %}{{ g.list|length }}{% endif %}{% endfor %}
+          </span>
+        </div>
+        {% endwith %}
+
+      </div>
+    </div>
+    <!-- /Quick counts -->
+
+  </div>
+  <!-- /RIGHT col -->
+
+</div>
+<!-- /Main grid -->
+
+
+<!-- ═══════════════════════ Send to Lab Modal ═══════════════════════ -->
 <div class="modal fade" id="sendToLabModal" tabindex="-1" aria-labelledby="sendToLabModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 shadow">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="sendToLabModalLabel">🧪 Send to Lab</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="sendToLabModalLabel">
+          <i class="bi bi-eyedropper me-2 text-primary"></i>Send to Lab
+          <span class="fw-normal text-muted ms-1">— <span id="labPatientName"></span></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
       <form method="post" action="{% url 'send_to_lab' 0 0 %}" id="sendToLabForm">
         {% csrf_token %}
         <div class="modal-body">
-          <p class="text-muted">Select lab tests for <strong id="labPatientName"></strong>.</p>
-
-          <!-- Search Input -->
-          <input type="text" id="labSearchInput" class="form-control mb-2" placeholder="Search lab tests...">
-
-          <!-- Dropdown -->
-          <!-- Dropdown -->
-        <div id="labTestsCheckboxes" style="max-height: 200px; overflow-y: auto;">
-        {% for lab in lab_tests %}
-            <div class="form-check">
-            <input class="form-check-input" type="checkbox" 
-                    name="lab_tests" 
-                    value="{{ lab.id }}" 
-                    id="labTest{{ lab.id }}">
-            <label class="form-check-label" for="labTest{{ lab.id }}">
-                {{ lab.name }}
-            </label>
+          <div class="search-box mb-3">
+            <i class="bi bi-search"></i>
+            <input type="text" id="labSearchInput" class="form-control"
+                   placeholder="Filter lab tests…" autocomplete="off">
+          </div>
+          <div id="labTestsCheckboxes" style="max-height:220px;overflow-y:auto">
+            {% for lab in lab_tests %}
+            <div class="form-check lab-test-item py-1">
+              <input class="form-check-input" type="checkbox"
+                     name="lab_tests" value="{{ lab.id }}" id="labTest{{ lab.id }}">
+              <label class="form-check-label" for="labTest{{ lab.id }}">{{ lab.name }}</label>
             </div>
-        {% endfor %}
+            {% empty %}
+            <p class="text-muted small mb-0">No lab tests configured. Add them in the admin panel.</p>
+            {% endfor %}
+          </div>
         </div>
-
-        </div>
-
         <div class="modal-footer">
-          <button type="submit" class="btn btn-success w-100">Send to Lab</button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send me-1"></i>Send to Lab
+          </button>
         </div>
       </form>
+
     </div>
   </div>
 </div>
 
-{% block extra_scripts %}
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const sendToLabModal = document.getElementById("sendToLabModal");
-  const sendToLabForm = document.getElementById("sendToLabForm");
-  const patientNameEl = document.getElementById("labPatientName");
-
-  sendToLabModal.addEventListener("show.bs.modal", (event) => {
-    const button = event.relatedTarget;
-    const patientName = button.getAttribute("data-patient");
-    const consultationId = button.getAttribute("data-consultation-id");
-    const patientId = button.getAttribute("data-patient-id");
-    const sendToLabBaseUrl = "{% url 'send_to_lab' 0 0 %}";
-
-    // Update modal content
-    patientNameEl.textContent = patientName;
-    // Update form action dynamically
-    let url = sendToLabBaseUrl.replace("/0/0/", `/${consultationId}/${patientId}/`);
-
-    sendToLabForm.action = url;
-    
-  });
-
-  // Optional: search inside dropdown
-  const searchInput = document.getElementById("labSearchInput");
-  const checkboxesContainer = document.getElementById("labTestsCheckboxes");
-
-  searchInput.addEventListener("input", function () {
-      const search = this.value.toLowerCase();
-      
-      // Loop over each checkbox div
-      Array.from(checkboxesContainer.querySelectorAll(".form-check")).forEach(div => {
-          const label = div.querySelector("label").textContent.toLowerCase();
-          div.style.display = label.includes(search) ? "" : "none";
-      });
-  });
-
-    
-});
-
-
-</script>
-
 {% endblock %}
 
+
+{% block extra_scripts %}
+<script>
+(function () {
+  "use strict";
+
+  /* ── Send-to-Lab modal ── */
+  const labModal = document.getElementById("sendToLabModal");
+  if (labModal) {
+    labModal.addEventListener("show.bs.modal", function (e) {
+      const btn = e.relatedTarget;
+      const patientName   = btn.dataset.patient       || "";
+      const consultationId = btn.dataset.consultationId || 0;
+      const patientId      = btn.dataset.patientId     || 0;
+
+      document.getElementById("labPatientName").textContent = patientName;
+
+      const form = document.getElementById("sendToLabForm");
+      form.action = `/emr/send-to-lab/${consultationId}/${patientId}/`;
+
+      // Reset search + show all items
+      const searchInput = document.getElementById("labSearchInput");
+      if (searchInput) { searchInput.value = ""; }
+      document.querySelectorAll(".lab-test-item").forEach(function (el) {
+        el.style.display = "";
+      });
+    });
+
+    /* Lab test search filter */
+    document.getElementById("labSearchInput").addEventListener("input", function () {
+      const q = this.value.toLowerCase().trim();
+      document.querySelectorAll(".lab-test-item").forEach(function (el) {
+        const label = el.querySelector("label").textContent.toLowerCase();
+        el.style.display = label.includes(q) ? "" : "none";
+      });
+    });
+  }
+
+  /* ── WebSocket — real-time queue updates ── */
+  const wsProto = location.protocol === "https:" ? "wss" : "ws";
+  let ws;
+
+  function connectWS() {
+    ws = new WebSocket(`${wsProto}://${location.host}/ws/patients/`);
+
+    ws.onmessage = function () {
+      const audio = document.getElementById("notification-sound");
+      if (audio) {
+        audio.play().catch(function () {
+          /* autoplay blocked — user hasn't interacted yet */
+        });
+      }
+      /* Refresh queue section */
+      location.reload();
+    };
+
+    ws.onclose = function () {
+      /* Reconnect after 5 s on unexpected close */
+      setTimeout(connectWS, 5000);
+    };
+  }
+
+  connectWS();
+})();
+</script>
 {% endblock %}

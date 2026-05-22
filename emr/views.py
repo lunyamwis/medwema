@@ -1,537 +1,419 @@
-# Create your views here.
-from django.shortcuts import render, redirect, get_object_or_404
-from django.forms import modelformset_factory, inlineformset_factory
-from .models import LabResult, LabQueue, Lab, LabTest
-from .forms import LabResultForm
-from django.http import HttpResponse, JsonResponse
-from django.template.loader import render_to_string
-from django.utils import timezone
-from weasyprint import HTML
-from django import forms    
+from __future__ import annotations
+
+import logging
 
 from django.contrib import messages
-from django.db.models import Count, Max
-from patient.models import Patient, Consultation, Queue
-from django.core.paginator import Paginator
-from django.db.models import Q
+
+logger = logging.getLogger(__name__)
 from django.contrib.auth.decorators import login_required
-from billing.models import Bill, Payment
+from django.core.paginator import Paginator
+from django.db.models import Count, Max, Q
+from django.forms import modelformset_factory
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
+from django.utils import timezone
 from django.utils.dateparse import parse_date
+from django.views.decorators.http import require_GET, require_POST
+from weasyprint import HTML
+
+from emr.forms import LabResultForm
+from emr.models import Lab, LabQueue, LabResult, LabTest
+from emr.services import lab_queue_complete, lab_queue_start
+from emr.services import send_to_lab as send_to_lab_service
+from patient.models import Consultation, Patient, Queue
 
 
-from django.views.decorators.http import require_GET
+# ---------------------------------------------------------------------------
+# Helper
+# ---------------------------------------------------------------------------
 
+def _get_clinic(user):
+    """Return the clinic this user belongs to (last one, if staff of multiple)."""
+    return user.clinics.select_related().last()
+
+
+# ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
+
+@login_required
+def lab_dashboard(request):
+    clinic = _get_clinic(request.user)
+
+    # Active queue — all waiting/in_progress items for this clinic
+    lab_queue = (
+        LabQueue.objects
+        .filter(clinic=clinic, status__in=["waiting", "in_progress"])
+        .select_related("patient", "lab_test", "consultation")
+        .order_by("created_at")
+    )
+
+    # History filters
+    patient_query   = request.GET.get("patient", "").strip()
+    lab_test_query  = request.GET.get("lab_test", "").strip()
+    date_from_raw   = request.GET.get("date_from", "").strip()
+    date_to_raw     = request.GET.get("date_to", "").strip()
+
+    date_from = parse_date(date_from_raw) if date_from_raw else None
+    date_to   = parse_date(date_to_raw)   if date_to_raw   else None
+
+    history_qs = (
+        LabResult.objects
+        .filter(consultation__patient__clinic=clinic)
+        .select_related("lab_test", "consultation__patient")
+        .order_by("-result_date", "-id")
+    )
+
+    filters = Q()
+    if patient_query:
+        filters &= Q(consultation__patient__name__icontains=patient_query)
+    if lab_test_query:
+        filters &= Q(lab_test__name__icontains=lab_test_query)
+    if date_from:
+        filters &= Q(result_date__date__gte=date_from)
+    if date_to:
+        filters &= Q(result_date__date__lte=date_to)
+    if filters:
+        history_qs = history_qs.filter(filters)
+
+    history_paginator = Paginator(history_qs, 15)
+    history_page_obj  = history_paginator.get_page(request.GET.get("page"))
+
+    return render(request, "emr/dashboard.html", {
+        "lab_queue":        lab_queue,
+        "history_page_obj": history_page_obj,
+        "patient_query":    patient_query,
+        "lab_test_query":   lab_test_query,
+        "date_from":        date_from_raw,
+        "date_to":          date_to_raw,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Add lab results (enter results for pending queue items)
+# ---------------------------------------------------------------------------
+
+@login_required
+def add_lab_result(request, consultation_id):
+    consultation = get_object_or_404(
+        Consultation.objects.select_related("patient", "doctor"),
+        id=consultation_id,
+    )
+
+    lab_queue_items = (
+        LabQueue.objects
+        .filter(consultation=consultation, status__in=["waiting", "in_progress"])
+        .select_related("lab_test")
+    )
+
+    LabResultFormSet = modelformset_factory(
+        LabResult,
+        form=LabResultForm,
+        extra=max(len(lab_queue_items), 1),
+        can_delete=False,
+    )
+
+    if request.method == "POST":
+        formset = LabResultFormSet(request.POST, queryset=LabResult.objects.none())
+        if formset.is_valid():
+            saved = []
+            for form in formset:
+                if not form.has_changed():
+                    continue
+                instance = form.save(commit=False)
+                if not instance.result_value:
+                    continue
+                instance.consultation = consultation
+                # If the lab_test widget was not used, fall back to the matching queue item
+                if not instance.lab_test_id:
+                    idx = formset.forms.index(form)
+                    if idx < len(lab_queue_items):
+                        instance.lab_test = lab_queue_items[idx].lab_test
+                instance.save()
+                saved.append(instance)
+
+            if saved:
+                consultation.lab_findings = "; ".join(
+                    f"{r.lab_test.name if r.lab_test else '?'}: {r.result_value}"
+                    for r in saved
+                )
+                consultation.save(update_fields=["lab_findings"])
+                logger.info("Lab results saved for consultation %s: %d result(s) by %s", consultation.id, len(saved), request.user.username)
+
+            messages.success(request, "Lab results saved successfully.")
+            return redirect("lab_dashboard")
+    else:
+        # Pre-populate lab_test for each form based on queue items
+        initial = []
+        for item in lab_queue_items:
+            initial.append({"lab_test": item.lab_test})
+        formset = LabResultFormSet(queryset=LabResult.objects.none(), initial=initial)
+
+    return render(request, "emr/add_result.html", {
+        "formset":      formset,
+        "consultation": consultation,
+        "lab_tests":    lab_queue_items,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Edit existing lab results
+# ---------------------------------------------------------------------------
+
+@login_required
+def edit_lab_results(request, consultation_id):
+    consultation = get_object_or_404(
+        Consultation.objects.select_related("patient", "doctor"),
+        id=consultation_id,
+    )
+    existing_qs = LabResult.objects.filter(consultation=consultation).select_related("lab_test")
+
+    LabResultFormSet = modelformset_factory(
+        LabResult,
+        form=LabResultForm,
+        extra=0,
+        can_delete=True,
+    )
+
+    if request.method == "POST":
+        formset = LabResultFormSet(request.POST, queryset=existing_qs)
+        if formset.is_valid():
+            instances = formset.save(commit=False)
+            for instance in instances:
+                if not instance.consultation_id:
+                    instance.consultation = consultation
+                instance.save()
+            for obj in formset.deleted_objects:
+                obj.delete()
+            logger.info("Lab results updated for consultation %s by %s", consultation.id, request.user.username)
+            messages.success(
+                request,
+                f"Lab results for {consultation.patient.name} updated successfully.",
+            )
+            return redirect("lab_dashboard")
+        else:
+            logger.warning("Lab result edit form invalid for consultation %s: %s", consultation.id, formset.errors)
+            messages.error(request, "Please correct the errors below.")
+    else:
+        formset = LabResultFormSet(queryset=existing_qs)
+
+    return render(request, "emr/edit_results.html", {
+        "formset":      formset,
+        "consultation": consultation,
+    })
+
+
+# ---------------------------------------------------------------------------
+# View lab results
+# ---------------------------------------------------------------------------
+
+@login_required
+def view_lab_results(request, consultation_id):
+    consultation = get_object_or_404(
+        Consultation.objects.select_related("patient", "doctor"),
+        id=consultation_id,
+    )
+    results = (
+        LabResult.objects
+        .filter(consultation=consultation)
+        .select_related("lab_test")
+        .order_by("result_date")
+    )
+    return render(request, "emr/view_results.html", {
+        "results":      results,
+        "consultation": consultation,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Print / PDF
+# ---------------------------------------------------------------------------
+
+@login_required
+def print_lab_results(request, consultation_id):
+    consultation = get_object_or_404(
+        Consultation.objects.select_related("patient", "doctor"),
+        id=consultation_id,
+    )
+    results = (
+        LabResult.objects
+        .filter(consultation=consultation)
+        .select_related("lab_test")
+        .order_by("result_date")
+    )
+    clinic = _get_clinic(request.user)
+    html_string = render_to_string("emr/results_pdf.html", {
+        "results":      results,
+        "consultation": consultation,
+        "clinic":       clinic,
+    })
+    pdf = HTML(string=html_string).write_pdf()
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'filename="lab_results_{consultation_id}.pdf"'
+    )
+    return response
+
+
+# ---------------------------------------------------------------------------
+# Queue actions
+# ---------------------------------------------------------------------------
+
+@login_required
+@require_POST
+def start_lab_test(request, queue_id):
+    queue_item = get_object_or_404(LabQueue, id=queue_id)
+    lab_queue_start(lab_queue=queue_item)
+    logger.info("Lab test started for patient '%s' (queue %s) by %s", queue_item.patient.name, queue_id, request.user.username)
+    messages.success(request, f"Started test for {queue_item.patient.name}.")
+    return redirect("add_result", consultation_id=queue_item.consultation_id)
+
+
+@login_required
+@require_POST
+def complete_lab_test(request, queue_id):
+    queue_item = get_object_or_404(LabQueue, id=queue_id)
+    lab_queue_complete(lab_queue=queue_item)
+    logger.info("Lab test completed for patient '%s' (queue %s) by %s", queue_item.patient.name, queue_id, request.user.username)
+    messages.success(
+        request,
+        f"Test for {queue_item.patient.name} marked as complete.",
+    )
+    return redirect("lab_dashboard")
+
+
+# ---------------------------------------------------------------------------
+# Send to lab
+# ---------------------------------------------------------------------------
+
+@login_required
+@require_POST
+def send_to_lab_view(request, consultation_id, patient_id):
+    if consultation_id == 0:
+        patient = get_object_or_404(Patient, id=patient_id)
+        consultation = Consultation.objects.create(
+            patient=patient,
+            doctor=patient.doctor,
+            date=timezone.now(),
+            chief_complaints="N/A",
+        )
+    else:
+        consultation = get_object_or_404(
+            Consultation.objects.select_related("patient", "doctor"),
+            id=consultation_id,
+        )
+        patient = consultation.patient
+
+    clinic = patient.clinic
+
+    selected_lab_test_ids = request.POST.getlist("lab_tests")
+    if not selected_lab_test_ids:
+        logger.warning("send_to_lab: no tests selected for consultation %s by %s", consultation_id, request.user.username)
+        messages.warning(request, "Please select at least one lab test.")
+        if consultation.doctor:
+            return redirect("doctor_detail", pk=consultation.doctor.id)
+        return redirect("patient_list")
+
+    lab_test_ids = [int(x) for x in selected_lab_test_ids if x.isdigit()]
+
+    doctor_queue = Queue.objects.filter(
+        clinic=clinic,
+        doctor=consultation.doctor,
+        patient=patient,
+        status__in=["waiting", "in_progress"],
+    ).first()
+
+    send_to_lab_service(
+        clinic=clinic,
+        patient=patient,
+        consultation=consultation,
+        lab_test_ids=lab_test_ids,
+        doctor_queue=doctor_queue,
+    )
+
+    logger.info("Patient '%s' sent to lab for consultation %s by %s (tests: %s)", patient.name, consultation.id, request.user.username, lab_test_ids)
+    messages.success(
+        request,
+        f"{patient.name} has been sent to the lab successfully.",
+    )
+
+    if consultation.doctor:
+        return redirect("doctor_detail", pk=consultation.doctor.id)
+    return redirect("patient_list")
+
+
+# ---------------------------------------------------------------------------
+# AJAX / API
+# ---------------------------------------------------------------------------
 
 @require_GET
 def ajax_consultation_search(request):
-    q = request.GET.get('q', '').strip()
-    results = []
+    q = request.GET.get("q", "").strip()
     if q:
         qs = Consultation.objects.filter(
-            Q(patient__name__icontains=q) | Q(id__icontains=q)  # tweak fields to search
-        )[:20]
+            Q(patient__name__icontains=q) | Q(id__icontains=q)
+        ).select_related("patient")[:20]
     else:
         qs = Consultation.objects.none()
-
-    for obj in qs:
-        results.append({'id': obj.pk, 'text': str(obj)})
-    return JsonResponse(results, safe=False)
+    return JsonResponse(
+        [{"id": obj.pk, "text": str(obj)} for obj in qs],
+        safe=False,
+    )
 
 
 @require_GET
 def ajax_labtest_search(request):
-    q = request.GET.get('q', '').strip()
-    results = []
+    q = request.GET.get("q", "").strip()
     if q:
-        qs = LabTest.objects.filter(name__icontains=q)[:20]
+        qs = LabTest.objects.filter(name__icontains=q, is_active=True)[:20]
     else:
         qs = LabTest.objects.none()
-    for obj in qs:
-        results.append({'id': obj.pk, 'text': str(obj)})
-    return JsonResponse(results, safe=False)
+    return JsonResponse(
+        [{"id": obj.pk, "text": str(obj)} for obj in qs],
+        safe=False,
+    )
 
 
-def add_lab_result(request, consultation_id):
-    consultations = Consultation.objects.all()[0:3]
+def lab_queue_count_api(request):
+    count = LabQueue.objects.filter(status__in=["waiting", "in_progress"]).count()
+    return JsonResponse({"count": count})
 
-    consultation_id = consultation_id if consultation_id else request.POST.get("consultation_id")
-    # import pdb;pdb.set_trace()
-    consultation = None
-    if Consultation.objects.filter(id=consultation_id).exists():
-        consultation = Consultation.objects.get(id=consultation_id) if consultation_id else None
-    else:
-        consultation = get_object_or_404(Consultation, id=consultation_id)
-    lab_tests = [x.lab_test for x in LabQueue.objects.filter(consultation=consultation)]
 
-    LabResultFormSet = modelformset_factory(LabResult, form=LabResultForm, extra=len(lab_tests), can_delete=True)
-    if request.method == 'POST':
-        formset = LabResultFormSet(request.POST)
-        if formset.is_valid():
-            instances = formset.save(commit=False)
-            consultation.lab_findings = str([f"{x.lab_test.name}=> {x.result_name}: {x.result_value}" for x in instances])
-            consultation.save()
-            for instance in instances:
-                instance.consultation = consultation
-                instance.performed_by = request.user
-                instance.save()
-                
-                
+# ---------------------------------------------------------------------------
+# Kept for URL compatibility — redirects to unified dashboard
+# ---------------------------------------------------------------------------
 
-            messages.success(request, "Lab results added successfully.")
-            return redirect('lab_dashboard')
-    else:
-        formset = LabResultFormSet(queryset=LabResult.objects.none())
+@login_required
+def lab_results_dashboard(request):
+    return redirect("lab_dashboard")
 
-    return render(request, 'emr/add_result.html', {'formset': formset, 'consultations': consultations, 'lab_tests': lab_tests, 'consultation':consultation})
 
+@login_required
+def lab_search_dashboard(request):
+    return redirect("lab_dashboard")
 
 
 def consultation_search(request):
+    """Kept for backward-compat with older templates that hit this endpoint."""
     q = request.GET.get("q", "")
-
     consultations = (
         Consultation.objects
         .select_related("patient")
         .filter(patient__name__icontains=q)
         .only("id", "date", "patient__name")[:20]
     )
-
     data = [
-        {
-            "id": c.id,
-            "label": f"{c.patient.name} ({c.date})"
-        }
+        {"id": c.id, "label": f"{c.patient.name} ({c.date})"}
         for c in consultations
     ]
-
     return JsonResponse(data, safe=False)
 
 
-def edit_lab_results(request, consultation_id):
-    consultation = get_object_or_404(Consultation, id=consultation_id)
-    lab_tests = LabTest.objects.filter(lab__lab_type="Internal")
-
-    LabResultFormSet = modelformset_factory(
-        LabResult,
-        form=LabResultForm,
-        extra=0,  # allow adding new results
-        can_delete=True,
-    )
-
-    queryset = LabResult.objects.filter(consultation=consultation)
-
-    if request.method == 'POST':
-        formset = LabResultFormSet(request.POST, queryset=queryset)
-
-        print('keys--',request.POST.keys())
-        # remove 'id' from changed_data manually if formset fails
-        # for form in formset.forms:
-            # import pdb; pdb.set_trace()
-            # if not form.changed_data.get('id', None):
-            # form.fields['id'] = forms.IntegerField(required=False)
-
-        if formset.is_valid():
-            instances = formset.save(commit=False)
-
-            for instance in instances:
-                if not instance.consultation_id:
-                    instance.consultation = consultation
-                instance.save()
-
-            for obj in formset.deleted_objects:
-                obj.delete()
-
-            messages.success(request, f"Lab results for {consultation.patient.name} updated successfully.")
-            return redirect('lab_dashboard')
-        else:
-            print(formset.errors)
-            messages.error(request, "Please correct the errors below.")
-    else:
-        formset = LabResultFormSet(queryset=queryset)
-
-    return render(
-        request,
-        'emr/edit_results.html',
-        {
-            'formset': formset,
-            'consultation': consultation,
-            'lab_tests': lab_tests,
-        }
-    )
-
-
-def print_lab_results(request, consultation_id):
-    results = LabResult.objects.filter(consultation_id=consultation_id).select_related('consultation', 'lab_test')
-    consultation = results.first().consultation if results.exists() else None
-    html_string = render_to_string('emr/results_pdf.html', {'results': results, 'consultation': consultation})
-
-    pdf = HTML(string=html_string).write_pdf()
-    response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = f'filename="lab_results_{consultation_id}.pdf"'
-    return response
-
-
-@login_required
-def lab_dashboard(request):
-    search_query = request.GET.get("search", "")
-    lab_queue = lab_queue = (
-        LabQueue.objects
-        .filter(status__in=["waiting", "in_progress"])
-        .order_by("patient_id", "-consultation__date")  # latest consultation first
-        .distinct("patient_id")  # one row per patient
-    )
-
-
-    # Existing results logic...
-    results_qs = (
-        LabResult.objects.values("consultation__patient__name", "consultation_id")
-        .annotate(total_tests=Count("id"), last_test=Max("result_date"))
-    )
-
-    if search_query:
-        results_qs = results_qs.filter(consultation__patient__name__icontains=search_query)
-
-
-
-    historical_results_qs = LabResult.objects.all()
-
-    patient_query = request.GET.get('patient', '')
-    lab_test_query = request.GET.get('lab_test', '')
-    result_date_from_raw = request.GET.get("result_date_from", "").strip()
-    result_date_to_raw   = request.GET.get("result_date_to", "").strip()
-    result_date_raw      = request.GET.get("result_date", "").strip()  # optional exact
-
-    result_date_from = parse_date(result_date_from_raw) if result_date_from_raw else None
-    result_date_to   = parse_date(result_date_to_raw) if result_date_to_raw else None
-    result_date      = parse_date(result_date_raw) if result_date_raw else None
-
-    filters = Q()
-
-    if patient_query:
-        filters &= Q(consultation__patient__name__icontains=patient_query)
-
-    if lab_test_query:
-        filters &= Q(lab_test__name__icontains=lab_test_query)
-
-
-    if patient_query and lab_test_query:
-        filters &= Q(
-            consultation__patient__name__icontains=patient_query,
-            lab_test__name__icontains=lab_test_query
-        )
-    if result_date:
-        filters &= Q(result_date=result_date)
-    else:
-        if result_date_from:
-            filters &= Q(result_date__gte=result_date_from)
-        if result_date_to:
-            filters &= Q(result_date__lte=result_date_to)
-
-    
-    if filters:
-        historical_results_qs = historical_results_qs.filter(filters)
-
-    historical_results_qs = historical_results_qs.order_by("-result_date", "-id").distinct()
-
-    paginator = Paginator(results_qs, 10)
-    page_obj = paginator.get_page(request.GET.get("page"))
-    historical_paginator = Paginator(historical_results_qs, 10)
-    historical_page_obj = historical_paginator.get_page(request.GET.get("historical_page"))
-
-    return render(request, "emr/dashboard.html", {
-        "page_obj": page_obj,
-        "historical_page_obj": historical_page_obj,
-        "search_query": search_query,
-        "patient": patient_query,
-        "lab_test": lab_test_query,
-        "lab_queue": lab_queue,
-    })
-
-@login_required
-def lab_results_dashboard(request):
-    search_query = request.GET.get("search", "")
-    lab_queue = lab_queue = (
-        LabQueue.objects
-        .all()
-        .order_by("-consultation__date")  # latest consultation first
-        .distinct("patient_id")  # one row per patient
-    )
-
-
-    # Existing results logic...
-    results_qs = (
-        LabResult.objects.values("consultation__patient__name", "consultation_id")
-        .annotate(total_tests=Count("id"), last_test=Max("consultation__date"))
-        .order_by("-consultation__date")
-    )
-
-    if search_query:
-        results_qs = results_qs.filter(consultation__patient__name__icontains=search_query)
-
-
-
-    historical_results_qs = LabResult.objects.all()
-
-    patient_query = request.GET.get('patient', '')
-    lab_test_query = request.GET.get('lab_test', '')
-    result_date_from_raw = request.GET.get("result_date_from", "").strip()
-    result_date_to_raw   = request.GET.get("result_date_to", "").strip()
-    result_date_raw      = request.GET.get("result_date", "").strip()  # optional exact
-
-    result_date_from = parse_date(result_date_from_raw) if result_date_from_raw else None
-    result_date_to   = parse_date(result_date_to_raw) if result_date_to_raw else None
-    result_date      = parse_date(result_date_raw) if result_date_raw else None
-
-    filters = Q()
-
-    if patient_query:
-        filters &= Q(consultation__patient__name__icontains=patient_query)
-
-    if lab_test_query:
-        filters &= Q(lab_test__name__icontains=lab_test_query)
-
-
-    if patient_query and lab_test_query:
-        filters &= Q(
-            consultation__patient__name__icontains=patient_query,
-            lab_test__name__icontains=lab_test_query
-        )
-    if result_date:
-        filters &= Q(result_date=result_date)
-    else:
-        if result_date_from:
-            filters &= Q(result_date__gte=result_date_from)
-        if result_date_to:
-            filters &= Q(result_date__lte=result_date_to)
-
-    
-    if filters:
-        historical_results_qs = historical_results_qs.filter(filters)
-
-    historical_results_qs = historical_results_qs.order_by("-consultation__date").distinct()
-
-    paginator = Paginator(results_qs, 10)
-    page_obj = paginator.get_page(request.GET.get("page"))
-    historical_paginator = Paginator(historical_results_qs, 10)
-    historical_page_obj = historical_paginator.get_page(request.GET.get("historical_page"))
-
-    return render(request, "emr/lab_results_dashboard.html", {
-        "page_obj": page_obj,
-        "historical_page_obj": historical_page_obj,
-        "search_query": search_query,
-        "patient": patient_query,
-        "lab_test": lab_test_query,
-        "lab_queue": lab_queue,
-    })
-
-
-
-@login_required
-def lab_search_dashboard(request):
-    search_query = request.GET.get("search", "")
-    lab_queue = lab_queue = (
-        LabQueue.objects
-        .filter(status__in=["waiting", "in_progress"])
-        .order_by("patient_id", "-consultation__date")  # latest consultation first
-        .distinct("patient_id")  # one row per patient
-    )
-
-
-    # Existing results logic...
-    results_qs = (
-        LabResult.objects.values("consultation__patient__name", "consultation_id")
-        .annotate(total_tests=Count("id"), last_test=Max("result_date"))
-    )
-
-    if search_query:
-        results_qs = results_qs.filter(consultation__patient__name__icontains=search_query)
-
-
-
-    historical_results_qs = LabResult.objects.all()
-
-    patient_query = request.GET.get('patient', '')
-    lab_test_query = request.GET.get('lab_test', '')
-    result_date_from_raw = request.GET.get("result_date_from", "").strip()
-    result_date_to_raw   = request.GET.get("result_date_to", "").strip()
-    result_date_raw      = request.GET.get("result_date", "").strip()  # optional exact
-
-    result_date_from = parse_date(result_date_from_raw) if result_date_from_raw else None
-    result_date_to   = parse_date(result_date_to_raw) if result_date_to_raw else None
-    result_date      = parse_date(result_date_raw) if result_date_raw else None
-
-    filters = Q()
-
-    if patient_query:
-        filters &= Q(consultation__patient__name__icontains=patient_query)
-
-    if lab_test_query:
-        filters &= Q(lab_test__name__icontains=lab_test_query)
-
-
-    if patient_query and lab_test_query:
-        filters &= Q(
-            consultation__patient__name__icontains=patient_query,
-            lab_test__name__icontains=lab_test_query
-        )
-    if result_date:
-        filters &= Q(result_date=result_date)
-    else:
-        if result_date_from:
-            filters &= Q(result_date__gte=result_date_from)
-        if result_date_to:
-            filters &= Q(result_date__lte=result_date_to)
-
-    
-    if filters:
-        historical_results_qs = historical_results_qs.filter(filters)
-
-    historical_results_qs = historical_results_qs.order_by("-result_date", "-id").distinct()
-
-    paginator = Paginator(results_qs, 10)
-    page_obj = paginator.get_page(request.GET.get("page"))
-    historical_paginator = Paginator(historical_results_qs, 10)
-    historical_page_obj = historical_paginator.get_page(request.GET.get("historical_page"))
-
-    return render(request, "emr/lab_search_dashboard.html", {
-        "page_obj": page_obj,
-        "historical_page_obj": historical_page_obj,
-        "search_query": search_query,
-        "patient": patient_query,
-        "lab_test": lab_test_query,
-        "lab_queue": lab_queue,
-    })
-
-def view_lab_results(request, consultation_id):
-    results = LabResult.objects.all()
-    consultation = results.first().consultation if results.exists() else None
-    return render(request, 'emr/view_results.html', {
-        'results': results,
-        'consultation': consultation
-    })
-
-
-
-# patient/views.py
-
-
 def lab_queue_view(request, lab_id):
+    """Legacy view kept for URL compatibility."""
     lab = get_object_or_404(Lab, id=lab_id)
-    queue = LabQueue.objects.filter(lab=lab, status__in=["waiting", "in_progress","inlab"]).order_by("queue_number")
-
-    return render(request, "emr/dashboard.html", {
-        "lab": lab,
-        "queue": queue,
-    })
-
-
-@login_required
-def start_lab_test(request, queue_id):
-    queue_item = get_object_or_404(LabQueue, id=queue_id)
-    queue_item.start()
-    if Lab.objects.filter(lab_type="Internal").exists():
-        internal_lab = Lab.objects.get(lab_type="Internal")
-        queue_item.lab = internal_lab
-        queue_item.save()
-    
-
-    messages.success(request, f"Started test for {queue_item.patient.name}.")
-    return redirect('add_result')
-
-
-@login_required
-def complete_lab_test(request, queue_id):
-    queue_item = get_object_or_404(LabQueue, id=queue_id)
-    lab = get_object_or_404(Lab, lab_type="Internal")
-    queue_item.complete()
-    doctor_queue = Queue.objects.filter(
-        clinic=queue_item.clinic,
-        doctor=queue_item.consultation.doctor,
-        patient=queue_item.patient,
-        status="inlab"
-    ).first()
-    if doctor_queue:
-        doctor_queue.status = "fromLab"
-        doctor_queue.save()
-    messages.success(request, f"Completed test for {queue_item.patient.name}.")
-    return redirect('lab_dashboard')
-
-
-
-
-def send_to_lab(request, consultation_id, patient_id):
-    consultation = None
-    if consultation_id == 0:
-        patient = get_object_or_404(Patient, id=patient_id)
-        consultations = Consultation.objects.filter(patient=patient)
-        if consultations.exists():
-            print('This consultation already exists')
-        consultation = Consultation.objects.create(patient=patient, doctor=patient.doctor, date=timezone.now(),chief_complaints="N/A")
-    else:
-        consultation = get_object_or_404(Consultation, id=consultation_id)
-    
-    patient = consultation.patient
-    clinic = patient.clinic
-
-    if request.method == "POST":
-        selected_lab_tests = request.POST.getlist("lab_tests")  # get selected tests from <select multiple>
-
-        if not selected_lab_tests:
-            messages.warning(request, "Please select at least one lab test.")
-            return redirect('doctor_detail', pk=consultation.doctor.id)
-
-        # ✅ Check if there is any in-progress test for this patient
-        has_in_progress = LabQueue.objects.filter(
-            patient=patient,
-            status="in_progress"  # assuming your LabQueue has a status field
-        ).exists()
-
-        if has_in_progress:
-            messages.warning(
-                request,
-                f"{patient.name} already has a test in progress. Wait for it to complete before adding new ones."
-            )
-            return redirect('doctor_detail', pk=consultation.doctor.id)
-
-        # Create one LabQueue per selected test
-        for lab_test_id in selected_lab_tests:
-            lab_test = get_object_or_404(LabTest, id=lab_test_id)
-            
-            try:
-                bill = Bill.objects.filter(patient=patient,is_paid=False).latest('created_at')
-                bill.total_amount += lab_test.price
-                bill.is_paid = False
-                bill.save()
-                
-            except Exception as e:
-                messages.error(request, f"Error creating bill for {lab_test.name}: {str(e)}")
-                
-            LabQueue.objects.create(
-                clinic=clinic,
-                patient=patient,
-                consultation=consultation,
-                lab_test=lab_test,
-                status="in_progress",
-            )
-
-        # Update Doctor Queue status
-        Queue.objects.filter(
-            clinic=clinic,
-            doctor=consultation.doctor,
-            patient=patient,
-            status__in=["waiting", "in_progress"]
-        ).update(status="inlab")
-
-        messages.success(request, f"✅ {patient.name} has been sent to the lab for selected tests successfully, with billing generated.")
-        return redirect('doctor_detail', pk=consultation.doctor.id)
-
-    # Fallback for GET requests
-    messages.error(request, "Invalid request method.")
-    return redirect('doctor_detail', pk=consultation.doctor.id)
-
-
-
-def lab_queue_count_api(request):
-    count = LabQueue.objects.filter(status='in_progress').count()
-    print(f"Lab queue count requested, current count: {count}")
-    return JsonResponse({'count': count})
+    queue = LabQueue.objects.filter(
+        lab=lab, status__in=["waiting", "in_progress"]
+    ).order_by("queue_number")
+    return render(request, "emr/dashboard.html", {"lab": lab, "lab_queue": queue})

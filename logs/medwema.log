@@ -1,0 +1,37 @@
+2026-05-22 08:23:51 [INFO] patient.views: Patient 'Aidan Mlay' added to Dr. Violet Atieno queue by skywavemedicalclinic, fee=1500
+2026-05-22 08:24:02 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=operations clinic=3
+2026-05-22 08:24:23 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=operations code=1001
+2026-05-22 08:24:29 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=operations clinic=3
+2026-05-22 08:24:32 [INFO] patient.views: Patient 'Allan Njue' added to Dr. Violet Atieno queue by skywavemedicalclinic, fee=1500
+2026-05-22 08:24:37 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=operations code=1001
+2026-05-22 08:24:44 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=operations clinic=3
+2026-05-22 08:24:45 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=operations code=1006
+2026-05-22 08:25:53 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=operations clinic=3
+2026-05-22 08:25:57 [INFO] billing.views: Bill #186 marked as paid (CASH) by skywavemedicalclinic
+2026-05-22 08:25:59 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=operations code=1001
+2026-05-22 08:26:04 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=operations clinic=3
+2026-05-22 08:26:29 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=operations code=1001
+2026-05-22 08:26:34 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=operations clinic=3
+2026-05-22 08:26:35 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=operations code=1001
+2026-05-22 08:26:40 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=operations clinic=3
+2026-05-22 08:31:31 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=operations code=1001
+2026-05-22 08:31:35 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3
+2026-05-22 08:36:30 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3
+2026-05-22 08:36:32 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=laboratory code=1001
+2026-05-22 08:43:20 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3
+2026-05-22 08:43:22 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=laboratory code=1006
+2026-05-22 08:43:27 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3
+2026-05-22 08:43:29 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=laboratory code=1006
+2026-05-22 08:43:33 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3
+2026-05-22 08:43:35 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=laboratory code=1006
+2026-05-22 08:43:43 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3
+2026-05-22 08:43:45 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=laboratory code=1001
+2026-05-22 08:43:51 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3
+2026-05-22 08:43:52 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=laboratory code=1006
+2026-05-22 08:43:57 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3
+2026-05-22 08:43:58 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=laboratory code=1006
+2026-05-22 08:44:10 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3
+2026-05-22 08:44:12 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=laboratory code=1001
+2026-05-22 08:44:18 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3
+2026-05-22 08:44:50 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=laboratory code=1001
+2026-05-22 08:44:56 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3

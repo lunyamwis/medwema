@@ -1,64 +1,51 @@
-from django.db.models.signals import post_save, pre_save
-from django.dispatch import receiver
-from .models import Queue
-from chat.models import ChatMessage
-from webpush import send_user_notification
-from authentication.models import User  
-from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 from notification.models import Notification
 
+from .models import Queue
+
+
+def _get_clinic_users(clinic):
+    """Return all active users belonging to the clinic."""
+    return clinic.staff.filter(is_active=True) if clinic else []
+
+
 @receiver(post_save, sender=Queue)
-def notify_lab_queue(sender, instance, created, **kwargs):
-    if created:
-        channel_layer = get_channel_layer()
+def notify_patient_queue(sender, instance, created, **kwargs):
+    if not created:
+        return
+    channel_layer = get_channel_layer()
+    if channel_layer:
         async_to_sync(channel_layer.group_send)(
-            "patients",  # channel group
-            {
-                "type": "patient_alert",
-                "message": f"New patient: {instance.patient.name}"
-            }
+            "patients",
+            {"type": "patient_alert", "message": f"New patient: {instance.patient.name}"},
         )
-        payload = {
-            "head": "New Patient Added",
-            "body": f"{instance.patient.name} added to the queue.",
-            # "icon": "/static/icons/alert.png",
-            "url": "/patients/doctors/"
-        }
-
-        user = User.objects.get(username='baharimedicalclinic')
-        # payload = {"head": "Patient Arrival!", "body": "A new patient has arrived!"}
-        send_user_notification(user=user, payload=payload, ttl=1000)
-
-        # Also create a Notification entry in the database
-        Notification.objects.create(
-            user=user,
-            title="New Patient Added",
-            body=f"{instance.patient.name} added to the queue.",
-            url="/patients/doctors/"
-        )
+    clinic = instance.clinic
+    if clinic:
+        for user in _get_clinic_users(clinic):
+            Notification.objects.create(
+                user=user,
+                title="New Patient Added",
+                body=f"{instance.patient.name} added to queue #{instance.queue_number}.",
+                url="/patients/",
+            )
 
 
-
-@receiver(post_save, sender=ChatMessage)
-def notify_lab_queue(sender, instance, created, **kwargs):
-    if created:
-        
-        payload = {
-            "head": "New Message Arrived",
-            "body": f"A message has arrived for chat room {instance.room.name}",
-            # "icon": "/static/icons/alert.png",
-            "url": "/chat/"
-        }
-
-        user = User.objects.get(username='baharimedicalclinic')
-        # payload = {"head": "Patient Arrival!", "body": "A new patient has arrived!"}
-        send_user_notification(user=user, payload=payload, ttl=1000)
-
-        # Also create a Notification entry in the database
-        Notification.objects.create(
-            user=user,
-            title="New Message Arrived",
-            body=f"A message has arrived for chat room {instance.room.name}",
-            url="/chat/"
-        )
+@receiver(post_save, sender="chat.ChatMessage")
+def notify_chat_message(sender, instance, created, **kwargs):
+    if not created:
+        return
+    room = instance.room
+    clinic = getattr(room, "clinic", None)
+    if clinic:
+        for user in _get_clinic_users(clinic):
+            if user != instance.sender:
+                Notification.objects.create(
+                    user=user,
+                    title="New Message",
+                    body=f"New message in {room.name}",
+                    url="/chat/",
+                )

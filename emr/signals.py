@@ -1,39 +1,37 @@
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import LabQueue
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
-from webpush import send_user_notification
-from authentication.models import User  
+
 from notification.models import Notification
+
+from .models import LabQueue
+
 
 @receiver(post_save, sender=LabQueue)
 def notify_lab_queue(sender, instance, created, **kwargs):
-    if created:
-        channel_layer = get_channel_layer()
-        print("New LabQueue entry created, sending notification...")
+    if not created:
+        return
+    channel_layer = get_channel_layer()
+    if channel_layer:
         async_to_sync(channel_layer.group_send)(
             "lab_notifications",
             {
                 "type": "send_lab_notification",
-                "message": f"New patient {instance.patient.name} added to queue #{instance.queue_number}"
-            }
+                "message": (
+                    f"{instance.patient.name} added to lab queue #{instance.queue_number}"
+                ),
+            },
         )
-
-        payload = {
-            "head": "Patient Sent To Lab",
-            "body": f"{instance.patient.name} added to the queue.",
-            # "icon": "/static/icons/alert.png",
-            "url": "/emr/"
-        }
-
-        user = User.objects.get(username='baharimedicalclinic')
-        # payload = {"head": "Patient Arrival!", "body": "A new patient has arrived!"}
-        send_user_notification(user=user, payload=payload, ttl=1000)
-        # Also create a Notification entry in the database
-        Notification.objects.create(
-            user=user,
-            title="Patient Sent To Lab",
-            body=f"{instance.patient.name} added to the lab queue.",
-            url="/emr/"
-        )
+    clinic = instance.clinic
+    if clinic:
+        for user in clinic.staff.filter(is_active=True):
+            Notification.objects.create(
+                user=user,
+                title="Patient Sent to Lab",
+                body=(
+                    f"{instance.patient.name} sent to lab"
+                    f" — {instance.lab_test.name if instance.lab_test else 'test'}."
+                ),
+                url="/emr/",
+            )

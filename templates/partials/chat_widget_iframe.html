@@ -1,172 +1,221 @@
 {# templates/partials/chat_widget_iframe.html #}
 <style>
-  .chatbot-fab {
-    position: fixed; right: 18px; bottom: 18px;
-    width: 58px; height: 58px; border-radius: 999px;
-    border: 0; cursor: pointer;
-    background: #111827; color: white;
-    box-shadow: 0 12px 30px rgba(0,0,0,.22);
-    display:flex; align-items:center; justify-content:center;
+  /* ── FAB ── */
+  #cw-fab {
+    position: fixed; right: 20px; bottom: 20px;
+    width: 58px; height: 58px; border-radius: 50%;
+    border: none; cursor: pointer;
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    color: #fff; font-size: 1.5rem;
+    box-shadow: 0 6px 20px rgba(18,140,126,.45);
+    display: flex; align-items: center; justify-content: center;
     z-index: 9999;
+    transition: transform .2s, box-shadow .2s;
   }
-  .chatbot-fab:hover { opacity:.95; }
+  #cw-fab:hover { transform: scale(1.08); box-shadow: 0 8px 28px rgba(18,140,126,.55); }
+  #cw-fab:active { transform: scale(.95); }
+  /* pulse ring when closed */
+  #cw-fab::after {
+    content: "";
+    position: absolute; inset: -4px; border-radius: 50%;
+    border: 2px solid rgba(37,211,102,.4);
+    animation: fab-pulse 2.4s ease-out infinite;
+  }
+  @keyframes fab-pulse {
+    0%   { transform: scale(1);   opacity: .9; }
+    70%  { transform: scale(1.35); opacity: 0; }
+    100% { transform: scale(1.35); opacity: 0; }
+  }
+  #cw-fab.open::after { display: none; }
 
-  .chatbot-panel {
-    position: fixed; right: 18px; bottom: 88px;
-    width: 380px; height: 520px;
-    max-width: calc(100vw - 36px);
-    max-height: calc(100vh - 120px);
-    border-radius: 16px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 18px 50px rgba(0,0,0,.18);
-    z-index: 9999;
+  /* ── Panel ── */
+  #cw-panel {
+    position: fixed; right: 20px; bottom: 90px;
+    width: 370px;
+    max-width: calc(100vw - 28px);
+    max-height: calc(100vh - 110px);
+    border-radius: 18px;
     overflow: hidden;
-    transform: translateY(10px);
-    opacity: 0;
-    pointer-events: none;
-    transition: all .18s ease;
-    display:flex; flex-direction:column;
+    box-shadow: 0 20px 60px rgba(0,0,0,.22);
+    z-index: 9999;
+    display: flex; flex-direction: column;
+    transform: translateY(16px) scale(.97);
+    opacity: 0; pointer-events: none;
+    transition: transform .2s cubic-bezier(.34,1.56,.64,1), opacity .18s ease;
   }
-  .chatbot-panel.open{
-    transform: translateY(0);
-    opacity:1;
-    pointer-events:auto;
-  }
-
-  .chatbot-header{
-    background:#111827; color:#fff;
-    padding:10px 12px;
-    display:flex; align-items:center; justify-content:space-between;
-    gap:10px;
-  }
-  .chatbot-header b{font-size:14px}
-  .chatbot-header .meta{color:#cbd5e1; font-size:12px}
-
-  .chatbot-close{
-    background: rgba(255,255,255,.14);
-    border:0; color:#fff; border-radius:10px;
-    padding:6px 10px; cursor:pointer; font-weight:800;
+  #cw-panel.open {
+    transform: translateY(0) scale(1);
+    opacity: 1; pointer-events: auto;
   }
 
-  .chatbot-roombar{
-    padding:10px 12px; border-bottom:1px solid #eef2f7;
-    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-    background:#fff;
+  /* ── Panel header ── */
+  #cw-header {
+    background: linear-gradient(90deg, #075E54 0%, #128C7E 100%);
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    flex-shrink: 0;
   }
-  .chatbot-roombar input{
-    flex:1; min-width:150px;
-    padding:9px 10px; border-radius:12px;
-    border:1px solid #e5e7eb; outline:none;
+  #cw-header .hav {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,.18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
   }
-  .chatbot-roombar input:focus{
-    border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.15);
+  #cw-header .htitle  { color: #fff; font-weight: 700; font-size: .92rem; }
+  #cw-header .hsub    { color: rgba(255,255,255,.7); font-size: .7rem; }
+  #cw-close {
+    background: rgba(255,255,255,.15); border: none; color: #fff;
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; transition: background .15s; flex-shrink: 0;
   }
-  .chatbot-btn{
-    border:0; border-radius:12px;
-    padding:9px 10px; cursor:pointer;
-    font-weight:800; font-size:12px;
-  }
-  .chatbot-btn.primary{background:#2563eb; color:#fff}
-  .chatbot-btn.secondary{background:#f3f4f6; color:#111827}
+  #cw-close:hover { background: rgba(255,255,255,.28); }
 
-  .chatbot-iframe{
-    width:100%; height:100%; border:0;
-    flex:1; background:#fff;
+  /* ── Room tabs ── */
+  #cw-rooms {
+    background: #fff;
+    padding: 8px 10px;
+    display: flex; gap: 6px;
+    border-bottom: 1px solid #eef0f2;
+    flex-shrink: 0; overflow-x: auto;
+    scrollbar-width: none;
+  }
+  #cw-rooms::-webkit-scrollbar { display: none; }
+  .cw-room-btn {
+    flex-shrink: 0;
+    display: flex; align-items: center; gap: 5px;
+    padding: 5px 11px; border-radius: 999px;
+    border: 1.5px solid #e5e7eb;
+    background: #f9fafb; color: #374151;
+    font-size: .75rem; font-weight: 600; cursor: pointer;
+    transition: all .15s; white-space: nowrap;
+    text-decoration: none;
+  }
+  .cw-room-btn:hover {
+    border-color: #128C7E; color: #075E54;
+    background: #e8f5e9;
+  }
+  .cw-room-btn.active {
+    background: #075E54; color: #fff;
+    border-color: #075E54;
+  }
+  .cw-room-btn i { font-size: .82rem; }
+
+  /* ── Iframe ── */
+  #cw-iframe {
+    flex: 1; border: none; background: #ECE5DD;
+    min-height: 360px;
   }
 
-  @media (max-width: 480px){
-    .chatbot-panel{width: calc(100vw - 36px); height: 70vh;}
+  @media (max-width: 480px) {
+    #cw-panel { width: calc(100vw - 24px); bottom: 86px; }
   }
 </style>
 
-<button id="chatbot-fab" class="chatbot-fab" aria-label="Open chat">💬</button>
+<!-- FAB -->
+<button id="cw-fab" aria-label="Open team chat">
+  <i class="bi bi-chat-dots-fill"></i>
+</button>
 
-<div id="chatbot-panel" class="chatbot-panel" role="dialog" aria-label="Chat widget">
-  <div class="chatbot-header">
-    <div>
-      <b>Clinic Chat</b>
-      <span class="meta" id="chat-meta">Room: <span id="chat-room-label">general</span></span>
+<!-- Panel -->
+<div id="cw-panel" role="dialog" aria-label="Team Chat">
+
+  <!-- Header -->
+  <div id="cw-header">
+    <div class="hav" id="cw-room-icon"><i class="bi bi-chat-dots-fill"></i></div>
+    <div style="flex:1; overflow:hidden;">
+      <div class="htitle" id="cw-room-title">Team Chat</div>
+      <div class="hsub">Clinic internal messaging</div>
     </div>
-    <button id="chatbot-close" class="chatbot-close" type="button">✕</button>
+    <button id="cw-close" aria-label="Close chat">
+      <i class="bi bi-x-lg"></i>
+    </button>
   </div>
 
-  <div class="chatbot-roombar">
-    <input id="chat-room-input" type="text" placeholder="laboratory | doctors | operations | general" autocomplete="off" />
-    <button id="chat-room-go" class="chatbot-btn primary" type="button">Join</button>
-    <button id="chat-room-general" class="chatbot-btn secondary" type="button">General</button>
+  <!-- Room tabs -->
+  <div id="cw-rooms">
+    <button class="cw-room-btn" data-room="general"    data-icon="bi-chat-dots-fill"       data-color="#198754">
+      <i class="bi bi-chat-dots-fill"></i> General
+    </button>
+    <button class="cw-room-btn" data-room="doctors"    data-icon="bi-heart-pulse-fill"     data-color="#0d6efd">
+      <i class="bi bi-heart-pulse-fill"></i> Doctors
+    </button>
+    <button class="cw-room-btn" data-room="laboratory" data-icon="bi-eyedropper"           data-color="#6f42c1">
+      <i class="bi bi-eyedropper"></i> Lab
+    </button>
+    <button class="cw-room-btn" data-room="operations" data-icon="bi-gear-wide-connected"  data-color="#fd7e14">
+      <i class="bi bi-gear-wide-connected"></i> Ops
+    </button>
   </div>
 
-  <iframe id="chat-iframe" class="chatbot-iframe" title="Chat"></iframe>
+  <!-- Chat iframe -->
+  <iframe id="cw-iframe" title="Chat room"></iframe>
+
 </div>
 
 <script>
-(function(){
-  const fab = document.getElementById("chatbot-fab");
-  const panel = document.getElementById("chatbot-panel");
-  const closeBtn = document.getElementById("chatbot-close");
-  const roomInput = document.getElementById("chat-room-input");
-  const goBtn = document.getElementById("chat-room-go");
-  const generalBtn = document.getElementById("chat-room-general");
-  const iframe = document.getElementById("chat-iframe");
-  const roomLabel = document.getElementById("chat-room-label");
+(function () {
+  "use strict";
 
-  const STORAGE_KEY_ROOM = "chat_widget_room";
-  const STORAGE_KEY_OPEN = "chat_widget_open";
+  const fab    = document.getElementById("cw-fab");
+  const panel  = document.getElementById("cw-panel");
+  const closeB = document.getElementById("cw-close");
+  const iframe = document.getElementById("cw-iframe");
+  const roomBtns   = document.querySelectorAll(".cw-room-btn");
+  const roomTitle  = document.getElementById("cw-room-title");
+  const roomIcon   = document.getElementById("cw-room-icon");
 
-  function setRoom(room){
-    const clean = (room || "").trim().toLowerCase() || "general";
-    localStorage.setItem(STORAGE_KEY_ROOM, clean);
-    roomLabel.textContent = clean;
+  const KEY_ROOM = "cw_room";
+  const KEY_OPEN = "cw_open";
 
-    // Add ?embed=1 to tell the room page to hide layout and fit the widget
-    iframe.src = "/chat/" + encodeURIComponent(clean) + "/?embed=1";
+  function setRoom(name) {
+    const btn = [...roomBtns].find(b => b.dataset.room === name) || roomBtns[0];
+    roomBtns.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const icon  = btn.dataset.icon;
+    const color = btn.dataset.color;
+    const label = btn.dataset.room;
+
+    roomTitle.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+    roomIcon.innerHTML = `<i class="bi ${icon}"></i>`;
+    roomIcon.style.background = color + "33";
+    roomIcon.querySelector("i").style.color = "#fff";
+    roomIcon.style.background = color;
+
+    iframe.src = "/chat/" + encodeURIComponent(label) + "/?embed=1";
+    localStorage.setItem(KEY_ROOM, label);
   }
 
-  function openPanel(){
+  function open() {
     panel.classList.add("open");
-    localStorage.setItem(STORAGE_KEY_OPEN, "1");
-    setTimeout(() => roomInput.focus(), 50);
+    fab.classList.add("open");
+    localStorage.setItem(KEY_OPEN, "1");
   }
-
-  function closePanel(){
+  function close() {
     panel.classList.remove("open");
-    localStorage.setItem(STORAGE_KEY_OPEN, "0");
+    fab.classList.remove("open");
+    localStorage.setItem(KEY_OPEN, "0");
   }
+  function toggle() { panel.classList.contains("open") ? close() : open(); }
 
-  function join(){
-    const room = roomInput.value;
-    if(!room.trim()){
-      roomInput.focus();
-      roomInput.style.borderColor = "#ef4444";
-      setTimeout(()=> roomInput.style.borderColor = "#e5e7eb", 700);
-      return;
-    }
-    setRoom(room);
-  }
+  fab.addEventListener("click", toggle);
+  closeB.addEventListener("click", close);
 
-  fab.addEventListener("click", () => panel.classList.contains("open") ? closePanel() : openPanel());
-  closeBtn.addEventListener("click", closePanel);
-
-  goBtn.addEventListener("click", join);
-  generalBtn.addEventListener("click", () => { roomInput.value = "general"; join(); });
-
-  roomInput.addEventListener("keyup", (e) => {
-    if(e.key === "Enter") join();
-    if(e.key === "Escape") closePanel();
+  roomBtns.forEach(btn => {
+    btn.addEventListener("click", () => setRoom(btn.dataset.room));
   });
 
-  document.addEventListener("click", (e) => {
-    const inside = panel.contains(e.target) || fab.contains(e.target);
-    if(!inside && panel.classList.contains("open")) closePanel();
+  // Close on outside click
+  document.addEventListener("click", e => {
+    if (!panel.contains(e.target) && !fab.contains(e.target) && panel.classList.contains("open")) {
+      close();
+    }
   });
 
   // Restore state
-  const savedRoom = localStorage.getItem(STORAGE_KEY_ROOM) || "general";
-  roomInput.value = savedRoom;
+  const savedRoom = localStorage.getItem(KEY_ROOM) || "general";
   setRoom(savedRoom);
-
-  const savedOpen = localStorage.getItem(STORAGE_KEY_OPEN);
-  if(savedOpen === "1") openPanel();
+  if (localStorage.getItem(KEY_OPEN) === "1") open();
 })();
 </script>

@@ -1,57 +1,160 @@
 {% extends 'base.html' %}
-{% block content %}
-<div class="container py-5">
-  <div class="card shadow border-0 rounded-4">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-      <h4 class="mb-0">🧪 Lab Results</h4>
-      <div>
-        <a href="{% url 'lab_dashboard' %}" class="btn btn-light btn-sm">⬅️ Back</a>
-        <a href="{% url 'print_lab_results' consultation.id %}" target="_blank" class="btn btn-warning btn-sm">🖨️ Print</a>
-      </div>
-    </div>
-    <div class="card-body">
-      {% if consultation %}
-        <div class="mb-4">
-          <h5 class="text-primary fw-bold">Patient Details</h5>
-          <p class="mb-1"><strong>Name:</strong> {{ consultation.patient.name }}</p>
-          <p class="mb-1"><strong>Consultation Date:</strong> {{ consultation.date|date:"Y-m-d H:i" }}</p>
-          <p class="mb-1"><strong>Doctor:</strong> {{ consultation.doctor.get_full_name }}</p>
-        </div>
-      {% endif %}
+{% load static %}
 
-      {% if results %}
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped align-middle">
-            <thead class="table-light">
-              <tr>
-                <th>Test Name</th>
-                <th>Result Name</th>
-                <th>Result Value</th>
-                <th>Unit</th>
-                <th>Reference Range</th>
-                <th>Interpretation</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for result in results %}
-              <tr>
-                <td>{{ result.lab_test.name }}</td>
-                <td>{{ result.result_name }}</td>
-                <td>{{ result.result_value }}</td>
-                <td>{{ result.lab_test.unit }}</td>
-                <td>{{ result.lab_test.reference_min }} - {{ result.lab_test.reference_max }}</td>
-                <td>{{ result.lab_test.description }}</td>
-                <td>{{ result.result_date|date:"Y-m-d" }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+{% block title %}Lab Results — {{ consultation.patient.name|default:"Patient" }}{% endblock %}
+{% block page_title %}Lab Results{% endblock %}
+{% block nav_lab %}active{% endblock %}
+
+{% block content %}
+
+{# ── Page header ─────────────────────────────────────────────────────────── #}
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb mb-1">
+      <a href="{% url 'lab_dashboard' %}">Lab Dashboard</a>
+      <i class="bi bi-chevron-right" style="font-size:.625rem"></i>
+      <span>Results</span>
+    </div>
+    <h1 class="page-heading">Lab Results</h1>
+    {% if consultation %}
+    <p class="page-subheading">{{ consultation.patient.name }}</p>
+    {% endif %}
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if consultation %}
+    <a href="{% url 'edit_lab_results' consultation.id %}" class="btn btn-outline-secondary">
+      <i class="bi bi-pencil me-1"></i>Edit
+    </a>
+    <a href="{% url 'print_lab_results' consultation.id %}" class="btn btn-outline-dark" target="_blank">
+      <i class="bi bi-printer me-1"></i>Print PDF
+    </a>
+    {% endif %}
+    <a href="{% url 'lab_dashboard' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Dashboard
+    </a>
+  </div>
+</div>
+
+{# ── Patient info ────────────────────────────────────────────────────────── #}
+{% if consultation %}
+<div class="card mb-4">
+  <div class="card-header">
+    <i class="bi bi-person-lines-fill me-2 text-primary"></i>Patient Information
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-sm-6 col-lg-3">
+        <div style="font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)">Patient</div>
+        <div class="fw-semibold mt-1">{{ consultation.patient.name }}</div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div style="font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)">Consultation Date</div>
+        <div class="fw-semibold mt-1">{{ consultation.date|date:"M j, Y H:i" }}</div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div style="font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)">Doctor</div>
+        <div class="fw-semibold mt-1">
+          {% if consultation.doctor %}Dr. {{ consultation.doctor.name }}{% else %}<span class="text-muted">—</span>{% endif %}
         </div>
-      {% else %}
-        <div class="alert alert-info">No results found for this consultation.</div>
-      {% endif %}
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <div style="font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted)">Total Tests</div>
+        <div class="fw-semibold mt-1">{{ results|length }}</div>
+      </div>
     </div>
   </div>
 </div>
+{% endif %}
+
+{# ── Results table ───────────────────────────────────────────────────────── #}
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-clipboard2-pulse-fill me-2 text-primary"></i>Test Results</span>
+    {% if results %}
+    <span class="badge bg-primary rounded-pill">{{ results|length }} test{{ results|length|pluralize }}</span>
+    {% endif %}
+  </div>
+  <div class="card-body p-0">
+    {% if results %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>Test Name</th>
+            <th>Sub-test / Parameter</th>
+            <th>Result</th>
+            <th>Unit</th>
+            <th>Reference Range</th>
+            <th>Status</th>
+            <th style="white-space:nowrap">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for result in results %}
+          <tr {% if result.is_abnormal %}class="table-danger"{% endif %}>
+            <td class="text-muted fw-medium">{{ forloop.counter }}</td>
+            <td class="fw-semibold">{{ result.lab_test.name|default:"—" }}</td>
+            <td>{{ result.result_name|default:"—" }}</td>
+            <td>
+              {% if result.is_abnormal %}
+                <span class="fw-bold text-danger">{{ result.result_value|default:"—" }}</span>
+                <i class="bi bi-exclamation-triangle-fill text-danger ms-1" title="Abnormal value"></i>
+              {% else %}
+                <span class="fw-semibold">{{ result.result_value|default:"—" }}</span>
+              {% endif %}
+            </td>
+            <td class="text-muted">{{ result.lab_test.unit|default:"—" }}</td>
+            <td class="text-muted" style="font-size:.8125rem">
+              {% if result.lab_test %}
+                {{ result.lab_test.reference_range_display }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if result.is_abnormal %}
+                <span class="badge badge-urgent">
+                  <i class="bi bi-exclamation-triangle me-1"></i>Abnormal
+                </span>
+              {% else %}
+                <span class="badge badge-completed">
+                  <i class="bi bi-check2 me-1"></i>Normal
+                </span>
+              {% endif %}
+            </td>
+            <td style="font-size:.8125rem;white-space:nowrap">{{ result.result_date|date:"M j, Y" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Abnormal values legend #}
+    {% for result in results %}
+      {% if result.is_abnormal %}
+      <div class="px-3 py-2 border-top" style="background:#fff5f5;font-size:.8125rem;color:#991b1b">
+        <i class="bi bi-info-circle me-1"></i>
+        <strong>Note:</strong> One or more results are outside the normal reference range.
+        Please consult the attending physician.
+      </div>
+      {% endif %}
+      {% if not forloop.last %}{% else %}{% endif %}
+    {% endfor %}
+
+    {% else %}
+    <div class="d-flex flex-column align-items-center justify-content-center py-5 text-center text-muted">
+      <i class="bi bi-clipboard2-x" style="font-size:2.5rem;opacity:.3"></i>
+      <p class="mt-3 mb-0 fw-medium">No results found</p>
+      <p style="font-size:.875rem">No lab results have been recorded for this consultation.</p>
+      {% if consultation %}
+      <a href="{% url 'add_result' consultation.id %}" class="btn btn-primary btn-sm mt-2">
+        <i class="bi bi-plus-circle me-1"></i>Add Results
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
 {% endblock %}

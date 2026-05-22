@@ -1,41 +1,292 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}Consultations — {{ patient.name }}{% endblock %}
+{% block page_title %}Patient Consultations{% endblock %}
+{% block nav_patients %}active{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-  <h3>Consultations for {{ patient.name }}</h3>
-  <div class="mb-3">
-    <a href="{% url 'new_consultation' patient.id %}" class="btn btn-primary">New Consultation</a>
+
+<!-- ── Page Header ── -->
+<div class="page-header">
+  <div class="page-header-left">
+    <div class="page-breadcrumb mb-1">
+      <a href="{% url 'patient_list' %}">Patients</a>
+      <i class="bi bi-chevron-right" style="font-size:.65rem"></i>
+      <a href="{% url 'patient_detail' patient.id %}">{{ patient.name }}</a>
+      <i class="bi bi-chevron-right" style="font-size:.65rem"></i>
+      <span>Consultations</span>
+    </div>
+    <h1 class="page-heading">
+      Consultations
+      <span class="fw-normal ms-1" style="color:var(--text-muted)">—</span>
+      <span class="ms-1">{{ patient.name }}</span>
+    </h1>
+    <p class="page-subheading">
+      {{ total_count }} consultation record{{ total_count|pluralize }}
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'patient_detail' patient.id %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Back to Profile
+    </a>
+    <a href="{% url 'new_consultation' patient.id %}" class="btn btn-primary">
+      <i class="bi bi-journal-plus me-1"></i>New Consultation
+    </a>
+  </div>
+</div>
+
+
+<!-- ── Summary Stats ── -->
+<div class="row g-3 mb-4">
+
+  <!-- Total Consultations -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon blue">
+        <i class="bi bi-journal-medical"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ total_count }}</div>
+        <div class="stat-label">Total Consultations</div>
+      </div>
+    </div>
   </div>
 
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Doctor</th>
-        <th>Diagnosis</th>
-        <th>Management</th>
-        <th>Return Date</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for c in consultations %}
-      <tr>
-        <td>{{ c.date|date:"Y-m-d H:i" }}</td>
-        <td>{{ c.doctor }}</td>
-        <td>{{ c.diagnosis|truncatechars:60 }}</td>
-        <td>{{ c.management }}</td>
-        <td>{{ c.return_date }}</td>
-        <td>
-          <a href="{% url 'consultation_detail' c.id %}" class="btn btn-sm btn-outline-primary">View</a>
-          <a href="{% url 'edit_consultation' patient.id c.id %}" class="btn btn-sm btn-outline-success">Continue</a>
-          <a href="{% url 'consultation_pdf' c.id %}" class="btn btn-sm btn-outline-secondary">PDF</a>
-          <a href="{% url 'add_prescription' c.id %}" class="btn btn-sm btn-outline-primary">📝 Add Prescription</a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="6">No consultations yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <!-- Last Consultation -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon green">
+        <i class="bi bi-calendar-check"></i>
+      </div>
+      <div>
+        {% if page_obj.object_list %}
+        <div class="stat-value" style="font-size:1.1rem;line-height:1.3">
+          {{ page_obj.object_list.0.date|date:"M j, Y" }}
+        </div>
+        <div class="stat-label">Last Consultation</div>
+        {% else %}
+        <div class="stat-value" style="font-size:1.1rem;color:var(--text-muted)">—</div>
+        <div class="stat-label">Last Consultation</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Completed -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon purple">
+        <i class="bi bi-check2-circle"></i>
+      </div>
+      <div>
+        <div class="stat-value">{{ total_count }}</div>
+        <div class="stat-label">Records on File</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Patient Number -->
+  <div class="col-sm-6 col-lg-3">
+    <div class="stat-card">
+      <div class="stat-icon amber">
+        <i class="bi bi-person-badge"></i>
+      </div>
+      <div>
+        <div class="stat-value" style="font-size:1.1rem;line-height:1.3">
+          #{{ patient.patient_number }}
+        </div>
+        <div class="stat-label">Patient Number</div>
+      </div>
+    </div>
+  </div>
+
 </div>
+
+
+<!-- ── Search ── -->
+<div class="card mb-4">
+  <div class="card-body py-3">
+    <form method="get" class="d-flex gap-2 align-items-center">
+      <div class="search-box flex-grow-1">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" class="form-control"
+               placeholder="Search by diagnosis, complaints or doctor…"
+               value="{{ query }}">
+      </div>
+      <button type="submit" class="btn btn-primary">Search</button>
+      {% if query %}
+      <a href="{% url 'patient_consultations' patient.id %}" class="btn btn-outline-secondary">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- ── Consultations Table / Empty State ── -->
+{% if page_obj.object_list or query %}
+
+<div class="table-card">
+
+  <!-- Table Header -->
+  <div class="d-flex align-items-center justify-content-between px-4 py-3"
+       style="border-bottom:1px solid var(--border);background:var(--surface)">
+    <div class="d-flex align-items-center gap-2">
+      <i class="bi bi-table text-primary" style="font-size:1rem"></i>
+      <span class="fw-600" style="font-weight:600;font-size:.9375rem">
+        {% if query %}Results for &ldquo;{{ query }}&rdquo;{% else %}Consultation History{% endif %}
+      </span>
+    </div>
+    <a href="{% url 'new_consultation' patient.id %}" class="btn btn-sm btn-primary">
+      <i class="bi bi-plus me-1"></i>New
+    </a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Number</th>
+          <th>Doctor</th>
+          <th>Diagnosis</th>
+          <th>Return Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in page_obj %}
+        <tr>
+
+          <!-- Date -->
+          <td>
+            <div class="fw-medium">{{ c.date|date:"M j, Y" }}</div>
+            <div style="font-size:.75rem;color:var(--text-muted)">{{ c.date|date:"H:i" }}</div>
+          </td>
+
+          <!-- Consultation Number -->
+          <td>
+            <span class="badge"
+                  style="background:#eff6ff;color:#2563eb;font-size:.75rem;font-weight:500;padding:.3em .65em;border:1px solid #bfdbfe">
+              #{{ c.consultation_number|default:c.id }}
+            </span>
+          </td>
+
+          <!-- Doctor -->
+          <td>
+            {% if c.doctor %}
+            <div class="d-flex align-items-center gap-2">
+              <div style="
+                width:28px;height:28px;border-radius:50%;flex-shrink:0;
+                background:linear-gradient(135deg,#2563eb,#7c3aed);
+                color:#fff;display:grid;place-items:center;
+                font-weight:700;font-size:.7rem;
+              ">{{ c.doctor.name|first|upper }}</div>
+              <span class="fw-medium">Dr. {{ c.doctor.name }}</span>
+            </div>
+            {% else %}
+            <span class="text-muted fst-italic">—</span>
+            {% endif %}
+          </td>
+
+          <!-- Diagnosis -->
+          <td style="max-width:220px">
+            {% if c.diagnosis %}
+            <span title="{{ c.diagnosis }}">{{ c.diagnosis|truncatechars:80 }}</span>
+            {% else %}
+            <span class="text-muted fst-italic">No diagnosis recorded</span>
+            {% endif %}
+          </td>
+
+          <!-- Return Date -->
+          <td>
+            {% if c.return_date %}
+            <div class="d-flex align-items-center gap-1" style="color:var(--text-primary)">
+              <i class="bi bi-calendar3" style="font-size:.8rem;color:var(--text-muted)"></i>
+              {{ c.return_date|date:"M j, Y" }}
+            </div>
+            {% else %}
+            <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+
+          <!-- Status Badge -->
+          <td>
+            {% if c.status == "draft" %}
+            <span class="badge"
+                  style="background:#f1f5f9;color:#475569;font-size:.75rem;font-weight:500;padding:.3em .7em">
+              <i class="bi bi-pencil me-1"></i>Draft
+            </span>
+            {% elif c.status == "active" %}
+            <span class="badge"
+                  style="background:#dbeafe;color:#1e40af;font-size:.75rem;font-weight:500;padding:.3em .7em">
+              <i class="bi bi-activity me-1"></i>Active
+            </span>
+            {% elif c.status == "completed" %}
+            <span class="badge"
+                  style="background:#dcfce7;color:#166534;font-size:.75rem;font-weight:500;padding:.3em .7em">
+              <i class="bi bi-check-circle me-1"></i>Completed
+            </span>
+            {% else %}
+            <span class="badge bg-secondary" style="font-size:.75rem;padding:.3em .7em">
+              {{ c.get_status_display }}
+            </span>
+            {% endif %}
+          </td>
+
+          <!-- Actions -->
+          <td>
+            <div class="d-flex align-items-center gap-1">
+              <a href="{% url 'consultation_detail' c.id %}"
+                 class="btn btn-sm btn-outline-primary btn-icon"
+                 title="View consultation">
+                <i class="bi bi-eye"></i>
+              </a>
+              <a href="{% url 'edit_consultation' patient.id c.id %}"
+                 class="btn btn-sm btn-outline-secondary btn-icon"
+                 title="Edit consultation">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a href="{% url 'consultation_pdf' c.id %}"
+                 class="btn btn-sm btn-outline-secondary btn-icon"
+                 title="Download PDF" target="_blank" rel="noopener">
+                <i class="bi bi-file-earmark-pdf"></i>
+              </a>
+            </div>
+          </td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div><!-- /table-responsive -->
+
+  {% include "partials/pagination.html" %}
+
+</div><!-- /table-card -->
+
+{% else %}
+
+<!-- ── Empty State ── -->
+<div class="card">
+  <div class="card-body text-center py-5">
+    <div style="
+      width:72px;height:72px;border-radius:50%;
+      background:#eff6ff;
+      display:inline-grid;place-items:center;
+      margin-bottom:1.25rem;
+    ">
+      <i class="bi bi-journal-x" style="font-size:2rem;color:#2563eb"></i>
+    </div>
+    <h5 class="fw-semibold mb-1">No Consultations Yet</h5>
+    <p class="text-muted mb-4" style="max-width:380px;margin-inline:auto;font-size:.9rem">
+      {{ patient.name }} has no consultation records. Start the first one to begin tracking their medical history.
+    </p>
+    <a href="{% url 'new_consultation' patient.id %}" class="btn btn-primary">
+      <i class="bi bi-journal-plus me-2"></i>Start First Consultation
+    </a>
+  </div>
+</div>
+
+{% endif %}
+
 {% endblock %}
