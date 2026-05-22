@@ -14,8 +14,18 @@ def index(request):
         BlogPost.objects.filter(is_published=True)
         .select_related("author", "category")[:3]
     )
-    return render(request, "index.html", {"blog_posts": blog_posts})
+    cards = [
+        "Patients Today",
+        "Lab Results",
+        "Revenue",
+        "In Queue"
+    ]
 
+    return render(request, "index.html", {
+        "blog_posts": blog_posts,
+        "cards": cards
+    })
+    
 
 def blog_list(request):
     category_slug = request.GET.get("category", "")

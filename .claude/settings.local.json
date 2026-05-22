@@ -45,7 +45,8 @@
       "Bash(wsl -d Ubuntu -- bash -c \"cd /home/luther/medwema && env/bin/python -m py_compile patient/views.py && echo OK_patient && env/bin/python -m py_compile emr/views.py && echo OK_emr && env/bin/python -m py_compile billing/views.py && echo OK_billing && env/bin/python -m py_compile inventory/views.py && echo OK_inv && env/bin/python -m py_compile specialists/views.py && echo OK_spec && env/bin/python -m py_compile prescription/views.py && echo OK_rx && env/bin/python -m py_compile notification/views.py && echo OK_notif && env/bin/python -m py_compile chat/consumers.py && echo OK_chat\")",
       "Bash(mkdir -p //wsl.localhost/Ubuntu/home/luther/medwema/authentication/templates/authentication)",
       "Bash(mkdir -p //wsl.localhost/Ubuntu/home/luther/medwema/clinicmanager/templates/clinicmanager)",
-      "Bash(wsl mkdir *)"
+      "Bash(wsl mkdir *)",
+      "Bash(wsl grep *)"
     ],
     "additionalDirectories": [
       "\\home\\luther\\medwema\\prescription",

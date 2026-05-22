@@ -1,155 +1,845 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medwema — Modern Clinic Management</title>
+  <meta name="description" content="Medwema — Complete EMR and clinic management platform for African healthcare providers. Patient records, billing, lab, inventory, and more.">
+  <title>Medwema — Smart Clinic Management for Africa</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f8fafc;
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e3a8a;
+      --accent: #0284c7;
+      --green: #059669;
+      --amber: #d97706;
+      --dark: #0f172a;
+      --muted: #64748b;
     }
-    .navbar {
-      background: linear-gradient(90deg, #007bff, #00bcd4);
+    * { font-family: 'Inter', sans-serif; }
+    html { scroll-behavior: smooth; }
+    body { background: #fff; color: #1e293b; }
+
+    /* ── Navbar ── */
+    .site-nav {
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      transition: box-shadow .3s;
     }
-    .navbar-brand {
-      font-weight: 700;
-      color: #fff !important;
-      font-size: 1.5rem;
+    .site-nav.scrolled { box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+    .nav-logo-icon {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
     }
-    .hero {
-      background: linear-gradient(90deg, #007bff, #00bcd4);
-      color: white;
-      text-align: center;
-      padding: 100px 20px;
-      border-bottom-left-radius: 80px;
-      border-bottom-right-radius: 80px;
+    .nav-link-item {
+      color: #475569 !important;
+      font-weight: 500;
+      font-size: .9rem;
+      padding: .4rem .75rem !important;
+      border-radius: 8px;
+      transition: background .15s, color .15s;
     }
-    .hero h1 {
-      font-size: 3rem;
-      font-weight: 700;
-    }
-    .hero p {
-      font-size: 1.2rem;
-      margin-top: 1rem;
-      opacity: 0.9;
-    }
-    .btn-hero {
-      margin-top: 2rem;
-      background-color: white;
-      color: #007bff;
+    .nav-link-item:hover { background: #f1f5f9; color: var(--primary) !important; }
+    .btn-nav-cta {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: #fff;
       font-weight: 600;
-      padding: 12px 30px;
+      font-size: .875rem;
+      border-radius: 10px;
+      padding: .45rem 1.1rem;
+      border: none;
+      transition: opacity .2s, transform .15s;
+    }
+    .btn-nav-cta:hover { opacity: .9; transform: translateY(-1px); color: #fff; }
+
+    /* ── Hero ── */
+    .hero-section {
+      background: linear-gradient(150deg, #0f172a 0%, #1e3a8a 45%, #2563eb 100%);
+      padding: 110px 0 80px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      background: rgba(255,255,255,.04);
+      border-radius: 50%;
+      top: -200px; right: -150px;
+    }
+    .hero-section::after {
+      content: '';
+      position: absolute;
+      width: 350px; height: 350px;
+      background: rgba(255,255,255,.03);
+      border-radius: 50%;
+      bottom: -100px; left: -80px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.9);
       border-radius: 50px;
-      transition: all 0.3s ease;
+      padding: .3rem .9rem;
+      font-size: .8rem;
+      font-weight: 500;
+      margin-bottom: 1.25rem;
     }
-    .btn-hero:hover {
-      background-color: #f1f1f1;
-      transform: translateY(-3px);
+    .hero-title {
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.15;
+      color: #fff;
+      letter-spacing: -.02em;
     }
-    .feature-icon {
-      font-size: 3rem;
-      color: #00bcd4;
+    .hero-title span {
+      background: linear-gradient(90deg, #93c5fd, #67e8f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      color: rgba(255,255,255,.7);
+      font-size: 1.1rem;
+      line-height: 1.7;
+      max-width: 580px;
+    }
+    .btn-hero-primary {
+      background: #fff;
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 1rem;
+      border-radius: 12px;
+      padding: .85rem 2rem;
+      border: none;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-hero-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,0,0,.25);
+      color: var(--primary);
+    }
+    .btn-hero-outline {
+      background: rgba(255,255,255,.1);
+      color: #fff;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 12px;
+      padding: .85rem 2rem;
+      border: 1.5px solid rgba(255,255,255,.3);
+      transition: background .2s;
+    }
+    .btn-hero-outline:hover { background: rgba(255,255,255,.18); color: #fff; }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      background: #fff;
+      box-shadow: 0 4px 32px rgba(0,0,0,.07);
+      border-radius: 20px;
+      margin-top: -36px;
+      position: relative;
+      z-index: 10;
+    }
+    .stat-item { text-align: center; padding: 1.25rem .5rem; }
+    .stat-number { font-size: 1.75rem; font-weight: 800; color: var(--dark); }
+    .stat-label { font-size: .8125rem; color: var(--muted); font-weight: 500; }
+
+    /* ── Features ── */
+    .features-section { padding: 90px 0; background: #f8fafc; }
+    .section-eyebrow {
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: .5rem;
     }
     .section-title {
-      font-weight: 700;
-      color: #333;
-      margin-bottom: 2rem;
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.2;
+      letter-spacing: -.02em;
     }
-    footer {
-      background-color: #0a0a23;
-      color: white;
+    .section-sub { color: var(--muted); font-size: 1.0625rem; max-width: 560px; line-height: 1.7; }
+    .feature-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e8edf5;
+      padding: 1.75rem;
+      height: 100%;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(37,99,235,.1); }
+    .feature-icon-wrap {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+    }
+    .feature-card h5 { font-weight: 700; color: var(--dark); margin-bottom: .5rem; }
+    .feature-card p { color: var(--muted); font-size: .9rem; line-height: 1.6; margin: 0; }
+
+    /* ── How it works ── */
+    .hiw-section { padding: 90px 0; }
+    .hiw-step-number {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      font-size: 1.3rem;
+      font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.25rem;
+    }
+    .hiw-connector {
+      position: absolute;
+      top: 28px;
+      left: calc(50% + 28px);
+      width: calc(100% - 56px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      opacity: .25;
+    }
+
+    /* ── Who it's for ── */
+    .persona-section { padding: 90px 0; background: #f8fafc; }
+    .persona-card {
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      padding: 2rem;
+      height: 100%;
       text-align: center;
-      padding: 40px 0;
-      margin-top: 80px;
+      transition: transform .2s, box-shadow .2s;
     }
-    footer a {
-      color: #00bcd4;
+    .persona-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,.08); }
+    .persona-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      margin: 0 auto 1.25rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+    }
+
+    /* ── Blog ── */
+    .blog-section { padding: 90px 0; }
+    .blog-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e8edf5;
+      overflow: hidden;
+      height: 100%;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .blog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,.08); }
+    .blog-card-img {
+      height: 200px;
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .blog-meta { font-size: .8rem; color: var(--muted); }
+    .blog-tag {
+      display: inline-block;
+      background: #eff6ff;
+      color: var(--primary);
+      font-size: .75rem;
+      font-weight: 600;
+      padding: .2rem .6rem;
+      border-radius: 50px;
+    }
+
+    /* ── Newsletter ── */
+    .newsletter-section {
+      padding: 80px 0;
+      background: linear-gradient(150deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%);
+      position: relative; overflow: hidden;
+    }
+    .newsletter-section::before {
+      content: ''; position: absolute;
+      width: 400px; height: 400px;
+      background: rgba(255,255,255,.04);
+      border-radius: 50%;
+      top: -150px; right: -100px;
+    }
+    .newsletter-input {
+      border: none;
+      border-radius: 10px;
+      padding: .75rem 1.25rem;
+      font-size: .9375rem;
+      flex: 1;
+      outline: none;
+    }
+    .btn-newsletter {
+      background: #fff;
+      color: var(--primary);
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      padding: .75rem 1.5rem;
+      white-space: nowrap;
+      transition: opacity .2s;
+    }
+    .btn-newsletter:hover { opacity: .9; }
+
+    /* ── Footer ── */
+    .site-footer {
+      background: var(--dark);
+      color: rgba(255,255,255,.6);
+      padding: 60px 0 30px;
+    }
+    .footer-brand { color: #fff; font-weight: 700; font-size: 1.3rem; }
+    .footer-link {
+      color: rgba(255,255,255,.5);
       text-decoration: none;
+      font-size: .875rem;
+      transition: color .15s;
+      display: block;
+      margin-bottom: .4rem;
+    }
+    .footer-link:hover { color: #fff; }
+    .footer-heading { color: rgba(255,255,255,.8); font-weight: 600; font-size: .875rem; margin-bottom: .75rem; }
+
+    /* ── Notification for subscribe ── */
+    #subscribe-msg {
+      display: none;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      color: #166534;
+      padding: .75rem 1rem;
+      font-size: .875rem;
+      margin-top: .75rem;
+    }
+    #subscribe-msg.error {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
     }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
-    <div class="container">
-      <a class="navbar-brand" href="#">Medwema</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div id="navbarNav" class="collapse navbar-collapse justify-content-end">
-        <ul class="navbar-nav">
-          <li class="nav-item"><a href="#features" class="nav-link">Features</a></li>
-          <li class="nav-item"><a href="#about" class="nav-link">About</a></li>
-          <li class="nav-item"><a href="{% url 'account_login' %}" class="nav-link">Login</a></li>
-          <li class="nav-item"><a href="{% url 'account_signup' %}" class="btn btn-light ms-3 fw-semibold px-3">Get Started</a></li>
-        </ul>
+
+{# ════════════════════ NAVBAR ════════════════════ #}
+<nav class="site-nav navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="/">
+      <div class="nav-logo-icon">
+        <i class="bi bi-hospital-fill text-white" style="font-size:.95rem;"></i>
+      </div>
+      <span class="fw-bold" style="color:#0f172a;font-size:1.15rem;">Medwema</span>
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div id="navMenu" class="collapse navbar-collapse justify-content-end">
+      <ul class="navbar-nav align-items-lg-center gap-1 me-3">
+        <li class="nav-item"><a href="#features" class="nav-link nav-link-item">Features</a></li>
+        <li class="nav-item"><a href="#how-it-works" class="nav-link nav-link-item">How It Works</a></li>
+        <li class="nav-item"><a href="#for-who" class="nav-link nav-link-item">For Who</a></li>
+        <li class="nav-item"><a href="{% url 'blog_list' %}" class="nav-link nav-link-item">Blog</a></li>
+        <li class="nav-item"><a href="{% url 'account_login' %}" class="nav-link nav-link-item">Sign In</a></li>
+      </ul>
+      <a href="{% url 'account_signup' %}" class="btn btn-nav-cta">
+        <i class="bi bi-arrow-right me-1"></i>Get Started Free
+      </a>
+    </div>
+  </div>
+</nav>
+
+{# ════════════════════ HERO ════════════════════ #}
+<section class="hero-section">
+  <div class="container" style="position:relative;z-index:2;">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <div class="hero-badge">
+          <i class="bi bi-stars"></i> Built for African Healthcare
+        </div>
+        <h1 class="hero-title mb-3">
+          Run Your Clinic<br><span>Smarter &amp; Faster</span>
+        </h1>
+        <p class="hero-sub mb-4">
+          Medwema is a complete Electronic Medical Records (EMR) platform — patient queue, lab tests,
+          billing, pharmacy inventory, specialist services, and real-time analytics, all in one place.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{% url 'account_signup' %}" class="btn btn-hero-primary">
+            <i class="bi bi-person-plus me-2"></i>Start for Free
+          </a>
+          <a href="#features" class="btn btn-hero-outline">
+            <i class="bi bi-play-circle me-2"></i>See Features
+          </a>
+        </div>
+        <div class="d-flex flex-wrap gap-3 mt-4">
+          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,.7);font-size:.85rem;">
+            <i class="bi bi-check-circle-fill" style="color:#34d399;"></i>No credit card needed
+          </div>
+          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,.7);font-size:.85rem;">
+            <i class="bi bi-check-circle-fill" style="color:#34d399;"></i>Set up in minutes
+          </div>
+          <div class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,.7);font-size:.85rem;">
+            <i class="bi bi-check-circle-fill" style="color:#34d399;"></i>Full data privacy
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-block text-center mt-lg-0 mt-5" style="position:relative;z-index:2;">
+        <div style="background:rgba(255,255,255,.07);border-radius:24px;padding:2rem;border:1px solid rgba(255,255,255,.12);">
+          <div class="row g-3">
+            {% for card in cards %}{% endfor %}
+            <div class="col-6">
+              <div style="background:rgba(255,255,255,.1);border-radius:14px;padding:1.1rem;text-align:center;">
+                <i class="bi bi-people-fill" style="font-size:1.6rem;color:#93c5fd;"></i>
+                <div class="text-white fw-bold" style="font-size:1.5rem;margin:.25rem 0;">24</div>
+                <div style="color:rgba(255,255,255,.6);font-size:.78rem;">Patients Today</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div style="background:rgba(255,255,255,.1);border-radius:14px;padding:1.1rem;text-align:center;">
+                <i class="bi bi-flask-fill" style="font-size:1.6rem;color:#86efac;"></i>
+                <div class="text-white fw-bold" style="font-size:1.5rem;margin:.25rem 0;">18</div>
+                <div style="color:rgba(255,255,255,.6);font-size:.78rem;">Lab Results</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div style="background:rgba(255,255,255,.1);border-radius:14px;padding:1.1rem;text-align:center;">
+                <i class="bi bi-cash-stack" style="font-size:1.6rem;color:#fcd34d;"></i>
+                <div class="text-white fw-bold" style="font-size:1.5rem;margin:.25rem 0;">KES 45k</div>
+                <div style="color:rgba(255,255,255,.6);font-size:.78rem;">Today's Revenue</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div style="background:rgba(255,255,255,.1);border-radius:14px;padding:1.1rem;text-align:center;">
+                <i class="bi bi-list-ol" style="font-size:1.6rem;color:#f9a8d4;"></i>
+                <div class="text-white fw-bold" style="font-size:1.5rem;margin:.25rem 0;">7</div>
+                <div style="color:rgba(255,255,255,.6);font-size:.78rem;">In Queue</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </nav>
+  </div>
+</section>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="container">
-      <h1>Manage Your Clinic Seamlessly</h1>
-      <p>Empowering healthcare providers with digital efficiency — patient records, billing, and analytics all in one place.</p>
-      <a href="{% url 'account_signup' %}" class="btn btn-hero">Create Free Account</a>
-    </div>
-  </section>
-
-  <!-- Features Section -->
-  <section id="features" class="py-5">
-    <div class="container text-center">
-      <h2 class="section-title">Why Choose Medwema</h2>
-      <div class="row g-4">
-        <div class="col-md-4">
-          <div class="p-4 bg-white shadow rounded-4 h-100">
-            <div class="feature-icon mb-3">💊</div>
-            <h5 class="fw-bold">Smart Patient Management</h5>
-            <p>Track patient visits, medical history, and follow-ups effortlessly in real-time.</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="p-4 bg-white shadow rounded-4 h-100">
-            <div class="feature-icon mb-3">📊</div>
-            <h5 class="fw-bold">Instant Analytics</h5>
-            <p>Visualize key metrics — consultations, income, and performance — from one dashboard.</p>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="p-4 bg-white shadow rounded-4 h-100">
-            <div class="feature-icon mb-3">🧑‍⚕️</div>
-            <h5 class="fw-bold">Multi-Clinic Staff Access</h5>
-            <p>Allow each staff member to manage patient data relevant to their clinic securely.</p>
-          </div>
-        </div>
+{# ════════════════════ STATS BAR ════════════════════ #}
+<div class="container">
+  <div class="stats-bar px-3 px-md-5">
+    <div class="row g-0 divide-x">
+      <div class="col-6 col-md-3 stat-item" style="border-right:1px solid #f1f5f9;">
+        <div class="stat-number">500<span style="color:var(--primary);">+</span></div>
+        <div class="stat-label">Clinics Registered</div>
+      </div>
+      <div class="col-6 col-md-3 stat-item" style="border-right:1px solid #f1f5f9;">
+        <div class="stat-number">50k<span style="color:var(--primary);">+</span></div>
+        <div class="stat-label">Patients Managed</div>
+      </div>
+      <div class="col-6 col-md-3 stat-item" style="border-right:1px solid #f1f5f9;">
+        <div class="stat-number">99.9<span style="color:var(--primary);">%</span></div>
+        <div class="stat-label">System Uptime</div>
+      </div>
+      <div class="col-6 col-md-3 stat-item">
+        <div class="stat-number">12<span style="color:var(--primary);">+</span></div>
+        <div class="stat-label">Core Modules</div>
       </div>
     </div>
-  </section>
+  </div>
+</div>
 
-  <!-- About Section -->
-  <section id="about" class="py-5 bg-light text-center">
-    <div class="container">
-      <h2 class="section-title">About Medwema</h2>
-      <p class="mx-auto" style="max-width: 700px;">
-        Medwema is an all-in-one digital health solution designed for small and medium-sized clinics in Africa. 
-        It simplifies clinic management — from patient registration to financial reporting — 
-        making healthcare more organized, connected, and efficient.
+{# ════════════════════ FEATURES ════════════════════ #}
+<section id="features" class="features-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-eyebrow">Everything you need</div>
+      <h2 class="section-title">A Complete Clinic in Your Browser</h2>
+      <p class="section-sub mx-auto mt-2">
+        From the moment a patient walks in to the final receipt — Medwema handles every step, with no paper required.
       </p>
     </div>
-  </section>
+    <div class="row g-4">
 
-  <!-- Footer -->
-  <footer>
-    <div class="container">
-      <p class="mb-2">&copy; {{ now|date:"Y" }} Medwema. All Rights Reserved.</p>
-      <small>Built with ❤️ by Lunyamwi Technologies | <a href="#">Privacy Policy</a></small>
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#eff6ff;"><i class="bi bi-people-fill" style="color:#2563eb;"></i></div>
+          <h5>Patient Management</h5>
+          <p>Register patients, manage visit history, track demographics, and handle patient queues with real-time updates.</p>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#f0fdf4;"><i class="bi bi-clipboard2-pulse-fill" style="color:#059669;"></i></div>
+          <h5>Electronic Medical Records</h5>
+          <p>Full consultation records, diagnoses, doctor notes, and patient history accessible in seconds.</p>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#fff7ed;"><i class="bi bi-receipt-cutoff" style="color:#d97706;"></i></div>
+          <h5>Billing &amp; Payments</h5>
+          <p>Generate itemised bills, accept Paystack payments, track outstanding balances, and issue receipts instantly.</p>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#fdf4ff;"><i class="bi bi-flask-fill" style="color:#9333ea;"></i></div>
+          <h5>Lab &amp; Diagnostics</h5>
+          <p>Order lab tests, manage lab queues, record results with reference ranges, and link findings to consultations.</p>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#fff0f5;"><i class="bi bi-capsule-pill" style="color:#e11d48;"></i></div>
+          <h5>Prescription Management</h5>
+          <p>Prescribe medications linked to inventory, track dispensing status, and control drug quantities automatically.</p>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#f0fdf4;"><i class="bi bi-boxes" style="color:#059669;"></i></div>
+          <h5>Pharmacy Inventory</h5>
+          <p>Track drug stock levels, manage purchase orders, set reorder alerts, and monitor consumption patterns.</p>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#eff6ff;"><i class="bi bi-activity" style="color:#2563eb;"></i></div>
+          <h5>Specialist Services</h5>
+          <p>Sonography studies, nursing notes, home visits, debt management, and external lab requests — all tracked.</p>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#fff7ed;"><i class="bi bi-graph-up-arrow" style="color:#d97706;"></i></div>
+          <h5>Analytics &amp; Reports</h5>
+          <p>Live dashboards with Chart.js charts — revenue trends, patient flow, lab volumes, and inventory metrics.</p>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#fdf4ff;"><i class="bi bi-bell-fill" style="color:#9333ea;"></i></div>
+          <h5>Real-time Notifications</h5>
+          <p>WebSocket-powered alerts and browser push notifications keep your entire team informed instantly.</p>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#f0fdf4;"><i class="bi bi-code-slash" style="color:#059669;"></i></div>
+          <h5>REST API</h5>
+          <p>Full OpenAPI-documented REST API for integrations — connect lab equipment, mobile apps, or third-party tools.</p>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#eff6ff;"><i class="bi bi-hospital-fill" style="color:#2563eb;"></i></div>
+          <h5>Multi-Clinic Support</h5>
+          <p>Manage multiple branches under one account. Data is fully isolated per clinic — no cross-clinic leakage.</p>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-lg-3">
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:#fff0f5;"><i class="bi bi-shield-check-fill" style="color:#e11d48;"></i></div>
+          <h5>Security &amp; Audit</h5>
+          <p>Role-based access control, full change history via django-simple-history, and CSRF-protected endpoints.</p>
+        </div>
+      </div>
+
     </div>
-  </footer>
+  </div>
+</section>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{# ════════════════════ HOW IT WORKS ════════════════════ #}
+<section id="how-it-works" class="hiw-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-eyebrow">Simple process</div>
+      <h2 class="section-title">Up &amp; Running in 3 Steps</h2>
+    </div>
+    <div class="row g-4 text-center">
+      <div class="col-md-4 position-relative">
+        <div class="hiw-step-number">1</div>
+        <h5 class="fw-bold mb-2" style="color:var(--dark);">Create Your Account</h5>
+        <p style="color:var(--muted);font-size:.9rem;max-width:280px;margin:0 auto;">
+          Sign up in seconds. No technical setup required — your clinic dashboard is ready immediately.
+        </p>
+      </div>
+      <div class="col-md-4 position-relative">
+        <div class="hiw-step-number">2</div>
+        <h5 class="fw-bold mb-2" style="color:var(--dark);">Configure Your Clinic</h5>
+        <p style="color:var(--muted);font-size:.9rem;max-width:280px;margin:0 auto;">
+          Add your doctors, configure services, set up inventory, and connect your Paystack account for payments.
+        </p>
+      </div>
+      <div class="col-md-4">
+        <div class="hiw-step-number">3</div>
+        <h5 class="fw-bold mb-2" style="color:var(--dark);">Start Serving Patients</h5>
+        <p style="color:var(--muted);font-size:.9rem;max-width:280px;margin:0 auto;">
+          Register patients, manage the queue, issue prescriptions, and collect payments — all from one screen.
+        </p>
+      </div>
+    </div>
+    <div class="text-center mt-5">
+      <a href="{% url 'account_signup' %}" class="btn btn-nav-cta" style="font-size:1rem;padding:.8rem 2rem;">
+        <i class="bi bi-rocket-takeoff me-2"></i>Get Started Today
+      </a>
+    </div>
+  </div>
+</section>
+
+{# ════════════════════ WHO IT'S FOR ════════════════════ #}
+<section id="for-who" class="persona-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-eyebrow">Built for your team</div>
+      <h2 class="section-title">Designed for Everyone in Your Clinic</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="persona-card">
+          <div class="persona-avatar" style="background:#eff6ff;">
+            <i class="bi bi-building-fill-gear" style="color:#2563eb;"></i>
+          </div>
+          <h5 class="fw-bold mb-2" style="color:var(--dark);">Clinic Owners</h5>
+          <p style="color:var(--muted);font-size:.9rem;line-height:1.7;">
+            Get a bird's-eye view of your business — revenue dashboards, staff activity, stock levels,
+            and outstanding bills — all from one screen.
+          </p>
+          <ul class="list-unstyled mt-3" style="text-align:left;">
+            <li style="font-size:.875rem;color:#475569;padding:.2rem 0;"><i class="bi bi-check2-circle me-2" style="color:#2563eb;"></i>Revenue reports</li>
+            <li style="font-size:.875rem;color:#475569;padding:.2rem 0;"><i class="bi bi-check2-circle me-2" style="color:#2563eb;"></i>Multi-staff access</li>
+            <li style="font-size:.875rem;color:#475569;padding:.2rem 0;"><i class="bi bi-check2-circle me-2" style="color:#2563eb;"></i>Audit trail</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="persona-card">
+          <div class="persona-avatar" style="background:#f0fdf4;">
+            <i class="bi bi-person-badge-fill" style="color:#059669;"></i>
+          </div>
+          <h5 class="fw-bold mb-2" style="color:var(--dark);">Doctors</h5>
+          <p style="color:var(--muted);font-size:.9rem;line-height:1.7;">
+            Access complete patient history in seconds. Prescribe medications, order lab tests,
+            and document consultations without touching a pen.
+          </p>
+          <ul class="list-unstyled mt-3" style="text-align:left;">
+            <li style="font-size:.875rem;color:#475569;padding:.2rem 0;"><i class="bi bi-check2-circle me-2" style="color:#059669;"></i>Patient records</li>
+            <li style="font-size:.875rem;color:#475569;padding:.2rem 0;"><i class="bi bi-check2-circle me-2" style="color:#059669;"></i>Digital prescriptions</li>
+            <li style="font-size:.875rem;color:#475569;padding:.2rem 0;"><i class="bi bi-check2-circle me-2" style="color:#059669;"></i>Lab result alerts</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="persona-card">
+          <div class="persona-avatar" style="background:#fdf4ff;">
+            <i class="bi bi-heart-pulse-fill" style="color:#9333ea;"></i>
+          </div>
+          <h5 class="fw-bold mb-2" style="color:var(--dark);">Nurses &amp; Staff</h5>
+          <p style="color:var(--muted);font-size:.9rem;line-height:1.7;">
+            Manage the patient queue, record nursing notes, dispense medications, and track home visits —
+            all with real-time push notifications.
+          </p>
+          <ul class="list-unstyled mt-3" style="text-align:left;">
+            <li style="font-size:.875rem;color:#475569;padding:.2rem 0;"><i class="bi bi-check2-circle me-2" style="color:#9333ea;"></i>Queue management</li>
+            <li style="font-size:.875rem;color:#475569;padding:.2rem 0;"><i class="bi bi-check2-circle me-2" style="color:#9333ea;"></i>Nursing notes</li>
+            <li style="font-size:.875rem;color:#475569;padding:.2rem 0;"><i class="bi bi-check2-circle me-2" style="color:#9333ea;"></i>Push notifications</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ════════════════════ BLOG ════════════════════ #}
+{% if blog_posts %}
+<section class="blog-section">
+  <div class="container">
+    <div class="d-flex align-items-end justify-content-between mb-5 flex-wrap gap-3">
+      <div>
+        <div class="section-eyebrow">From our blog</div>
+        <h2 class="section-title mb-0">Latest Insights</h2>
+      </div>
+      <a href="{% url 'blog_list' %}" style="color:var(--primary);font-weight:600;font-size:.9rem;text-decoration:none;">
+        View all posts <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+    <div class="row g-4">
+      {% for post in blog_posts %}
+      <div class="col-md-4">
+        <a href="{% url 'blog_detail' post.slug %}" class="text-decoration-none">
+          <div class="blog-card">
+            <div class="blog-card-img">
+              {% if post.featured_image %}
+                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+                <i class="bi bi-file-earmark-text" style="font-size:3rem;color:rgba(255,255,255,.4);"></i>
+              {% endif %}
+            </div>
+            <div class="p-4">
+              {% if post.category %}
+                <span class="blog-tag">{{ post.category.name }}</span>
+              {% endif %}
+              <h6 class="fw-bold mt-2 mb-2" style="color:#0f172a;font-size:1rem;line-height:1.4;">{{ post.title }}</h6>
+              <p style="color:#64748b;font-size:.875rem;line-height:1.6;" class="mb-3">{{ post.excerpt|truncatewords:18 }}</p>
+              <div class="blog-meta d-flex align-items-center gap-3">
+                {% if post.author %}
+                <span><i class="bi bi-person me-1"></i>{{ post.author.get_full_name|default:post.author.username }}</span>
+                {% endif %}
+                <span><i class="bi bi-clock me-1"></i>{{ post.read_time }} min read</span>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ════════════════════ NEWSLETTER ════════════════════ #}
+<section class="newsletter-section">
+  <div class="container text-center" style="position:relative;z-index:2;">
+    <div class="row justify-content-center">
+      <div class="col-lg-7">
+        <div class="mb-2" style="font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.6);">Stay Updated</div>
+        <h2 class="text-white fw-bold mb-2" style="font-size:clamp(1.6rem,3vw,2.3rem);">
+          Get Healthcare Tech Insights<br>Delivered to Your Inbox
+        </h2>
+        <p style="color:rgba(255,255,255,.65);font-size:.95rem;" class="mb-4">
+          Tips, case studies, and product updates — no spam, unsubscribe anytime.
+        </p>
+        <form id="subscribe-form" class="d-flex gap-2 justify-content-center flex-wrap">
+          {% csrf_token %}
+          <input type="text" name="name" class="newsletter-input" placeholder="Your name (optional)" style="max-width:200px;">
+          <input type="email" name="email" class="newsletter-input" placeholder="Your email address" required style="max-width:280px;">
+          <button type="submit" class="btn-newsletter">
+            <i class="bi bi-send me-1"></i>Subscribe
+          </button>
+        </form>
+        <div id="subscribe-msg"></div>
+        <p style="color:rgba(255,255,255,.4);font-size:.78rem;margin-top:.75rem;">
+          Join 1,200+ healthcare professionals. No spam. Cancel anytime.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ════════════════════ FOOTER ════════════════════ #}
+<footer class="site-footer">
+  <div class="container">
+    <div class="row g-4 pb-4" style="border-bottom:1px solid rgba(255,255,255,.08);">
+      <div class="col-md-4">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div style="background:linear-gradient(135deg,#2563eb,#0284c7);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-hospital-fill text-white" style="font-size:.9rem;"></i>
+          </div>
+          <span class="footer-brand">Medwema</span>
+        </div>
+        <p style="color:rgba(255,255,255,.5);font-size:.875rem;line-height:1.7;max-width:280px;">
+          An all-in-one clinic management platform empowering African healthcare providers to deliver better care.
+        </p>
+      </div>
+      <div class="col-6 col-md-2">
+        <div class="footer-heading">Product</div>
+        <a href="#features" class="footer-link">Features</a>
+        <a href="{% url 'account_signup' %}" class="footer-link">Get Started</a>
+        <a href="/api/docs/" class="footer-link">API Docs</a>
+      </div>
+      <div class="col-6 col-md-2">
+        <div class="footer-heading">Resources</div>
+        <a href="{% url 'blog_list' %}" class="footer-link">Blog</a>
+        <a href="#how-it-works" class="footer-link">How It Works</a>
+        <a href="#for-who" class="footer-link">For Teams</a>
+      </div>
+      <div class="col-6 col-md-2">
+        <div class="footer-heading">Company</div>
+        <a href="#" class="footer-link">About Us</a>
+        <a href="#" class="footer-link">Privacy Policy</a>
+        <a href="#" class="footer-link">Terms of Service</a>
+      </div>
+      <div class="col-6 col-md-2">
+        <div class="footer-heading">Contact</div>
+        <a href="mailto:hello@medwema.com" class="footer-link">hello@medwema.com</a>
+        <a href="#" class="footer-link">Support</a>
+      </div>
+    </div>
+    <div class="d-flex justify-content-between align-items-center pt-4 flex-wrap gap-2">
+      <p style="font-size:.8125rem;color:rgba(255,255,255,.35);margin:0;">
+        &copy; {% now "Y" %} Medwema. All rights reserved. Built by Lunyamwi Technologies.
+      </p>
+      <div class="d-flex gap-3">
+        <a href="#" style="color:rgba(255,255,255,.35);font-size:1.1rem;transition:color .15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.35)'">
+          <i class="bi bi-twitter-x"></i>
+        </a>
+        <a href="#" style="color:rgba(255,255,255,.35);font-size:1.1rem;transition:color .15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.35)'">
+          <i class="bi bi-linkedin"></i>
+        </a>
+        <a href="#" style="color:rgba(255,255,255,.35);font-size:1.1rem;transition:color .15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.35)'">
+          <i class="bi bi-github"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Navbar scroll effect
+  window.addEventListener('scroll', () => {
+    document.querySelector('.site-nav').classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  // Newsletter subscribe
+  document.getElementById('subscribe-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const msg = document.getElementById('subscribe-msg');
+    const email = form.email.value.trim();
+    const name = form.name ? form.name.value.trim() : '';
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    try {
+      const resp = await fetch('{% url "subscribe" %}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+        body: JSON.stringify({email, name}),
+      });
+      const data = await resp.json();
+      msg.style.display = 'block';
+      if (data.success) {
+        msg.className = '';
+        msg.style.cssText = 'display:block;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;color:#166534;padding:.75rem 1rem;font-size:.875rem;margin-top:.75rem;';
+        msg.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>' + data.message;
+        form.reset();
+      } else {
+        msg.style.cssText = 'display:block;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;color:#991b1b;padding:.75rem 1rem;font-size:.875rem;margin-top:.75rem;';
+        msg.innerHTML = '<i class="bi bi-exclamation-circle-fill me-2"></i>' + data.error;
+      }
+    } catch {
+      msg.style.cssText = 'display:block;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;color:#991b1b;padding:.75rem 1rem;font-size:.875rem;margin-top:.75rem;';
+      msg.innerHTML = '<i class="bi bi-exclamation-circle-fill me-2"></i>Something went wrong. Please try again.';
+    }
+  });
+</script>
 </body>
 </html>

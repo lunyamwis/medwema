@@ -1,0 +1,124 @@
+{% extends "home/public_base.html" %}
+{% block title %}Blog — Medwema{% endblock %}
+
+{% block content %}
+
+{# Page header #}
+<div style="background:linear-gradient(150deg,#0f172a,#1e3a8a,#2563eb);padding:64px 0 48px;">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item">
+          <a href="/" style="color:rgba(255,255,255,.6);text-decoration:none;font-size:.875rem;">Home</a>
+        </li>
+        <li class="breadcrumb-item active" style="color:rgba(255,255,255,.9);font-size:.875rem;">Blog</li>
+      </ol>
+    </nav>
+    <h1 class="text-white fw-bold mb-2" style="font-size:clamp(1.8rem,4vw,2.5rem);">Healthcare Insights</h1>
+    <p style="color:rgba(255,255,255,.65);font-size:1rem;max-width:500px;margin:0;">
+      Tips, case studies, and news for African healthcare providers.
+    </p>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="row g-4">
+
+    {# ── Sidebar ── #}
+    <div class="col-lg-3 order-lg-last">
+      <div style="position:sticky;top:80px;">
+
+        {# Category filter #}
+        {% if categories %}
+        <div style="background:#fff;border-radius:16px;border:1px solid #e2e8f0;padding:1.25rem;margin-bottom:1.25rem;">
+          <h6 class="fw-bold mb-3" style="color:#0f172a;font-size:.9rem;">Filter by Category</h6>
+          <div class="d-flex flex-column gap-1">
+            <a href="{% url 'blog_list' %}"
+               class="d-flex align-items-center justify-content-between text-decoration-none px-2 py-1 rounded"
+               style="color:{% if not active_category %}#2563eb{% else %}#475569{% endif %};font-size:.875rem;font-weight:{% if not active_category %}600{% else %}400{% endif %};background:{% if not active_category %}#eff6ff{% else %}transparent{% endif %};">
+              <span>All Posts</span>
+              <span style="background:#e2e8f0;border-radius:50px;font-size:.75rem;padding:.1rem .45rem;color:#475569;">{{ posts.count }}</span>
+            </a>
+            {% for cat in categories %}
+            <a href="?category={{ cat.slug }}"
+               class="d-flex align-items-center justify-content-between text-decoration-none px-2 py-1 rounded"
+               style="color:{% if active_category.slug == cat.slug %}#2563eb{% else %}#475569{% endif %};font-size:.875rem;font-weight:{% if active_category.slug == cat.slug %}600{% else %}400{% endif %};background:{% if active_category.slug == cat.slug %}#eff6ff{% else %}transparent{% endif %};">
+              <span>{{ cat.name }}</span>
+              <span style="background:#e2e8f0;border-radius:50px;font-size:.75rem;padding:.1rem .45rem;color:#475569;">{{ cat.posts.count }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {# CTA card #}
+        <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:16px;padding:1.5rem;text-align:center;">
+          <i class="bi bi-hospital-fill text-white" style="font-size:2rem;"></i>
+          <h6 class="text-white fw-bold mt-2 mb-1">Try Medwema Free</h6>
+          <p style="color:rgba(255,255,255,.7);font-size:.8rem;margin-bottom:1rem;">Join hundreds of clinics already using Medwema.</p>
+          <a href="{% url 'account_signup' %}" style="background:#fff;color:#2563eb;font-weight:700;border-radius:10px;padding:.5rem 1rem;font-size:.875rem;text-decoration:none;display:block;">
+            Get Started Free
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {# ── Posts grid ── #}
+    <div class="col-lg-9">
+      {% if active_category %}
+        <div class="d-flex align-items-center gap-2 mb-4">
+          <span style="background:#eff6ff;color:#2563eb;font-size:.8rem;font-weight:600;padding:.3rem .75rem;border-radius:50px;">
+            {{ active_category.name }}
+          </span>
+          <a href="{% url 'blog_list' %}" style="font-size:.8rem;color:#64748b;text-decoration:none;">
+            <i class="bi bi-x"></i> Clear filter
+          </a>
+        </div>
+      {% endif %}
+
+      {% if posts %}
+        <div class="row g-4">
+          {% for post in posts %}
+          <div class="col-sm-6 col-xl-4">
+            <a href="{% url 'blog_detail' post.slug %}" class="text-decoration-none d-block h-100">
+              <div style="background:#fff;border-radius:16px;border:1px solid #e8edf5;overflow:hidden;height:100%;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,.08)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+                <div style="height:180px;background:linear-gradient(135deg,#1e3a8a,#2563eb);display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                  {% if post.featured_image %}
+                    <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" style="width:100%;height:100%;object-fit:cover;">
+                  {% else %}
+                    <i class="bi bi-file-earmark-text" style="font-size:2.5rem;color:rgba(255,255,255,.35);"></i>
+                  {% endif %}
+                </div>
+                <div class="p-3">
+                  {% if post.category %}
+                    <span style="background:#eff6ff;color:#2563eb;font-size:.72rem;font-weight:600;padding:.15rem .55rem;border-radius:50px;">{{ post.category.name }}</span>
+                  {% endif %}
+                  <h6 class="fw-bold mt-2 mb-2" style="color:#0f172a;font-size:.95rem;line-height:1.4;">{{ post.title }}</h6>
+                  <p style="color:#64748b;font-size:.825rem;line-height:1.6;margin-bottom:.75rem;">{{ post.excerpt|truncatewords:15 }}</p>
+                  <div style="font-size:.78rem;color:#94a3b8;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+                    {% if post.published_at %}<span><i class="bi bi-calendar3 me-1"></i>{{ post.published_at|date:"M j, Y" }}</span>{% endif %}
+                    <span><i class="bi bi-clock me-1"></i>{{ post.read_time }} min</span>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5" style="background:#fff;border-radius:20px;border:1px solid #e2e8f0;">
+          <i class="bi bi-journal-x" style="font-size:3rem;color:#cbd5e1;"></i>
+          <h5 class="fw-bold mt-3 mb-1" style="color:#0f172a;">No posts yet</h5>
+          <p style="color:#64748b;font-size:.9rem;">
+            {% if active_category %}No posts in "{{ active_category.name }}" yet.{% else %}Check back soon for healthcare insights.{% endif %}
+          </p>
+          {% if active_category %}
+            <a href="{% url 'blog_list' %}" style="color:#2563eb;font-size:.875rem;text-decoration:none;">View all posts</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

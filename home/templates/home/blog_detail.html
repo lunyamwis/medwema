@@ -1,0 +1,190 @@
+{% extends "home/public_base.html" %}
+{% block title %}{{ post.title }} — Medwema Blog{% endblock %}
+
+{% block extra_head %}
+<style>
+  .prose { font-size: 1.0625rem; line-height: 1.85; color: #334155; }
+  .prose h2, .prose h3, .prose h4 { color: #0f172a; font-weight: 700; margin-top: 2rem; margin-bottom: .75rem; }
+  .prose p { margin-bottom: 1.25rem; }
+  .prose ul, .prose ol { margin-bottom: 1.25rem; padding-left: 1.5rem; }
+  .prose li { margin-bottom: .35rem; }
+  .prose blockquote {
+    border-left: 4px solid #2563eb;
+    background: #eff6ff;
+    padding: 1rem 1.25rem;
+    border-radius: 0 12px 12px 0;
+    color: #1e40af;
+    font-style: italic;
+    margin: 1.5rem 0;
+  }
+  .prose img { border-radius: 12px; max-width: 100%; margin: 1.5rem 0; }
+  .prose a { color: #2563eb; }
+  .prose code {
+    background: #f1f5f9; border-radius: 6px;
+    padding: .15rem .4rem; font-size: .875em; color: #d97706;
+  }
+  .prose pre {
+    background: #0f172a; color: #e2e8f0;
+    border-radius: 12px; padding: 1.25rem; overflow-x: auto;
+    margin: 1.5rem 0;
+  }
+  .related-card {
+    background: #fff; border-radius: 14px;
+    border: 1px solid #e8edf5; overflow: hidden;
+    transition: transform .2s, box-shadow .2s;
+    text-decoration: none; display: block; height: 100%;
+  }
+  .related-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,0,0,.08); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row g-4 g-lg-5">
+
+    {# ── Main article ── #}
+    <div class="col-lg-8">
+
+      {# Breadcrumb #}
+      <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb mb-0" style="font-size:.825rem;">
+          <li class="breadcrumb-item"><a href="/" style="color:#64748b;text-decoration:none;">Home</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'blog_list' %}" style="color:#64748b;text-decoration:none;">Blog</a></li>
+          {% if post.category %}
+          <li class="breadcrumb-item">
+            <a href="{% url 'blog_list' %}?category={{ post.category.slug }}" style="color:#64748b;text-decoration:none;">{{ post.category.name }}</a>
+          </li>
+          {% endif %}
+          <li class="breadcrumb-item active" style="color:#94a3b8;">{{ post.title|truncatewords:6 }}</li>
+        </ol>
+      </nav>
+
+      {# Category tag #}
+      {% if post.category %}
+        <a href="{% url 'blog_list' %}?category={{ post.category.slug %}" style="background:#eff6ff;color:#2563eb;font-size:.78rem;font-weight:600;padding:.25rem .7rem;border-radius:50px;text-decoration:none;margin-bottom:1rem;display:inline-block;">
+          {{ post.category.name }}
+        </a>
+      {% endif %}
+
+      {# Title #}
+      <h1 class="fw-bold mb-3" style="font-size:clamp(1.7rem,4vw,2.3rem);line-height:1.2;color:#0f172a;">{{ post.title }}</h1>
+
+      {# Meta #}
+      <div class="d-flex flex-wrap gap-3 align-items-center mb-4" style="font-size:.85rem;color:#64748b;">
+        {% if post.author %}
+          <span class="d-flex align-items-center gap-1">
+            <div style="background:#2563eb;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i class="bi bi-person-fill text-white" style="font-size:.75rem;"></i>
+            </div>
+            {{ post.author.get_full_name|default:post.author.username }}
+          </span>
+        {% endif %}
+        {% if post.published_at %}
+          <span><i class="bi bi-calendar3 me-1"></i>{{ post.published_at|date:"F j, Y" }}</span>
+        {% endif %}
+        <span><i class="bi bi-clock me-1"></i>{{ post.read_time }} min read</span>
+        <span><i class="bi bi-eye me-1"></i>{{ post.views_count }} views</span>
+      </div>
+
+      {# Featured image #}
+      {% if post.featured_image %}
+        <div class="mb-4">
+          <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" style="width:100%;border-radius:16px;max-height:420px;object-fit:cover;">
+        </div>
+      {% else %}
+        <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:16px;height:200px;display:flex;align-items:center;justify-content:center;margin-bottom:1.5rem;">
+          <i class="bi bi-file-earmark-text" style="font-size:3.5rem;color:rgba(255,255,255,.3);"></i>
+        </div>
+      {% endif %}
+
+      {# Excerpt highlight #}
+      {% if post.excerpt %}
+        <div style="background:#f8fafc;border-radius:12px;padding:1.1rem 1.25rem;border-left:4px solid #2563eb;margin-bottom:1.5rem;">
+          <p style="color:#1e40af;font-size:1rem;font-weight:500;margin:0;line-height:1.6;">{{ post.excerpt }}</p>
+        </div>
+      {% endif %}
+
+      {# Content #}
+      <div class="prose">{{ post.content|safe }}</div>
+
+      {# Share + back #}
+      <div class="d-flex align-items-center justify-content-between pt-4 mt-4" style="border-top:1px solid #e2e8f0;flex-wrap:wrap;gap:.75rem;">
+        <a href="{% url 'blog_list' %}" style="color:#2563eb;text-decoration:none;font-size:.875rem;font-weight:500;">
+          <i class="bi bi-arrow-left me-1"></i>Back to Blog
+        </a>
+        <div class="d-flex gap-2">
+          <span style="font-size:.8rem;color:#94a3b8;align-self:center;">Share:</span>
+          <a href="https://twitter.com/intent/tweet?text={{ post.title|urlencode }}&url={{ request.build_absolute_uri }}" target="_blank" rel="noopener"
+             style="background:#f1f5f9;border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#475569;text-decoration:none;transition:background .15s;"
+             onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#f1f5f9'">
+            <i class="bi bi-twitter-x" style="font-size:.85rem;"></i>
+          </a>
+          <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}" target="_blank" rel="noopener"
+             style="background:#f1f5f9;border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#475569;text-decoration:none;transition:background .15s;"
+             onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#f1f5f9'">
+            <i class="bi bi-linkedin" style="font-size:.85rem;"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {# ── Sidebar ── #}
+    <div class="col-lg-4">
+      <div style="position:sticky;top:80px;display:flex;flex-direction:column;gap:1.25rem;">
+
+        {# Author card #}
+        {% if post.author %}
+        <div style="background:#fff;border-radius:16px;border:1px solid #e2e8f0;padding:1.25rem;text-align:center;">
+          <div style="background:linear-gradient(135deg,#2563eb,#0284c7);border-radius:50%;width:56px;height:56px;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;">
+            <i class="bi bi-person-fill text-white" style="font-size:1.4rem;"></i>
+          </div>
+          <h6 class="fw-bold mb-0" style="color:#0f172a;">{{ post.author.get_full_name|default:post.author.username }}</h6>
+          <p style="color:#94a3b8;font-size:.8rem;margin-top:.25rem;">Author</p>
+        </div>
+        {% endif %}
+
+        {# CTA #}
+        <div style="background:linear-gradient(135deg,#0f172a,#1e3a8a);border-radius:16px;padding:1.5rem;text-align:center;">
+          <i class="bi bi-hospital-fill" style="font-size:2rem;color:#93c5fd;"></i>
+          <h6 class="text-white fw-bold mt-2 mb-1" style="font-size:.95rem;">Manage Your Clinic</h6>
+          <p style="color:rgba(255,255,255,.6);font-size:.8rem;margin-bottom:1rem;line-height:1.5;">
+            Everything from patient records to billing — in one platform.
+          </p>
+          <a href="{% url 'account_signup' %}" style="background:#2563eb;color:#fff;font-weight:600;border-radius:10px;padding:.55rem 1.25rem;font-size:.875rem;text-decoration:none;display:block;transition:opacity .2s;"
+             onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            Start Free Today
+          </a>
+        </div>
+
+        {# More from blog #}
+        {% if related %}
+        <div>
+          <h6 class="fw-bold mb-3" style="color:#0f172a;font-size:.9rem;">More Articles</h6>
+          <div class="d-flex flex-column gap-3">
+            {% for rpost in related %}
+            <a href="{% url 'blog_detail' rpost.slug %}" class="text-decoration-none d-flex gap-3 align-items-start"
+               style="background:#fff;border-radius:12px;border:1px solid #e8edf5;padding:.75rem;transition:transform .2s;"
+               onmouseover="this.style.transform='translateX(4px)'" onmouseout="this.style.transform='none'">
+              <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:8px;width:52px;height:48px;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                {% if rpost.featured_image %}
+                  <img src="{{ rpost.featured_image.url }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+                {% else %}
+                  <i class="bi bi-file-text text-white" style="font-size:.9rem;"></i>
+                {% endif %}
+              </div>
+              <div>
+                <p style="color:#0f172a;font-size:.825rem;font-weight:600;line-height:1.35;margin:0 0 .25rem;">{{ rpost.title|truncatewords:8 }}</p>
+                <span style="color:#94a3b8;font-size:.75rem;"><i class="bi bi-clock me-1"></i>{{ rpost.read_time }} min</span>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

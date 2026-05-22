@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Medwema{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --primary: #2563eb; --dark: #0f172a; --muted: #64748b; }
+    * { font-family: 'Inter', sans-serif; }
+    html { scroll-behavior: smooth; }
+    body { background: #f8fafc; color: #1e293b; }
+
+    .site-nav {
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      transition: box-shadow .3s;
+    }
+    .site-nav.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,.07); }
+    .nav-logo-icon {
+      background: linear-gradient(135deg, #2563eb, #0284c7);
+      border-radius: 10px; width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-link-pub {
+      color: #475569 !important; font-weight: 500; font-size: .9rem;
+      padding: .35rem .7rem !important; border-radius: 8px;
+      transition: background .15s, color .15s;
+    }
+    .nav-link-pub:hover { background: #f1f5f9; color: var(--primary) !important; }
+    .btn-pub-cta {
+      background: linear-gradient(90deg, #2563eb, #0284c7);
+      color: #fff; font-weight: 600; font-size: .875rem;
+      border-radius: 10px; padding: .4rem 1rem; border: none;
+      transition: opacity .2s;
+    }
+    .btn-pub-cta:hover { opacity: .9; color: #fff; }
+
+    .site-footer {
+      background: var(--dark);
+      color: rgba(255,255,255,.5);
+      padding: 40px 0 24px;
+      margin-top: 80px;
+    }
+    .footer-link {
+      color: rgba(255,255,255,.5); text-decoration: none;
+      font-size: .8125rem; transition: color .15s;
+    }
+    .footer-link:hover { color: #fff; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<nav class="site-nav navbar navbar-expand-lg sticky-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" href="/">
+      <div class="nav-logo-icon">
+        <i class="bi bi-hospital-fill text-white" style="font-size:.85rem;"></i>
+      </div>
+      <span class="fw-bold" style="color:#0f172a;font-size:1.1rem;">Medwema</span>
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#pubNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div id="pubNav" class="collapse navbar-collapse justify-content-end">
+      <ul class="navbar-nav align-items-lg-center gap-1 me-3">
+        <li class="nav-item"><a href="/" class="nav-link nav-link-pub">Home</a></li>
+        <li class="nav-item"><a href="/#features" class="nav-link nav-link-pub">Features</a></li>
+        <li class="nav-item"><a href="{% url 'blog_list' %}" class="nav-link nav-link-pub">Blog</a></li>
+        <li class="nav-item"><a href="{% url 'account_login' %}" class="nav-link nav-link-pub">Sign In</a></li>
+      </ul>
+      <a href="{% url 'account_signup' %}" class="btn btn-pub-cta">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+{% block content %}{% endblock %}
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div class="d-flex align-items-center gap-2">
+        <div style="background:linear-gradient(135deg,#2563eb,#0284c7);border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-hospital-fill text-white" style="font-size:.7rem;"></i>
+        </div>
+        <span class="text-white fw-semibold">Medwema</span>
+      </div>
+      <div class="d-flex gap-3 flex-wrap">
+        <a href="/" class="footer-link">Home</a>
+        <a href="{% url 'blog_list' %}" class="footer-link">Blog</a>
+        <a href="{% url 'account_signup' %}" class="footer-link">Get Started</a>
+      </div>
+      <p style="font-size:.8rem;color:rgba(255,255,255,.3);margin:0;">
+        &copy; {% now "Y" %} Medwema · Lunyamwi Technologies
+      </p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  window.addEventListener('scroll', () => {
+    document.querySelector('.site-nav').classList.toggle('scrolled', window.scrollY > 20);
+  });
+</script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

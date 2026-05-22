@@ -1,16 +1,42 @@
 {% extends "account_base.html" %}
-{% load widget_tweaks %}
+{% block title %}Confirm Email — Medwema{% endblock %}
+
 {% block content %}
-<div class="text-center mt-5">
-  <h4>Email Confirmation</h4>
+<div class="text-center">
   {% if confirmation %}
-    <p>Confirm your email: <strong>{{ confirmation.email_address.email }}</strong></p>
+    <div class="mb-3" style="background:#eff6ff;border-radius:50%;width:72px;height:72px;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+      <i class="bi bi-envelope-open-fill" style="font-size:2rem;color:#2563eb;"></i>
+    </div>
+    <h4 class="fw-bold mb-2" style="color:#0f172a;">Confirm your email</h4>
+    <p style="color:#64748b;font-size:.9rem;max-width:360px;margin:0 auto 1.25rem;">
+      Please confirm that
+      <strong style="color:#1e293b;">{{ confirmation.email_address.email }}</strong>
+      is your email address.
+    </p>
     <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
       {% csrf_token %}
-      <button type="submit" class="btn btn-success">Confirm</button>
+      <button type="submit" class="btn btn-auth-primary w-100 mb-3">
+        <i class="bi bi-patch-check me-2"></i>Confirm Email Address
+      </button>
     </form>
+    <p style="font-size:.8125rem;color:#94a3b8;">
+      Wrong email?
+      <a href="{% url 'account_email' %}" style="color:#2563eb;text-decoration:none;">Manage email addresses</a>
+    </p>
   {% else %}
-    <p class="text-danger">Invalid or expired confirmation link.</p>
+    <div class="mb-3" style="background:#fef2f2;border-radius:50%;width:72px;height:72px;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+      <i class="bi bi-x-circle-fill" style="font-size:2rem;color:#ef4444;"></i>
+    </div>
+    <h4 class="fw-bold mb-2" style="color:#0f172a;">Link Expired</h4>
+    <p style="color:#64748b;font-size:.9rem;max-width:340px;margin:0 auto 1.5rem;">
+      This confirmation link is invalid or has already been used.
+    </p>
+    <a href="{% url 'account_email' %}" class="btn btn-auth-primary w-100 mb-2">
+      <i class="bi bi-envelope me-2"></i>Manage Email Addresses
+    </a>
+    <a href="{% url 'account_login' %}" class="btn w-100" style="border:1.5px solid #e2e8f0;border-radius:10px;color:#475569;font-weight:500;padding:.7rem 1.5rem;">
+      <i class="bi bi-box-arrow-in-right me-2"></i>Back to Sign In
+    </a>
   {% endif %}
 </div>
 {% endblock %}

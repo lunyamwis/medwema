@@ -54,11 +54,24 @@ class SubscriberAdmin(admin.ModelAdmin):
     readonly_fields = ("subscribed_at",)
     actions = ["activate_subscribers", "deactivate_subscribers"]
 
+    from django.utils.html import format_html
+
     @admin.display(description="Status")
     def status_badge(self, obj):
         if obj.is_active:
-            return format_html('<span style="color:#16a34a;font-weight:600;">● Active</span>')
-        return format_html('<span style="color:#dc2626;font-weight:600;">● Inactive</span>')
+            return format_html(
+                '<span style="color:{};font-weight:{};">● {}</span>',
+                "#16a34a",
+                "600",
+                "Active"
+            )
+
+        return format_html(
+            '<span style="color:{};font-weight:{};">● {}</span>',
+            "#dc2626",
+            "600",
+            "Inactive"
+        )
 
     @admin.action(description="Activate selected subscribers")
     def activate_subscribers(self, request, queryset):
