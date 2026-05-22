@@ -6,154 +6,561 @@
 
 {% block content %}
 
-<!-- Page Header -->
-<div class="page-header">
-  <div class="page-header-left">
-    <h1 class="page-heading">Billing Dashboard</h1>
-    <p class="page-subheading">Track bills, payments, and financial activity</p>
+<!-- Hero banner -->
+<div class="dash-hero mb-4">
+  <div class="dash-hero-left">
+    <div class="dash-hero-eyebrow">
+      <i class="bi bi-calendar3 me-1"></i>
+      {% now "l, N j, Y" %}
+    </div>
+    <h1 class="dash-hero-title">Billing Overview</h1>
+    <p class="dash-hero-sub">Track revenue, payments and outstanding balances at a glance.</p>
   </div>
-  <div class="d-flex gap-2 flex-wrap">
-    <a href="{% url 'billing_list' %}" class="btn btn-outline-primary">
-      <i class="bi bi-list-ul me-1"></i>View All Bills
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    <a href="{% url 'billing_list' %}" class="btn btn-light btn-sm">
+      <i class="bi bi-list-ul me-1"></i>All Bills
     </a>
-    <a href="{% url 'revenue_report' %}" class="btn btn-primary">
+    <a href="{% url 'revenue_report' %}" class="btn btn-white btn-sm fw-semibold">
       <i class="bi bi-graph-up-arrow me-1"></i>Revenue Report
     </a>
   </div>
 </div>
 
-<!-- Stat Cards -->
+<!-- KPI stat cards -->
 <div class="row g-3 mb-4">
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card">
-      <div class="stat-icon red"><i class="bi bi-exclamation-circle-fill"></i></div>
-      <div>
-        <div class="stat-value">{{ unpaid_count }}</div>
-        <div class="stat-label">Unpaid Bills</div>
+
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-icon"><i class="bi bi-cash-stack"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-value">KES {{ revenue_today|floatformat:0 }}</div>
+        <div class="kpi-label">Revenue Today</div>
       </div>
+      <div class="kpi-bg-icon bi bi-cash-stack"></div>
     </div>
   </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card">
-      <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
-      <div>
-        <div class="stat-value">{{ paid_today_count }}</div>
-        <div class="stat-label">Paid Today</div>
+
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card kpi-green">
+      <div class="kpi-icon"><i class="bi bi-bar-chart-fill"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-value">KES {{ revenue_week|floatformat:0 }}</div>
+        <div class="kpi-label">
+          This Week
+          {% if week_pct_change != 0 %}
+          <span class="kpi-badge {% if week_pct_change > 0 %}kpi-badge-up{% else %}kpi-badge-down{% endif %}">
+            <i class="bi bi-arrow-{% if week_pct_change > 0 %}up{% else %}down{% endif %}-short"></i>
+            {{ week_pct_change|floatformat:1 }}%
+          </span>
+          {% endif %}
+        </div>
       </div>
+      <div class="kpi-bg-icon bi bi-bar-chart-fill"></div>
     </div>
   </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card">
-      <div class="stat-icon green"><i class="bi bi-cash-stack"></i></div>
-      <div>
-        <div class="stat-value">KES {{ revenue_today|floatformat:2 }}</div>
-        <div class="stat-label">Revenue Today</div>
+
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-icon"><i class="bi bi-exclamation-circle-fill"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ unpaid_count }}</div>
+        <div class="kpi-label">Unpaid Bills</div>
       </div>
+      <div class="kpi-bg-icon bi bi-exclamation-circle"></div>
     </div>
   </div>
-  <div class="col-sm-6 col-xl-3">
-    <div class="stat-card">
-      <div class="stat-icon blue"><i class="bi bi-bar-chart-fill"></i></div>
-      <div>
-        <div class="stat-value">KES {{ revenue_week|floatformat:2 }}</div>
-        <div class="stat-label">Revenue This Week</div>
+
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card kpi-teal">
+      <div class="kpi-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ paid_today_count }}</div>
+        <div class="kpi-label">Paid Today</div>
       </div>
+      <div class="kpi-bg-icon bi bi-check-circle"></div>
     </div>
   </div>
+
 </div>
 
-<!-- Recent Bills -->
-<div class="card">
-  <div class="card-header d-flex align-items-center justify-content-between">
-    <span><i class="bi bi-receipt me-2 text-primary"></i>Recent Bills</span>
-    <a href="{% url 'billing_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
-  </div>
-  <div class="card-body p-0">
-    {% if recent_bills %}
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr>
-            <th>Patient</th>
-            <th>Consultation</th>
-            <th>Amount</th>
-            <th>Net</th>
-            <th>Status</th>
-            <th>Date</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for bill in recent_bills %}
-          <tr>
-            <td>
-              <div class="d-flex align-items-center gap-2">
-                <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700;font-size:.8125rem;flex-shrink:0;">
-                  {{ bill.patient.name|first|upper }}
-                </div>
-                <span class="fw-500">{{ bill.patient.name }}</span>
-              </div>
-            </td>
-            <td>
-              {% if bill.consultation %}
-                <a href="{% url 'consultation_detail' consultation_id=bill.consultation.pk %}" class="text-primary text-decoration-none small">
-                  #{{ bill.consultation.pk }}
-                </a>
-              {% else %}
-                <span class="text-muted small">—</span>
-              {% endif %}
-            </td>
-            <td class="fw-500">KES {{ bill.total_amount|floatformat:2 }}</td>
-            {% if bill.net_amount %}
-            <td class="fw-600 text-primary">KES {{ bill.net_amount|floatformat:2 }}</td>
-            {% else %}
-            <td class="fw-600 text-primary">KES 0 </td>
-            {% endif %}
-            <td>
-              {% if bill.is_paid %}
-                <span class="badge badge-paid rounded-pill">Paid</span>
-              {% else %}
-                <span class="badge badge-unpaid rounded-pill">Unpaid</span>
-              {% endif %}
-            </td>
-            <td class="text-muted small">{{ bill.created_at|date:"M d, Y" }}</td>
-            <td>
-              <div class="d-flex align-items-center gap-1 flex-wrap">
-                <a href="{% url 'bill_detail' bill.pk %}" class="btn btn-sm btn-outline-secondary btn-icon" title="View">
-                  <i class="bi bi-eye"></i>
-                </a>
-                {% if not bill.is_paid %}
-                <form method="post" action="{% url 'mark_bill_paid' bill.pk %}" class="d-inline-flex align-items-center gap-1">
-                  {% csrf_token %}
-                  <select name="payment_method" class="form-select form-select-sm no-select2" style="width:auto;font-size:.75rem;">
-                    <option value="CASH">Cash</option>
-                    <option value="CARD">Card</option>
-                    <option value="MPESA">M-Pesa</option>
-                    <option value="ONLINE">Online</option>
-                  </select>
-                  <button type="submit" class="btn btn-sm btn-success" title="Mark Paid">
-                    <i class="bi bi-check-lg me-1"></i>Pay
-                  </button>
-                </form>
-                {% else %}
-                <a href="{% url 'print_receipt' bill.pk %}" class="btn btn-sm btn-outline-secondary" title="Print Receipt">
-                  <i class="bi bi-printer"></i>
-                </a>
-                {% endif %}
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<!-- Charts row -->
+<div class="row g-3 mb-4">
+
+  <!-- Revenue trend -->
+  <div class="col-lg-7">
+    <div class="chart-card h-100">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-card-title">Revenue — Last 7 Days</div>
+          <div class="chart-card-sub">Daily collections across all payment methods</div>
+        </div>
+        <span class="chart-badge">
+          <i class="bi bi-activity me-1"></i>Live
+        </span>
+      </div>
+      <div class="chart-card-body">
+        <canvas id="revenueChart" height="220"></canvas>
+      </div>
     </div>
-    {% else %}
-    <div class="text-center py-5 text-muted">
-      <i class="bi bi-receipt" style="font-size:2.5rem;opacity:.3;display:block;margin-bottom:.75rem;"></i>
-      No bills yet. Bills will appear here once created.
-    </div>
-    {% endif %}
   </div>
+
+  <!-- Payment methods -->
+  <div class="col-lg-5">
+    <div class="chart-card h-100">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-card-title">Payment Methods</div>
+          <div class="chart-card-sub">All-time breakdown by channel</div>
+        </div>
+      </div>
+      <div class="chart-card-body d-flex align-items-center justify-content-center" style="padding:1rem 2rem;">
+        <canvas id="methodChart" style="max-height:220px;max-width:220px;"></canvas>
+      </div>
+    </div>
+  </div>
+
 </div>
 
+<!-- Second row: bill status donut + recent bills -->
+<div class="row g-3 mb-4">
+
+  <!-- Bills status mini ring -->
+  <div class="col-md-4 col-lg-3">
+    <div class="chart-card h-100">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-card-title">Bill Status</div>
+          <div class="chart-card-sub">Paid vs unpaid</div>
+        </div>
+      </div>
+      <div class="chart-card-body d-flex flex-column align-items-center justify-content-center gap-3" style="padding:1.25rem;">
+        <canvas id="statusChart" style="max-height:160px;max-width:160px;"></canvas>
+        <div class="d-flex gap-3">
+          <div class="text-center">
+            <div style="font-size:1.25rem;font-weight:700;color:#16a34a;">{{ paid_total }}</div>
+            <div style="font-size:.75rem;color:#64748b;">Paid</div>
+          </div>
+          <div style="width:1px;background:#e2e8f0;"></div>
+          <div class="text-center">
+            <div style="font-size:1.25rem;font-weight:700;color:#dc2626;">{{ unpaid_count }}</div>
+            <div style="font-size:.75rem;color:#64748b;">Unpaid</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent bills table -->
+  <div class="col-md-8 col-lg-9">
+    <div class="chart-card h-100">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-card-title">Recent Bills</div>
+          <div class="chart-card-sub">Last 10 bills created</div>
+        </div>
+        <a href="{% url 'billing_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="chart-card-body p-0">
+        {% if recent_bills %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" style="font-size:.875rem;">
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th class="text-end">Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for bill in recent_bills %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="patient-avatar">{{ bill.patient.name|first|upper }}</div>
+                    <div>
+                      <div class="fw-500" style="line-height:1.2;">{{ bill.patient.name }}</div>
+                      {% if bill.consultation %}
+                      <div style="font-size:.7rem;color:#94a3b8;">Consult #{{ bill.consultation.pk }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td class="text-end fw-600">KES {{ bill.net_amount|floatformat:0 }}</td>
+                <td>
+                  {% if bill.is_paid %}
+                  <span class="badge badge-paid rounded-pill">Paid</span>
+                  {% else %}
+                  <span class="badge badge-unpaid rounded-pill">Unpaid</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted" style="font-size:.8rem;white-space:nowrap;">{{ bill.created_at|date:"M j, Y" }}</td>
+                <td class="text-end" style="white-space:nowrap;">
+                  {% if not bill.is_paid %}
+                  <form method="post" action="{% url 'mark_bill_paid' bill.pk %}" class="d-inline-flex align-items-center gap-1">
+                    {% csrf_token %}
+                    <select name="payment_method" class="form-select form-select-sm no-select2" style="width:auto;font-size:.75rem;padding:.25rem .5rem;">
+                      <option value="CASH">Cash</option>
+                      <option value="MPESA">M-Pesa</option>
+                      <option value="CARD">Card</option>
+                      <option value="ONLINE">Online</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-success py-1 px-2">
+                      <i class="bi bi-check-lg"></i>
+                    </button>
+                  </form>
+                  {% else %}
+                  <a href="{% url 'print_receipt' bill.pk %}" class="btn btn-sm btn-outline-secondary py-1 px-2">
+                    <i class="bi bi-printer"></i>
+                  </a>
+                  {% endif %}
+                  <a href="{% url 'bill_detail' bill.pk %}" class="btn btn-sm btn-outline-secondary py-1 px-2">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-receipt" style="font-size:2.5rem;opacity:.25;display:block;margin-bottom:.75rem;"></i>
+          No bills yet.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.dash-hero {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #0ea5e9 100%);
+  border-radius: 1rem;
+  padding: 1.75rem 2rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+}
+.dash-hero::before {
+  content: "";
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.07);
+  pointer-events: none;
+}
+.dash-hero::after {
+  content: "";
+  position: absolute;
+  bottom: -60px; right: 80px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.05);
+  pointer-events: none;
+}
+.dash-hero-eyebrow {
+  font-size: .8125rem;
+  font-weight: 500;
+  color: rgba(255,255,255,.75);
+  margin-bottom: .35rem;
+}
+.dash-hero-title {
+  font-size: 1.625rem;
+  font-weight: 700;
+  margin: 0 0 .25rem;
+  line-height: 1.2;
+}
+.dash-hero-sub {
+  font-size: .875rem;
+  color: rgba(255,255,255,.8);
+  margin: 0;
+}
+.btn-white {
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,.3);
+  backdrop-filter: blur(4px);
+}
+.btn-white:hover {
+  background: rgba(255,255,255,.25);
+  color: #fff;
+}
+.btn-light {
+  background: rgba(255,255,255,.92);
+  color: #1e40af;
+  border: none;
+}
+.btn-light:hover { background: #fff; color: #1e40af; }
+
+/* ── KPI cards ───────────────────────────────────────────────────── */
+.kpi-card {
+  border-radius: .875rem;
+  padding: 1.25rem 1.25rem 1rem;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  gap: .875rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+.kpi-icon {
+  width: 44px; height: 44px;
+  border-radius: .75rem;
+  display: grid; place-items: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+.kpi-value {
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.kpi-label {
+  font-size: .8125rem;
+  margin-top: .25rem;
+  display: flex;
+  align-items: center;
+  gap: .375rem;
+  flex-wrap: wrap;
+}
+.kpi-badge {
+  font-size: .7rem;
+  font-weight: 600;
+  padding: .1rem .4rem;
+  border-radius: 999px;
+}
+.kpi-badge-up   { background: #dcfce7; color: #166534; }
+.kpi-badge-down { background: #fee2e2; color: #991b1b; }
+.kpi-bg-icon {
+  position: absolute;
+  right: -.5rem; bottom: -.75rem;
+  font-size: 5rem;
+  opacity: .07;
+  pointer-events: none;
+  line-height: 1;
+}
+/* colour variants */
+.kpi-blue  { background: linear-gradient(135deg,#eff6ff,#dbeafe); color: #1e3a8a; }
+.kpi-blue .kpi-icon  { background: #bfdbfe; color: #1d4ed8; }
+.kpi-green { background: linear-gradient(135deg,#f0fdf4,#dcfce7); color: #14532d; }
+.kpi-green .kpi-icon { background: #bbf7d0; color: #16a34a; }
+.kpi-amber { background: linear-gradient(135deg,#fffbeb,#fef3c7); color: #78350f; }
+.kpi-amber .kpi-icon { background: #fde68a; color: #d97706; }
+.kpi-teal  { background: linear-gradient(135deg,#f0fdfa,#ccfbf1); color: #134e4a; }
+.kpi-teal .kpi-icon  { background: #99f6e4; color: #0d9488; }
+
+/* ── Chart cards ─────────────────────────────────────────────────── */
+.chart-card {
+  background: #fff;
+  border-radius: .875rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.chart-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.125rem 1.25rem .875rem;
+  border-bottom: 1px solid #f1f5f9;
+  gap: .75rem;
+}
+.chart-card-title {
+  font-weight: 600;
+  font-size: .9375rem;
+  color: #0f172a;
+  line-height: 1.3;
+}
+.chart-card-sub {
+  font-size: .8rem;
+  color: #94a3b8;
+  margin-top: .15rem;
+}
+.chart-card-body { padding: 1.25rem; flex: 1; }
+.chart-badge {
+  background: #f0fdf4;
+  color: #16a34a;
+  font-size: .7rem;
+  font-weight: 600;
+  padding: .25rem .625rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* ── Patient avatar ──────────────────────────────────────────────── */
+.patient-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: .8rem;
+  font-weight: 700;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+</style>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+  Chart.defaults.color = "#64748b";
+
+  /* ── Revenue trend line chart ── */
+  const labels  = {{ revenue_chart_labels|safe }};
+  const revData = {{ revenue_chart_data|safe }};
+
+  const revenueCtx = document.getElementById("revenueChart");
+  if (revenueCtx) {
+    const gradient = revenueCtx.getContext("2d").createLinearGradient(0, 0, 0, 220);
+    gradient.addColorStop(0, "rgba(37,99,235,.25)");
+    gradient.addColorStop(1, "rgba(37,99,235,.01)");
+
+    new Chart(revenueCtx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: "Revenue (KES)",
+          data: revData,
+          borderColor: "#2563eb",
+          backgroundColor: gradient,
+          borderWidth: 2.5,
+          pointRadius: 4,
+          pointBackgroundColor: "#fff",
+          pointBorderColor: "#2563eb",
+          pointBorderWidth: 2,
+          fill: true,
+          tension: 0.42,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#0f172a",
+            titleColor: "#94a3b8",
+            bodyColor: "#f8fafc",
+            padding: 10,
+            callbacks: {
+              label: ctx => " KES " + ctx.parsed.y.toLocaleString(),
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            border: { display: false },
+            ticks: { font: { size: 11 } },
+          },
+          y: {
+            grid: { color: "#f1f5f9" },
+            border: { display: false, dash: [4, 4] },
+            ticks: {
+              font: { size: 11 },
+              callback: v => "KES " + v.toLocaleString(),
+            }
+          }
+        }
+      }
+    });
+  }
+
+  /* ── Payment method doughnut ── */
+  const mLabels = {{ method_labels|safe }};
+  const mData   = {{ method_data|safe }};
+  const methodPalette = ["#2563eb", "#0ea5e9", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444"];
+  const methodCtx = document.getElementById("methodChart");
+  if (methodCtx && mData.length) {
+    new Chart(methodCtx, {
+      type: "doughnut",
+      data: {
+        labels: mLabels,
+        datasets: [{
+          data: mData,
+          backgroundColor: methodPalette.slice(0, mData.length),
+          borderWidth: 2,
+          borderColor: "#fff",
+          hoverBorderWidth: 3,
+        }]
+      },
+      options: {
+        cutout: "68%",
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              font: { size: 11 },
+              padding: 12,
+              usePointStyle: true,
+              pointStyleWidth: 8,
+            }
+          },
+          tooltip: {
+            backgroundColor: "#0f172a",
+            titleColor: "#94a3b8",
+            bodyColor: "#f8fafc",
+            padding: 10,
+            callbacks: {
+              label: ctx => " KES " + ctx.parsed.toLocaleString(),
+            }
+          }
+        }
+      }
+    });
+  } else if (methodCtx) {
+    methodCtx.parentElement.innerHTML = '<p class="text-muted text-center" style="font-size:.875rem;padding:2rem 0;">No payment data yet.</p>';
+  }
+
+  /* ── Bill status doughnut ── */
+  const paid   = {{ paid_total }};
+  const unpaid = {{ unpaid_count }};
+  const statusCtx = document.getElementById("statusChart");
+  if (statusCtx && (paid + unpaid) > 0) {
+    new Chart(statusCtx, {
+      type: "doughnut",
+      data: {
+        labels: ["Paid", "Unpaid"],
+        datasets: [{
+          data: [paid, unpaid],
+          backgroundColor: ["#10b981", "#f87171"],
+          borderWidth: 2,
+          borderColor: "#fff",
+        }]
+      },
+      options: {
+        cutout: "72%",
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#0f172a",
+            titleColor: "#94a3b8",
+            bodyColor: "#f8fafc",
+            padding: 10,
+          }
+        }
+      }
+    });
+  }
+})();
+</script>
 {% endblock %}
