@@ -77,3 +77,10 @@
 2026-05-22 09:55:25 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=laboratory code=1001
 2026-05-22 09:55:31 [INFO] chat.consumers: Chat connected: user=skywavemedicalclinic room=laboratory clinic=3
 2026-05-22 09:55:32 [DEBUG] chat.consumers: Chat disconnected: user=skywavemedicalclinic room=laboratory code=1006
+2026-05-22 12:11:50 [INFO] chat.consumers: Chat connected: user=martin room=laboratory clinic=3
+2026-05-22 12:11:55 [DEBUG] chat.consumers: Chat disconnected: user=martin room=laboratory code=1001
+2026-05-22 12:12:00 [INFO] chat.consumers: Chat connected: user=martin room=laboratory clinic=3
+2026-05-22 12:12:02 [DEBUG] chat.consumers: Chat disconnected: user=martin room=laboratory code=1006
+2026-05-22 12:12:22 [INFO] chat.consumers: Chat connected: user=martin room=laboratory clinic=3
+2026-05-22 12:12:23 [DEBUG] chat.consumers: Chat disconnected: user=martin room=laboratory code=1006
+2026-05-22 12:12:56 [INFO] chat.consumers: Chat connected: user=martin room=laboratory clinic=3
