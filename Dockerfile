@@ -12,10 +12,10 @@ RUN apt-get -y update && \
 ENV DISPLAY=:99
 
 # upgrade pip
-RUN pip install pip==23.0.1
+RUN pip install pip==24.0
 
 
-RUN python -m pip install pip==23.0.1
+RUN python -m pip install pip==24.0
 
 COPY requirements.txt requirements.txt
 RUN python -m pip install -r requirements.txt
