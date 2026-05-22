@@ -15,3 +15,5 @@ token.json
 schema.json
 credentials.json
 results.csv
+.django_cache/*
+logs/*
