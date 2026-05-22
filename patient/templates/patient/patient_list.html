@@ -1,68 +1,138 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Patients{% endblock %}
+{% block title %}Patient Dashboard{% endblock %}
 {% block page_title %}Patient Dashboard{% endblock %}
 {% block nav_patients %}active{% endblock %}
 
 {% block content %}
 <audio id="notif-sound" src="{% static 'sounds/notification-ding-dong-432437.mp3' %}" preload="auto"></audio>
 
-<!-- Page header -->
-<div class="page-header">
-  <div class="page-header-left">
-    <h1 class="page-heading">Patients</h1>
-    <p class="page-subheading">Manage patient records and queue</p>
+<!-- Hero banner -->
+<div class="dash-hero mb-4">
+  <div class="dash-hero-left">
+    <div class="dash-hero-eyebrow">
+      <i class="bi bi-calendar3 me-1"></i>
+      {% now "l, N j, Y" %}
+    </div>
+    <h1 class="dash-hero-title">Patient Dashboard</h1>
+    <p class="dash-hero-sub">Monitor registrations, queue status and patient demographics.</p>
   </div>
-  <a href="{% url 'register_patient' %}" class="btn btn-primary">
-    <i class="bi bi-person-plus-fill me-1"></i> Register Patient
-  </a>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+    <a href="{% url 'register_patient' %}" class="btn btn-light btn-sm">
+      <i class="bi bi-person-plus-fill me-1"></i>Register Patient
+    </a>
+    <a href="{% url 'doctor_list' %}" class="btn btn-white btn-sm fw-semibold">
+      <i class="bi bi-person-badge me-1"></i>Doctors
+    </a>
+  </div>
 </div>
 
-<!-- Stat cards -->
+<!-- KPI stat cards -->
 <div class="row g-3 mb-4">
-  <div class="col-6 col-md-3">
-    <div class="stat-card">
-      <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>
-      <div>
-        <div class="stat-value">{{ page_obj.paginator.count }}</div>
-        <div class="stat-label">Total Patients</div>
+
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-icon"><i class="bi bi-people-fill"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ total_patients }}</div>
+        <div class="kpi-label">Total Patients</div>
       </div>
+      <div class="kpi-bg-icon bi bi-people"></div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="stat-card">
-      <div class="stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
-      <div>
-        <div class="stat-value" id="waiting-count">{{ waiting_count }}</div>
-        <div class="stat-label">In Queue</div>
+
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-value" id="waiting-count">{{ waiting_count }}</div>
+        <div class="kpi-label">In Queue</div>
       </div>
+      <div class="kpi-bg-icon bi bi-hourglass"></div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="stat-card">
-      <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
-      <div>
-        <div class="stat-value" id="completed-count">{{ completed_count }}</div>
-        <div class="stat-label">Seen Today</div>
+
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card kpi-green">
+      <div class="kpi-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-value" id="completed-count">{{ completed_count }}</div>
+        <div class="kpi-label">Seen Today</div>
       </div>
+      <div class="kpi-bg-icon bi bi-check-circle"></div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="stat-card">
-      <div class="stat-icon purple"><i class="bi bi-bell-fill"></i></div>
-      <div>
-        <button id="btn-enable-notif" class="btn btn-sm btn-outline-primary mt-1">Enable Alerts</button>
-        <div class="stat-label">Push Notifications</div>
+
+  <div class="col-6 col-xl-3">
+    <div class="kpi-card kpi-indigo">
+      <div class="kpi-icon"><i class="bi bi-person-badge-fill"></i></div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ doctors_count }}</div>
+        <div class="kpi-label">
+          Doctors
+          <button id="btn-enable-notif" class="kpi-notif-btn ms-1" title="Enable push alerts">
+            <i class="bi bi-bell"></i>
+          </button>
+        </div>
       </div>
+      <div class="kpi-bg-icon bi bi-person-badge"></div>
     </div>
   </div>
+
 </div>
 
-<!-- Search + table -->
-<div class="card">
-  <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
-    <span><i class="bi bi-table me-1"></i> Patient List</span>
+<!-- Charts row -->
+<div class="row g-3 mb-4">
+
+  <!-- Registrations trend -->
+  <div class="col-lg-7">
+    <div class="chart-card h-100">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-card-title">New Registrations — Last 7 Days</div>
+          <div class="chart-card-sub">Daily patient registrations</div>
+        </div>
+        <span class="chart-badge"><i class="bi bi-activity me-1"></i>Live</span>
+      </div>
+      <div class="chart-card-body">
+        <canvas id="regChart" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gender distribution -->
+  <div class="col-lg-5">
+    <div class="chart-card h-100">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-card-title">Gender Distribution</div>
+          <div class="chart-card-sub">All-time patient breakdown</div>
+        </div>
+      </div>
+      <div class="chart-card-body d-flex align-items-center justify-content-center" style="padding:1rem 2rem;">
+        <canvas id="genderChart" style="max-height:220px;max-width:220px;"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Patient table -->
+<div class="chart-card">
+  <div class="chart-card-header">
+    <div>
+      <div class="chart-card-title">
+        <i class="bi bi-table me-1"></i>Patient List
+      </div>
+      <div class="chart-card-sub">
+        {% if query %}
+          {{ page_obj.paginator.count }} result{{ page_obj.paginator.count|pluralize }} for "{{ query }}"
+        {% else %}
+          Showing all active patients
+        {% endif %}
+      </div>
+    </div>
     <form method="get" class="d-flex gap-2 mb-0" style="max-width:340px">
       <div class="search-box flex-grow-1">
         <i class="bi bi-search"></i>
@@ -73,150 +143,150 @@
     </form>
   </div>
 
-  <div class="table-responsive">
-    <table class="table table-hover mb-0">
-      <thead>
-        <tr>
-          <th>Patient</th>
-          <th>Age / Gender</th>
-          <th>Phone</th>
-          <th>Doctor</th>
-          <th>Registered</th>
-          <th class="text-end">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for patient in page_obj %}
-        <tr>
-          <td>
-            <div class="d-flex align-items-center gap-2">
-              <div style="width:34px;height:34px;border-radius:50%;background:#eff6ff;color:#2563eb;display:grid;place-items:center;font-weight:700;font-size:.875rem;flex-shrink:0">
-                {{ patient.name|first|upper }}
-              </div>
-              <div>
-                <a href="{% url 'patient_detail' patient.id %}" class="fw-semibold text-decoration-none text-dark">
-                  {{ patient.name }}
-                </a>
-                <div style="font-size:.75rem;color:#64748b">{{ patient.patient_number|default:"" }}</div>
-              </div>
-            </div>
-          </td>
-          <td>
-            {{ patient.age }} yrs
-            <span class="badge bg-light text-secondary ms-1">{{ patient.get_gender_display }}</span>
-          </td>
-          <td>{{ patient.phone_number }}</td>
-          <td>
-            {% if patient.doctor %}
-              <span class="text-muted small">Dr. {{ patient.doctor.name }}</span>
-            {% else %}
-              <span class="text-muted small fst-italic">Unassigned</span>
-            {% endif %}
-          </td>
-          <td><span class="text-muted small">{{ patient.date_registered|date:"M j, Y" }}</span></td>
-          <td class="text-end">
-            <div class="d-flex gap-1 justify-content-end flex-wrap">
-              {% if patient.doctor %}
-              <form method="post" action="{% url 'add_to_queue' patient.doctor.id patient.id %}">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-success" title="Add to queue">
-                  <i class="bi bi-plus-circle-fill"></i> Queue
-                </button>
-              </form>
-              {% else %}
-              <button type="button" class="btn btn-sm btn-success"
-                      data-bs-toggle="modal" data-bs-target="#selectDoctorModal{{ patient.id }}">
-                <i class="bi bi-plus-circle-fill"></i> Queue
-              </button>
-              <!-- Select doctor modal -->
-              <div class="modal fade" id="selectDoctorModal{{ patient.id }}" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title">Select Doctor — {{ patient.name }}</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <form method="post" action="{% url 'add_to_queue_select' patient.id %}">
-                      {% csrf_token %}
-                      <div class="modal-body">
-                        <label class="form-label">Doctor</label>
-                        <select name="doctor_id" class="form-select" required>
-                          <option value="">— Choose doctor —</option>
-                          {% for doc in doctors %}
-                            <option value="{{ doc.id }}">Dr. {{ doc.name }}</option>
-                          {% endfor %}
-                        </select>
-                      </div>
-                      <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Add to Queue</button>
-                      </div>
-                    </form>
-                  </div>
+  <div class="chart-card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" style="font-size:.875rem;">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Age / Gender</th>
+            <th>Phone</th>
+            <th>Doctor</th>
+            <th>Registered</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for patient in page_obj %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="patient-avatar">{{ patient.name|first|upper }}</div>
+                <div>
+                  <a href="{% url 'patient_detail' patient.id %}" class="fw-semibold text-decoration-none text-dark" style="line-height:1.2;display:block;">
+                    {{ patient.name }}
+                  </a>
+                  <div style="font-size:.7rem;color:#94a3b8;">{{ patient.patient_number|default:"" }}</div>
                 </div>
               </div>
+            </td>
+            <td>
+              {{ patient.age }} yrs
+              <span class="badge bg-light text-secondary ms-1">{{ patient.get_gender_display }}</span>
+            </td>
+            <td class="text-muted">{{ patient.phone_number }}</td>
+            <td>
+              {% if patient.doctor %}
+                <span class="text-muted small">Dr. {{ patient.doctor.name }}</span>
+              {% else %}
+                <span class="text-muted small fst-italic">Unassigned</span>
               {% endif %}
+            </td>
+            <td><span class="text-muted small">{{ patient.date_registered|date:"M j, Y" }}</span></td>
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end flex-wrap">
+                {% if patient.doctor %}
+                <form method="post" action="{% url 'add_to_queue' patient.doctor.id patient.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-success py-1 px-2" title="Add to queue">
+                    <i class="bi bi-plus-circle-fill me-1"></i>Queue
+                  </button>
+                </form>
+                {% else %}
+                <button type="button" class="btn btn-sm btn-success py-1 px-2"
+                        data-bs-toggle="modal" data-bs-target="#selectDoctorModal{{ patient.id }}">
+                  <i class="bi bi-plus-circle-fill me-1"></i>Queue
+                </button>
+                <!-- Select doctor modal -->
+                <div class="modal fade" id="selectDoctorModal{{ patient.id }}" tabindex="-1">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Select Doctor — {{ patient.name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                      </div>
+                      <form method="post" action="{% url 'add_to_queue_select' patient.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body">
+                          <label class="form-label">Doctor</label>
+                          <select name="doctor_id" class="form-select" required>
+                            <option value="">— Choose doctor —</option>
+                            {% for doc in doctors %}
+                              <option value="{{ doc.id }}">Dr. {{ doc.name }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="submit" class="btn btn-primary">Add to Queue</button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+                {% endif %}
 
-              <button type="button" class="btn btn-sm btn-outline-secondary"
-                      data-bs-toggle="modal" data-bs-target="#labModal"
-                      data-patient="{{ patient.name }}"
-                      data-patient-id="{{ patient.id }}"
-                      data-consultation-id="{{ patient.consultations.last.id|default:0 }}">
-                <i class="bi bi-eyedropper"></i> Lab
-              </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2"
+                        data-bs-toggle="modal" data-bs-target="#labModal"
+                        data-patient="{{ patient.name }}"
+                        data-patient-id="{{ patient.id }}"
+                        data-consultation-id="{{ patient.consultations.last.id|default:0 }}">
+                  <i class="bi bi-eyedropper"></i>
+                </button>
 
-              <a href="{% url 'patient_edit' patient.id %}" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-pencil"></i>
-              </a>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6" class="text-center py-5 text-muted">
-            <i class="bi bi-people display-6 d-block mb-2"></i>
-            No patients found{% if query %} for "{{ query }}"{% endif %}.
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+                <a href="{% url 'patient_edit' patient.id %}" class="btn btn-sm btn-outline-primary py-1 px-2">
+                  <i class="bi bi-pencil"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              <i class="bi bi-people" style="font-size:2.5rem;opacity:.25;display:block;margin-bottom:.75rem;"></i>
+              No patients found{% if query %} for "{{ query }}"{% endif %}.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
-  <!-- Pagination -->
-  {% if page_obj.has_other_pages %}
-  <div class="card-body border-top d-flex align-items-center justify-content-between">
-    <span class="text-muted small">
-      Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
-    </span>
-    <nav>
-      <ul class="pagination pagination-sm mb-0 gap-1">
-        {% if page_obj.has_previous %}
-        <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
-            <i class="bi bi-chevron-left"></i>
-          </a>
-        </li>
-        {% endif %}
-        {% for num in page_obj.paginator.page_range %}
-          {% if page_obj.number == num %}
-            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-          {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
-            </li>
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="px-3 py-2 border-top d-flex align-items-center justify-content-between" style="background:#fafafa;">
+      <span class="text-muted small">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+      </span>
+      <nav>
+        <ul class="pagination pagination-sm mb-0 gap-1">
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
           {% endif %}
-        {% endfor %}
-        {% if page_obj.has_next %}
-        <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
-            <i class="bi bi-chevron-right"></i>
-          </a>
-        </li>
-        {% endif %}
-      </ul>
-    </nav>
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if query %}&q={{ query }}{% endif %}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+          {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+    {% endif %}
   </div>
-  {% endif %}
 </div>
 
 <!-- Global send-to-lab modal -->
@@ -255,12 +325,189 @@
   </div>
 </div>
 
+<style>
+/* ── Hero ─────────────────────────────────────────────────────────── */
+.dash-hero {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #0284c7 100%);
+  border-radius: 1rem;
+  padding: 1.75rem 2rem;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+}
+.dash-hero::before {
+  content: "";
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.07);
+  pointer-events: none;
+}
+.dash-hero::after {
+  content: "";
+  position: absolute;
+  bottom: -60px; right: 80px;
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.05);
+  pointer-events: none;
+}
+.dash-hero-eyebrow { font-size:.8125rem; font-weight:500; color:rgba(255,255,255,.75); margin-bottom:.35rem; }
+.dash-hero-title   { font-size:1.625rem; font-weight:700; margin:0 0 .25rem; line-height:1.2; }
+.dash-hero-sub     { font-size:.875rem; color:rgba(255,255,255,.8); margin:0; }
+.btn-white  { background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.3); backdrop-filter:blur(4px); }
+.btn-white:hover { background:rgba(255,255,255,.25); color:#fff; }
+.btn-light  { background:rgba(255,255,255,.92); color:#1e40af; border:none; }
+.btn-light:hover { background:#fff; color:#1e40af; }
+
+/* ── KPI cards ───────────────────────────────────────────────────── */
+.kpi-card {
+  border-radius:.875rem;
+  padding:1.25rem 1.25rem 1rem;
+  position:relative;
+  overflow:hidden;
+  display:flex;
+  align-items:flex-start;
+  gap:.875rem;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+}
+.kpi-icon { width:44px; height:44px; border-radius:.75rem; display:grid; place-items:center; font-size:1.25rem; flex-shrink:0; }
+.kpi-value { font-size:1.375rem; font-weight:700; line-height:1.2; }
+.kpi-label { font-size:.8125rem; margin-top:.25rem; display:flex; align-items:center; gap:.375rem; flex-wrap:wrap; }
+.kpi-bg-icon { position:absolute; right:-.5rem; bottom:-.75rem; font-size:5rem; opacity:.07; pointer-events:none; line-height:1; }
+.kpi-notif-btn { background:none; border:none; padding:0; cursor:pointer; font-size:.9rem; color:inherit; opacity:.65; }
+.kpi-notif-btn:hover { opacity:1; }
+
+.kpi-blue   { background:linear-gradient(135deg,#eff6ff,#dbeafe); color:#1e3a8a; }
+.kpi-blue   .kpi-icon { background:#bfdbfe; color:#1d4ed8; }
+.kpi-amber  { background:linear-gradient(135deg,#fffbeb,#fef3c7); color:#78350f; }
+.kpi-amber  .kpi-icon { background:#fde68a; color:#d97706; }
+.kpi-green  { background:linear-gradient(135deg,#f0fdf4,#dcfce7); color:#14532d; }
+.kpi-green  .kpi-icon { background:#bbf7d0; color:#16a34a; }
+.kpi-indigo { background:linear-gradient(135deg,#eef2ff,#e0e7ff); color:#312e81; }
+.kpi-indigo .kpi-icon { background:#c7d2fe; color:#4f46e5; }
+
+/* ── Chart cards ─────────────────────────────────────────────────── */
+.chart-card { background:#fff; border-radius:.875rem; box-shadow:0 2px 12px rgba(0,0,0,.06); display:flex; flex-direction:column; overflow:hidden; }
+.chart-card-header { display:flex; align-items:flex-start; justify-content:space-between; padding:1.125rem 1.25rem .875rem; border-bottom:1px solid #f1f5f9; gap:.75rem; }
+.chart-card-title  { font-weight:600; font-size:.9375rem; color:#0f172a; line-height:1.3; }
+.chart-card-sub    { font-size:.8rem; color:#94a3b8; margin-top:.15rem; }
+.chart-card-body   { padding:1.25rem; flex:1; }
+.chart-badge       { background:#f0fdf4; color:#16a34a; font-size:.7rem; font-weight:600; padding:.25rem .625rem; border-radius:999px; white-space:nowrap; }
+
+/* ── Patient avatar ──────────────────────────────────────────────── */
+.patient-avatar { width:32px; height:32px; border-radius:50%; background:#eff6ff; color:#2563eb; font-size:.8rem; font-weight:700; display:grid; place-items:center; flex-shrink:0; }
+</style>
+
 {% endblock %}
 
 {% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
 (function () {
-  // Lab modal
+  Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
+  Chart.defaults.color = "#64748b";
+
+  /* ── Registrations trend line chart ── */
+  const regLabels = {{ reg_chart_labels|safe }};
+  const regData   = {{ reg_chart_data|safe }};
+
+  const regCtx = document.getElementById("regChart");
+  if (regCtx) {
+    const gradient = regCtx.getContext("2d").createLinearGradient(0, 0, 0, 220);
+    gradient.addColorStop(0, "rgba(37,99,235,.22)");
+    gradient.addColorStop(1, "rgba(37,99,235,.01)");
+
+    new Chart(regCtx, {
+      type: "line",
+      data: {
+        labels: regLabels,
+        datasets: [{
+          label: "New Patients",
+          data: regData,
+          borderColor: "#2563eb",
+          backgroundColor: gradient,
+          borderWidth: 2.5,
+          pointRadius: 4,
+          pointBackgroundColor: "#fff",
+          pointBorderColor: "#2563eb",
+          pointBorderWidth: 2,
+          fill: true,
+          tension: 0.42,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "#0f172a",
+            titleColor: "#94a3b8",
+            bodyColor: "#f8fafc",
+            padding: 10,
+            callbacks: { label: ctx => " " + ctx.parsed.y + " patient" + (ctx.parsed.y !== 1 ? "s" : "") }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11 } } },
+          y: {
+            grid: { color: "#f1f5f9" },
+            border: { display: false, dash: [4, 4] },
+            ticks: { font: { size: 11 }, stepSize: 1, callback: v => Number.isInteger(v) ? v : "" }
+          }
+        }
+      }
+    });
+  }
+
+  /* ── Gender doughnut ── */
+  const gLabels = {{ gender_labels|safe }};
+  const gData   = {{ gender_data|safe }};
+  const genderPalette = ["#2563eb", "#ec4899", "#8b5cf6", "#94a3b8"];
+  const genderCtx = document.getElementById("genderChart");
+  if (genderCtx && gData.length) {
+    new Chart(genderCtx, {
+      type: "doughnut",
+      data: {
+        labels: gLabels,
+        datasets: [{
+          data: gData,
+          backgroundColor: genderPalette.slice(0, gData.length),
+          borderWidth: 2,
+          borderColor: "#fff",
+          hoverBorderWidth: 3,
+        }]
+      },
+      options: {
+        cutout: "68%",
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: { font: { size: 11 }, padding: 12, usePointStyle: true, pointStyleWidth: 8 }
+          },
+          tooltip: {
+            backgroundColor: "#0f172a",
+            titleColor: "#94a3b8",
+            bodyColor: "#f8fafc",
+            padding: 10,
+            callbacks: { label: ctx => " " + ctx.parsed + " patient" + (ctx.parsed !== 1 ? "s" : "") }
+          }
+        }
+      }
+    });
+  } else if (genderCtx) {
+    genderCtx.parentElement.innerHTML = '<p class="text-muted text-center" style="font-size:.875rem;padding:2rem 0;">No patient data yet.</p>';
+  }
+
+  /* ── Lab modal ── */
   const labModal = document.getElementById("labModal");
   if (labModal) {
     labModal.addEventListener("show.bs.modal", function (e) {
@@ -268,18 +515,17 @@
       document.getElementById("labPatientName").textContent = btn.dataset.patient;
       document.getElementById("labPatientIdField").value = btn.dataset.patientId;
       const cId = btn.dataset.consultationId || 0;
-      const form = document.getElementById("sendToLabForm");
-      form.action = `/emr/send-to-lab/${cId}/${btn.dataset.patientId}/`;
+      document.getElementById("sendToLabForm").action = `/emr/send-to-lab/${cId}/${btn.dataset.patientId}/`;
     });
     document.getElementById("labSearchInput").addEventListener("input", function () {
       const q = this.value.toLowerCase();
-      document.querySelectorAll(".lab-test-item").forEach(function (el) {
+      document.querySelectorAll(".lab-test-item").forEach(el => {
         el.style.display = el.querySelector("label").textContent.toLowerCase().includes(q) ? "" : "none";
       });
     });
   }
 
-  // Live queue counts via API
+  /* ── Live queue counts via API ── */
   function updateCounts() {
     fetch("/patients/api/patient-queue-count/")
       .then(r => r.json()).then(d => {
@@ -294,17 +540,16 @@
   }
   setInterval(updateCounts, 15000);
 
-  // WebSocket for patient alerts
+  /* ── WebSocket for patient alerts ── */
   const wsProto = location.protocol === "https:" ? "wss" : "ws";
   const ws = new WebSocket(`${wsProto}://${location.host}/ws/patients/`);
   ws.onmessage = function (e) {
-    const data = JSON.parse(e.data);
     const audio = document.getElementById("notif-sound");
     if (audio) audio.play().catch(() => {});
     updateCounts();
   };
 
-  // Push notification setup
+  /* ── Push notification setup ── */
   document.getElementById("btn-enable-notif")?.addEventListener("click", async function () {
     if (!("serviceWorker" in navigator)) { alert("Service workers not supported."); return; }
     try {
@@ -337,9 +582,8 @@
           group: "",
         }),
       });
-      this.textContent = "Alerts enabled ✓";
-      this.classList.replace("btn-outline-primary", "btn-success");
-      this.disabled = true;
+      this.innerHTML = '<i class="bi bi-bell-fill"></i>';
+      this.title = "Alerts enabled";
     } catch (err) {
       console.error(err);
       alert("Failed to enable notifications.");

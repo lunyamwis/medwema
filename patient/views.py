@@ -3,11 +3,13 @@ from __future__ import annotations
 import json
 import logging
 import os
+from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Q as DQ
+from django.db.models import Count, Q as DQ
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 from django.contrib.auth.decorators import login_required
@@ -130,12 +132,48 @@ def patient_list_view(request):
     paginator = Paginator(qs, 15)
     page_obj = paginator.get_page(request.GET.get("page"))
     doctors = doctor_list(clinic=clinic)
+
+    today = timezone.localdate()
+    last_7 = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
+
+    reg_rows = (
+        Patient.objects.filter(
+            clinic=clinic,
+            date_registered__date__gte=last_7[0],
+            date_registered__date__lte=today,
+        )
+        .values("date_registered__date")
+        .annotate(count=Count("id"))
+    )
+    reg_map = {row["date_registered__date"]: row["count"] for row in reg_rows}
+    reg_chart_labels = json.dumps([d.strftime("%b %d") for d in last_7])
+    reg_chart_data = json.dumps([reg_map.get(d, 0) for d in last_7])
+
+    gender_rows = (
+        Patient.objects.filter(clinic=clinic)
+        .values("gender")
+        .annotate(count=Count("id"))
+        .order_by("gender")
+    )
+    gender_map = {"M": "Male", "F": "Female", "O": "Other"}
+    gender_labels = json.dumps([gender_map.get(r["gender"], r["gender"]) for r in gender_rows])
+    gender_data = json.dumps([r["count"] for r in gender_rows])
+
+    total_patients = Patient.objects.filter(clinic=clinic).count()
+    doctors_count = Doctor.objects.filter(clinic=clinic).count()
+
     return render(request, "patient/patient_list.html", {
         "page_obj": page_obj,
         "query": query,
         "doctors": doctors,
         "waiting_count": queue_waiting_count(clinic=clinic),
         "completed_count": queue_completed_count(clinic=clinic),
+        "total_patients": total_patients,
+        "doctors_count": doctors_count,
+        "reg_chart_labels": reg_chart_labels,
+        "reg_chart_data": reg_chart_data,
+        "gender_labels": gender_labels,
+        "gender_data": gender_data,
     })
 
 
@@ -423,7 +461,6 @@ def patient_queue_count_api(request):
 
 
 def patient_complete_count_api(request):
-    from django.utils import timezone
     clinic = _get_clinic(request.user)
     count = Queue.objects.filter(
         clinic=clinic, status="completed",
