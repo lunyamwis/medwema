@@ -1,37 +1,165 @@
 {% extends "account_base.html" %}
 {% load widget_tweaks %}
-{% block title %}Login - Medwema{% endblock %}
-{% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-5">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h3 class="text-center mb-4">Login</h3>
-        <form method="POST" action="{% url 'account_login' %}">
+{% block title %}Sign In — Medwema{% endblock %}
+
+{% block body %}
+<div class="container-fluid p-0" style="min-height:100vh;">
+  <div class="row g-0" style="min-height:100vh;">
+
+    {# ── Left branding panel ── #}
+    <div class="col-lg-5 d-none d-lg-flex auth-panel-left flex-column p-5" style="position:relative;z-index:1;">
+      <div>
+        <a href="/" class="text-decoration-none">
+          <div class="d-flex align-items-center gap-2 mb-5">
+            <div style="background:rgba(255,255,255,.15);border-radius:10px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;">
+              <i class="bi bi-hospital-fill text-white fs-5"></i>
+            </div>
+            <span class="text-white fw-bold" style="font-size:1.4rem;">Medwema</span>
+          </div>
+        </a>
+
+        <h2 class="text-white fw-bold mb-2" style="font-size:2.1rem;line-height:1.25;">
+          Healthcare<br>Management<br>Made Simple
+        </h2>
+        <p style="color:rgba(255,255,255,.65);font-size:.95rem;line-height:1.6;" class="mb-4">
+          A complete EMR platform built for modern clinics in Africa.
+        </p>
+
+        <div class="d-flex flex-column mt-3" style="gap:.35rem;">
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-people-fill text-white"></i></div>
+            <div>
+              <div class="text-white fw-semibold" style="font-size:.875rem;">Patient Management</div>
+              <div style="color:rgba(255,255,255,.55);font-size:.8rem;">Queue, consultations &amp; visit history</div>
+            </div>
+          </div>
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-receipt-cutoff text-white"></i></div>
+            <div>
+              <div class="text-white fw-semibold" style="font-size:.875rem;">Billing &amp; Payments</div>
+              <div style="color:rgba(255,255,255,.55);font-size:.8rem;">Paystack-integrated invoicing</div>
+            </div>
+          </div>
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-graph-up-arrow text-white"></i></div>
+            <div>
+              <div class="text-white fw-semibold" style="font-size:.875rem;">Analytics Dashboard</div>
+              <div style="color:rgba(255,255,255,.55);font-size:.8rem;">Real-time charts and clinic insights</div>
+            </div>
+          </div>
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-boxes text-white"></i></div>
+            <div>
+              <div class="text-white fw-semibold" style="font-size:.875rem;">Inventory &amp; Prescriptions</div>
+              <div style="color:rgba(255,255,255,.55);font-size:.8rem;">Stock control with reorder alerts</div>
+            </div>
+          </div>
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-bell-fill text-white"></i></div>
+            <div>
+              <div class="text-white fw-semibold" style="font-size:.875rem;">Real-time Notifications</div>
+              <div style="color:rgba(255,255,255,.55);font-size:.8rem;">WebSocket push alerts for your team</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-auto pt-4" style="position:relative;z-index:2;">
+        <div style="background:rgba(255,255,255,.09);border-radius:14px;padding:1.1rem 1.25rem;border-left:3px solid rgba(255,255,255,.35);">
+          <p class="text-white mb-1" style="font-size:.875rem;font-style:italic;line-height:1.5;">
+            "Medwema cut our patient wait time by 40% in the first month."
+          </p>
+          <p style="color:rgba(255,255,255,.55);font-size:.8rem;margin:0;">
+            Dr. Aisha M. &mdash; Nairobi Wellness Clinic
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {# ── Right form panel ── #}
+    <div class="col-lg-7 auth-panel-right d-flex align-items-center justify-content-center p-4 p-sm-5">
+      <div style="width:100%;max-width:440px;">
+
+        {# Mobile logo #}
+        <div class="d-flex d-lg-none align-items-center gap-2 mb-4">
+          <div style="background:#2563eb;border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-hospital-fill text-white"></i>
+          </div>
+          <span class="fw-bold fs-5" style="color:#0f172a;">Medwema</span>
+        </div>
+
+        <h3 class="fw-bold mb-1" style="color:#0f172a;font-size:1.6rem;">Welcome back</h3>
+        <p style="color:#64748b;font-size:.9rem;" class="mb-4">Sign in to your clinic account</p>
+
+        {# Non-field errors #}
+        {% if form.non_field_errors %}
+          <div class="auth-error-alert mb-3">
+            <i class="bi bi-exclamation-circle-fill me-2" style="color:#ef4444;"></i>
+            {% for error in form.non_field_errors %}{{ error }}{% if not forloop.last %} {% endif %}{% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'account_login' %}" novalidate autocomplete="on">
           {% csrf_token %}
-          {{ form.non_field_errors }}
+
+          {# Username / Email #}
           <div class="mb-3">
-            <label for="id_login" class="form-label">Username</label>
-            {{ form.login|add_class:"form-control" }}
+            <label class="form-label fw-medium mb-1" style="color:#374151;font-size:.875rem;">
+              <i class="bi bi-person me-1" style="color:#2563eb;"></i>Username or Email
+            </label>
+            {% if form.login.errors %}
+              {{ form.login|add_class:"form-control form-control-auth is-invalid"|attr:"placeholder:Enter your username or email"|attr:"autocomplete:username" }}
+              <div class="field-error"><i class="bi bi-x-circle-fill"></i>{{ form.login.errors|join:", " }}</div>
+            {% else %}
+              {{ form.login|add_class:"form-control form-control-auth"|attr:"placeholder:Enter your username or email"|attr:"autocomplete:username" }}
+            {% endif %}
           </div>
+
+          {# Password #}
           <div class="mb-3">
-            <label for="id_password" class="form-label">Password</label>
-            {{ form.password|add_class:"form-control" }}
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label fw-medium mb-0" style="color:#374151;font-size:.875rem;">
+                <i class="bi bi-lock me-1" style="color:#2563eb;"></i>Password
+              </label>
+              <a href="{% url 'account_reset_password' %}" style="font-size:.8125rem;color:#2563eb;text-decoration:none;">
+                Forgot password?
+              </a>
+            </div>
+            <div class="position-relative">
+              {% if form.password.errors %}
+                {{ form.password|add_class:"form-control form-control-auth is-invalid"|attr:"id:id_password_login"|attr:"placeholder:Enter your password"|attr:"autocomplete:current-password" }}
+                <div class="field-error"><i class="bi bi-x-circle-fill"></i>{{ form.password.errors|join:", " }}</div>
+              {% else %}
+                {{ form.password|add_class:"form-control form-control-auth"|attr:"id:id_password_login"|attr:"placeholder:Enter your password"|attr:"autocomplete:current-password" }}
+              {% endif %}
+              <button type="button" class="pwd-toggle" onclick="togglePassword('id_password_login','eye_login')" tabindex="-1">
+                <i class="bi bi-eye" id="eye_login"></i>
+              </button>
+            </div>
           </div>
-          <div class="d-flex justify-content-between align-items-center mb-3">
+
+          {# Remember me #}
+          <div class="d-flex align-items-center mb-4">
             <div class="form-check">
               {{ form.remember|add_class:"form-check-input" }}
-              <label class="form-check-label" for="id_remember">Remember me</label>
+              <label class="form-check-label" for="{{ form.remember.id_for_label }}" style="font-size:.875rem;color:#64748b;">
+                Keep me signed in
+              </label>
             </div>
-            <a href="{% url 'account_reset_password' %}" class="text-decoration-none small">Forgot password?</a>
           </div>
-          <button class="btn btn-primary w-100" type="submit">Login</button>
+
+          <button type="submit" class="btn btn-auth-primary w-100 mb-3">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+          </button>
         </form>
-        <p class="text-center mt-3 mb-0 small">
-          Don't have an account? <a href="{% url 'account_signup' %}">Sign up</a>
+
+        <p class="text-center mb-0" style="font-size:.875rem;color:#64748b;">
+          New to Medwema?
+          <a href="{% url 'account_signup' %}" class="fw-semibold text-decoration-none" style="color:#2563eb;">Create an account</a>
         </p>
       </div>
     </div>
+
   </div>
 </div>
 {% endblock %}

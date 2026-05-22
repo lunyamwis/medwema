@@ -49,6 +49,7 @@ CSRF_TRUSTED_ORIGINS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -79,8 +80,149 @@ INSTALLED_APPS = [
     'webpush',
     'notification',
     'chat',
-    'specialists'
+    'specialists',
+    'drf_spectacular',
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 25,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+}
+
+JAZZMIN_SETTINGS = {
+    "site_title": "Medwema Admin",
+    "site_header": "Medwema EMR",
+    "site_brand": "Medwema",
+    "site_logo": None,
+    "login_logo": None,
+    "welcome_sign": "Welcome to Medwema EMR — Healthcare Management System",
+    "copyright": "Lunyamwi Technologies",
+    "search_model": ["authentication.User", "patient.Patient"],
+    "topmenu_links": [
+        {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "View Site", "url": "/", "new_window": True},
+        {"name": "API Docs", "url": "/api/docs/", "new_window": True},
+    ],
+    "usermenu_links": [
+        {"name": "My Profile", "url": "/profile/"},
+        {"model": "authentication.user"},
+    ],
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    "icons": {
+        "authentication": "fas fa-users-cog",
+        "authentication.User": "fas fa-user",
+        "patient": "fas fa-procedures",
+        "patient.Patient": "fas fa-user-injured",
+        "patient.Doctor": "fas fa-user-md",
+        "patient.Consultation": "fas fa-notes-medical",
+        "patient.Queue": "fas fa-list-ol",
+        "billing": "fas fa-file-invoice-dollar",
+        "billing.Bill": "fas fa-file-invoice",
+        "billing.Payment": "fas fa-credit-card",
+        "billing.PaystackSubaccount": "fas fa-university",
+        "emr": "fas fa-flask",
+        "emr.Lab": "fas fa-building",
+        "emr.LabTest": "fas fa-vials",
+        "emr.LabResult": "fas fa-clipboard-list",
+        "emr.LabQueue": "fas fa-stream",
+        "inventory": "fas fa-boxes",
+        "inventory.Item": "fas fa-box",
+        "inventory.Stock": "fas fa-warehouse",
+        "inventory.StockMovement": "fas fa-exchange-alt",
+        "inventory.PurchaseOrder": "fas fa-shopping-cart",
+        "inventory.Supplier": "fas fa-truck",
+        "inventory.Location": "fas fa-map-marker-alt",
+        "inventory.ItemCategory": "fas fa-tags",
+        "inventory.ConsumptionRecord": "fas fa-minus-circle",
+        "prescription": "fas fa-pills",
+        "prescription.Prescription": "fas fa-prescription-bottle-alt",
+        "specialists": "fas fa-stethoscope",
+        "specialists.SpecialistTask": "fas fa-tasks",
+        "specialists.SonographyStudy": "fas fa-wave-square",
+        "specialists.NursingNote": "fas fa-heartbeat",
+        "specialists.HomeVisit": "fas fa-home",
+        "specialists.DebtCase": "fas fa-exclamation-triangle",
+        "specialists.EquipmentItem": "fas fa-tools",
+        "home": "fas fa-globe",
+        "home.BlogPost": "fas fa-blog",
+        "home.BlogCategory": "fas fa-folder",
+        "home.Subscriber": "fas fa-envelope",
+        "clinicmanager": "fas fa-hospital",
+        "clinicmanager.Clinic": "fas fa-hospital-alt",
+    },
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
+    "related_modal_active": False,
+    "use_google_fonts_cdn": True,
+    "show_ui_builder": False,
+    "changeform_format": "horizontal_tabs",
+    "language_chooser": False,
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-primary",
+    "accent": "accent-primary",
+    "navbar": "navbar-dark",
+    "no_navbar_border": True,
+    "navbar_fixed": True,
+    "layout_boxed": False,
+    "footer_fixed": False,
+    "sidebar_fixed": True,
+    "sidebar": "sidebar-dark-primary",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": True,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    "theme": "default",
+    "dark_mode_theme": None,
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success",
+    },
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Medwema EMR API",
+    "DESCRIPTION": (
+        "REST API for the Medwema Electronic Medical Records system. "
+        "All endpoints require authentication. Data is automatically scoped to the "
+        "authenticated user's clinic — cross-clinic data access is not possible."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayRequestDuration": True,
+    },
+    "COMPONENT_SPLIT_REQUEST": True,
+}
 
 WEBPUSH_SETTINGS = {
     "VAPID_PUBLIC_KEY": os.getenv("VAPID_PUBLIC_KEY").strip(),

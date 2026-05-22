@@ -1,31 +1,207 @@
 {% extends "account_base.html" %}
 {% load widget_tweaks %}
-{% block title %}Sign Up - Medwema{% endblock %}
-{% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-5">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h3 class="text-center mb-4">Create Account</h3>
-        <form method="POST" action="{% url 'account_signup' %}">
-          {% csrf_token %}
-          {{ form.non_field_errors }}
-          {% for field in form %}
-            <div class="mb-3">
-              <label class="form-label">{{ field.label }}</label>
-              {{ field|add_class:"form-control" }}
-              {% if field.errors %}
-                <div class="text-danger small">{{ field.errors|join:", " }}</div>
-              {% endif %}
+{% block title %}Create Account — Medwema{% endblock %}
+
+{% block body %}
+<div class="container-fluid p-0" style="min-height:100vh;">
+  <div class="row g-0" style="min-height:100vh;">
+
+    {# ── Left branding panel ── #}
+    <div class="col-lg-4 d-none d-lg-flex auth-panel-left flex-column p-4 p-xl-5" style="position:relative;z-index:1;">
+      <div>
+        <a href="/" class="text-decoration-none">
+          <div class="d-flex align-items-center gap-2 mb-5">
+            <div style="background:rgba(255,255,255,.15);border-radius:10px;width:42px;height:42px;display:flex;align-items:center;justify-content:center;">
+              <i class="bi bi-hospital-fill text-white fs-5"></i>
             </div>
-          {% endfor %}
-          <button class="btn btn-success w-100" type="submit">Sign Up</button>
+            <span class="text-white fw-bold" style="font-size:1.4rem;">Medwema</span>
+          </div>
+        </a>
+
+        <h2 class="text-white fw-bold mb-2" style="font-size:1.9rem;line-height:1.25;">
+          Start managing<br>your clinic today
+        </h2>
+        <p style="color:rgba(255,255,255,.65);font-size:.9rem;line-height:1.6;" class="mb-4">
+          Join hundreds of healthcare providers already using Medwema to serve patients better.
+        </p>
+
+        <div class="d-flex flex-column mt-3" style="gap:.3rem;">
+          {% for feat in "Patient Records,Lab & EMR,Billing,Inventory,Prescriptions,Analytics" | split:"," %}{% endfor %}
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-shield-check text-white"></i></div>
+            <div>
+              <div class="text-white fw-semibold" style="font-size:.85rem;">Secure &amp; Private</div>
+              <div style="color:rgba(255,255,255,.55);font-size:.78rem;">Per-clinic data isolation</div>
+            </div>
+          </div>
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-lightning-charge-fill text-white"></i></div>
+            <div>
+              <div class="text-white fw-semibold" style="font-size:.85rem;">Set Up in Minutes</div>
+              <div style="color:rgba(255,255,255,.55);font-size:.78rem;">No complex configuration required</div>
+            </div>
+          </div>
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-cloud-check-fill text-white"></i></div>
+            <div>
+              <div class="text-white fw-semibold" style="font-size:.85rem;">Always Available</div>
+              <div style="color:rgba(255,255,255,.55);font-size:.78rem;">Cloud-hosted, accessible anywhere</div>
+            </div>
+          </div>
+          <div class="auth-feature-item">
+            <div class="auth-feature-icon"><i class="bi bi-headset text-white"></i></div>
+            <div>
+              <div class="text-white fw-semibold" style="font-size:.85rem;">Dedicated Support</div>
+              <div style="color:rgba(255,255,255,.55);font-size:.78rem;">We're here when you need us</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-auto pt-4" style="position:relative;z-index:2;">
+        <div class="d-flex gap-3" style="gap:.75rem !important;">
+          <div style="text-align:center;">
+            <div class="text-white fw-bold" style="font-size:1.4rem;">500+</div>
+            <div style="color:rgba(255,255,255,.55);font-size:.75rem;">Clinics</div>
+          </div>
+          <div style="border-left:1px solid rgba(255,255,255,.2);"></div>
+          <div style="text-align:center;">
+            <div class="text-white fw-bold" style="font-size:1.4rem;">50k+</div>
+            <div style="color:rgba(255,255,255,.55);font-size:.75rem;">Patients</div>
+          </div>
+          <div style="border-left:1px solid rgba(255,255,255,.2);"></div>
+          <div style="text-align:center;">
+            <div class="text-white fw-bold" style="font-size:1.4rem;">99.9%</div>
+            <div style="color:rgba(255,255,255,.55);font-size:.75rem;">Uptime</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── Right form panel ── #}
+    <div class="col-lg-8 auth-panel-right d-flex align-items-center justify-content-center p-4 p-sm-5">
+      <div style="width:100%;max-width:560px;">
+
+        {# Mobile logo #}
+        <div class="d-flex d-lg-none align-items-center gap-2 mb-4">
+          <div style="background:#2563eb;border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-hospital-fill text-white"></i>
+          </div>
+          <span class="fw-bold fs-5" style="color:#0f172a;">Medwema</span>
+        </div>
+
+        <h3 class="fw-bold mb-1" style="color:#0f172a;font-size:1.6rem;">Create your account</h3>
+        <p style="color:#64748b;font-size:.9rem;" class="mb-4">Get started for free — no credit card needed</p>
+
+        {# Non-field errors #}
+        {% if form.non_field_errors %}
+          <div class="auth-error-alert mb-3">
+            <i class="bi bi-exclamation-circle-fill me-2" style="color:#ef4444;"></i>
+            {% for error in form.non_field_errors %}{{ error }}{% if not forloop.last %} {% endif %}{% endfor %}
+          </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'account_signup' %}" novalidate autocomplete="on">
+          {% csrf_token %}
+
+          <div class="row g-3">
+            {% for field in form %}
+              {% if field.name == "password1" or field.name == "password2" %}
+                <div class="col-sm-6">
+                  <label class="form-label fw-medium mb-1" style="color:#374151;font-size:.875rem;" for="{{ field.id_for_label }}">
+                    <i class="bi bi-lock me-1" style="color:#2563eb;"></i>{{ field.label }}
+                  </label>
+                  <div class="position-relative">
+                    {% if field.errors %}
+                      {{ field|add_class:"form-control form-control-auth is-invalid"|attr:"autocomplete:new-password" }}
+                    {% else %}
+                      {{ field|add_class:"form-control form-control-auth"|attr:"autocomplete:new-password" }}
+                    {% endif %}
+                    <button type="button" class="pwd-toggle" onclick="togglePassword('{{ field.id_for_label }}','eye_{{ field.name }}')" tabindex="-1">
+                      <i class="bi bi-eye" id="eye_{{ field.name }}"></i>
+                    </button>
+                  </div>
+                  {% if field.errors %}
+                    <div class="field-error"><i class="bi bi-x-circle-fill"></i>{{ field.errors|join:", " }}</div>
+                  {% endif %}
+                  {% if field.help_text and not field.errors %}
+                    <div style="font-size:.78rem;color:#94a3b8;margin-top:.25rem;">{{ field.help_text }}</div>
+                  {% endif %}
+                </div>
+              {% elif field.name == "first_name" or field.name == "last_name" %}
+                <div class="col-sm-6">
+                  <label class="form-label fw-medium mb-1" style="color:#374151;font-size:.875rem;" for="{{ field.id_for_label }}">
+                    <i class="bi bi-person me-1" style="color:#2563eb;"></i>{{ field.label }}
+                  </label>
+                  {% if field.errors %}
+                    {{ field|add_class:"form-control form-control-auth is-invalid" }}
+                    <div class="field-error"><i class="bi bi-x-circle-fill"></i>{{ field.errors|join:", " }}</div>
+                  {% else %}
+                    {{ field|add_class:"form-control form-control-auth" }}
+                  {% endif %}
+                </div>
+              {% elif field.name == "email" %}
+                <div class="col-12">
+                  <label class="form-label fw-medium mb-1" style="color:#374151;font-size:.875rem;" for="{{ field.id_for_label }}">
+                    <i class="bi bi-envelope me-1" style="color:#2563eb;"></i>{{ field.label }}
+                  </label>
+                  {% if field.errors %}
+                    {{ field|add_class:"form-control form-control-auth is-invalid"|attr:"placeholder:you@clinic.com"|attr:"autocomplete:email" }}
+                    <div class="field-error"><i class="bi bi-x-circle-fill"></i>{{ field.errors|join:", " }}</div>
+                  {% else %}
+                    {{ field|add_class:"form-control form-control-auth"|attr:"placeholder:you@clinic.com"|attr:"autocomplete:email" }}
+                  {% endif %}
+                </div>
+              {% elif field.name == "username" %}
+                <div class="col-12">
+                  <label class="form-label fw-medium mb-1" style="color:#374151;font-size:.875rem;" for="{{ field.id_for_label }}">
+                    <i class="bi bi-at me-1" style="color:#2563eb;"></i>{{ field.label }}
+                  </label>
+                  {% if field.errors %}
+                    {{ field|add_class:"form-control form-control-auth is-invalid"|attr:"autocomplete:username" }}
+                    <div class="field-error"><i class="bi bi-x-circle-fill"></i>{{ field.errors|join:", " }}</div>
+                  {% else %}
+                    {{ field|add_class:"form-control form-control-auth"|attr:"autocomplete:username" }}
+                  {% endif %}
+                </div>
+              {% else %}
+                <div class="col-12">
+                  <label class="form-label fw-medium mb-1" style="color:#374151;font-size:.875rem;" for="{{ field.id_for_label }}">
+                    {{ field.label }}{% if field.field.required %}<span style="color:#ef4444;"> *</span>{% endif %}
+                  </label>
+                  {% if field.errors %}
+                    {{ field|add_class:"form-control form-control-auth is-invalid" }}
+                    <div class="field-error"><i class="bi bi-x-circle-fill"></i>{{ field.errors|join:", " }}</div>
+                  {% else %}
+                    {{ field|add_class:"form-control form-control-auth" }}
+                  {% endif %}
+                  {% if field.help_text and not field.errors %}
+                    <div style="font-size:.78rem;color:#94a3b8;margin-top:.25rem;">{{ field.help_text }}</div>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <div class="mt-4 mb-3">
+            <p style="font-size:.8rem;color:#94a3b8;text-align:center;margin-bottom:.75rem;">
+              By creating an account you agree to our
+              <a href="#" style="color:#2563eb;text-decoration:none;">Terms of Service</a> and
+              <a href="#" style="color:#2563eb;text-decoration:none;">Privacy Policy</a>.
+            </p>
+            <button type="submit" class="btn btn-auth-primary w-100">
+              <i class="bi bi-person-plus-fill me-2"></i>Create Account
+            </button>
+          </div>
         </form>
-        <p class="text-center mt-3 mb-0 small">
-          Already have an account? <a href="{% url 'account_login' %}">Login</a>
+
+        <p class="text-center mb-0" style="font-size:.875rem;color:#64748b;">
+          Already have an account?
+          <a href="{% url 'account_login' %}" class="fw-semibold text-decoration-none" style="color:#2563eb;">Sign in</a>
         </p>
       </div>
     </div>
+
   </div>
 </div>
 {% endblock %}

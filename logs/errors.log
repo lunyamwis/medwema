@@ -334,3 +334,901 @@ Traceback (most recent call last):
                                 ~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
 TypeError: unsupported operand type(s) for -: 'decimal.Decimal' and 'NoneType'
 2026-05-22 08:25:00 [ERROR] django.channels.server: [35;1mHTTP GET /billing/ 500 [5.89, 127.0.0.1:46000][0m
+2026-05-22 09:19:15 [ERROR] django.request: Internal Server Error: /api/schema/
+Traceback (most recent call last):
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 84, in get
+    return self._get_schema_response(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 92, in _get_schema_response
+    data=generator.get_schema(request=request, public=self.serve_public),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 287, in get_schema
+    paths=self.parse(request, public),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 258, in parse
+    operation = view.schema.get_operation(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 93, in get_operation
+    parameters = self._get_parameters()
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 265, in _get_parameters
+    **dict_helper(self._get_filter_parameters()),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 556, in _get_filter_parameters
+    parameters += filter_extension.get_schema_operation_parameters(self)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 65, in get_schema_operation_parameters
+    result += self.resolve_filter_field(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 90, in resolve_filter_field
+    filter_choices = self._get_explicit_filter_choices(filter_field)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 233, in _get_explicit_filter_choices
+    if filter_field.field.null_label:
+       ^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/filters.py", line 149, in field
+    self._field = self.field_class(label=self.label, **field_kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 278, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 258, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/forms/fields.py", line 888, in __init__
+    self.choices = choices
+    ^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 264, in _set_choices
+    super()._set_choices(value)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'super' object has no attribute '_set_choices'
+2026-05-22 09:19:15 [ERROR] django.channels.server: [35;1mHTTP GET /api/schema/ 500 [5.35, 127.0.0.1:45214][0m
+2026-05-22 09:19:19 [ERROR] django.request: Internal Server Error: /api/schema/
+Traceback (most recent call last):
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 84, in get
+    return self._get_schema_response(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 92, in _get_schema_response
+    data=generator.get_schema(request=request, public=self.serve_public),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 287, in get_schema
+    paths=self.parse(request, public),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 258, in parse
+    operation = view.schema.get_operation(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 93, in get_operation
+    parameters = self._get_parameters()
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 265, in _get_parameters
+    **dict_helper(self._get_filter_parameters()),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 556, in _get_filter_parameters
+    parameters += filter_extension.get_schema_operation_parameters(self)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 65, in get_schema_operation_parameters
+    result += self.resolve_filter_field(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 90, in resolve_filter_field
+    filter_choices = self._get_explicit_filter_choices(filter_field)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 233, in _get_explicit_filter_choices
+    if filter_field.field.null_label:
+       ^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/filters.py", line 149, in field
+    self._field = self.field_class(label=self.label, **field_kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 278, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 258, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/forms/fields.py", line 888, in __init__
+    self.choices = choices
+    ^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 264, in _set_choices
+    super()._set_choices(value)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'super' object has no attribute '_set_choices'
+2026-05-22 09:19:19 [ERROR] django.channels.server: [35;1mHTTP GET /api/schema/ 500 [3.29, 127.0.0.1:45214][0m
+2026-05-22 09:19:27 [ERROR] django.request: Internal Server Error: /api/schema/
+Traceback (most recent call last):
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 84, in get
+    return self._get_schema_response(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 92, in _get_schema_response
+    data=generator.get_schema(request=request, public=self.serve_public),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 287, in get_schema
+    paths=self.parse(request, public),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 258, in parse
+    operation = view.schema.get_operation(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 93, in get_operation
+    parameters = self._get_parameters()
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 265, in _get_parameters
+    **dict_helper(self._get_filter_parameters()),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 556, in _get_filter_parameters
+    parameters += filter_extension.get_schema_operation_parameters(self)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 65, in get_schema_operation_parameters
+    result += self.resolve_filter_field(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 90, in resolve_filter_field
+    filter_choices = self._get_explicit_filter_choices(filter_field)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 233, in _get_explicit_filter_choices
+    if filter_field.field.null_label:
+       ^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/filters.py", line 149, in field
+    self._field = self.field_class(label=self.label, **field_kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 278, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 258, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/forms/fields.py", line 888, in __init__
+    self.choices = choices
+    ^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 264, in _set_choices
+    super()._set_choices(value)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'super' object has no attribute '_set_choices'
+2026-05-22 09:19:27 [ERROR] django.channels.server: [35;1mHTTP GET /api/schema/ 500 [5.32, 127.0.0.1:45214][0m
+2026-05-22 09:19:59 [ERROR] django.request: Internal Server Error: /api/schema/
+Traceback (most recent call last):
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 84, in get
+    return self._get_schema_response(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 92, in _get_schema_response
+    data=generator.get_schema(request=request, public=self.serve_public),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 287, in get_schema
+    paths=self.parse(request, public),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 258, in parse
+    operation = view.schema.get_operation(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 93, in get_operation
+    parameters = self._get_parameters()
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 265, in _get_parameters
+    **dict_helper(self._get_filter_parameters()),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 556, in _get_filter_parameters
+    parameters += filter_extension.get_schema_operation_parameters(self)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 65, in get_schema_operation_parameters
+    result += self.resolve_filter_field(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 90, in resolve_filter_field
+    filter_choices = self._get_explicit_filter_choices(filter_field)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 233, in _get_explicit_filter_choices
+    if filter_field.field.null_label:
+       ^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/filters.py", line 149, in field
+    self._field = self.field_class(label=self.label, **field_kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 278, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 258, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/forms/fields.py", line 888, in __init__
+    self.choices = choices
+    ^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 264, in _set_choices
+    super()._set_choices(value)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'super' object has no attribute '_set_choices'
+2026-05-22 09:19:59 [ERROR] django.channels.server: [35;1mHTTP GET /api/schema/ 500 [5.36, 127.0.0.1:45214][0m
+2026-05-22 09:20:03 [ERROR] django.request: Internal Server Error: /api/schema/
+Traceback (most recent call last):
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 84, in get
+    return self._get_schema_response(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 92, in _get_schema_response
+    data=generator.get_schema(request=request, public=self.serve_public),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 287, in get_schema
+    paths=self.parse(request, public),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 258, in parse
+    operation = view.schema.get_operation(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 93, in get_operation
+    parameters = self._get_parameters()
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 265, in _get_parameters
+    **dict_helper(self._get_filter_parameters()),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 556, in _get_filter_parameters
+    parameters += filter_extension.get_schema_operation_parameters(self)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 65, in get_schema_operation_parameters
+    result += self.resolve_filter_field(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 90, in resolve_filter_field
+    filter_choices = self._get_explicit_filter_choices(filter_field)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 233, in _get_explicit_filter_choices
+    if filter_field.field.null_label:
+       ^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/filters.py", line 149, in field
+    self._field = self.field_class(label=self.label, **field_kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 278, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 258, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/forms/fields.py", line 888, in __init__
+    self.choices = choices
+    ^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 264, in _set_choices
+    super()._set_choices(value)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'super' object has no attribute '_set_choices'
+2026-05-22 09:20:03 [ERROR] django.channels.server: [35;1mHTTP GET /api/schema/ 500 [3.94, 127.0.0.1:45214][0m
+2026-05-22 09:21:40 [ERROR] django.request: Internal Server Error: /api/schema/
+Traceback (most recent call last):
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 84, in get
+    return self._get_schema_response(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 92, in _get_schema_response
+    data=generator.get_schema(request=request, public=self.serve_public),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 287, in get_schema
+    paths=self.parse(request, public),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 258, in parse
+    operation = view.schema.get_operation(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 93, in get_operation
+    parameters = self._get_parameters()
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 265, in _get_parameters
+    **dict_helper(self._get_filter_parameters()),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 556, in _get_filter_parameters
+    parameters += filter_extension.get_schema_operation_parameters(self)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 65, in get_schema_operation_parameters
+    result += self.resolve_filter_field(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 90, in resolve_filter_field
+    filter_choices = self._get_explicit_filter_choices(filter_field)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 233, in _get_explicit_filter_choices
+    if filter_field.field.null_label:
+       ^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/filters.py", line 149, in field
+    self._field = self.field_class(label=self.label, **field_kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 278, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 258, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/forms/fields.py", line 888, in __init__
+    self.choices = choices
+    ^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 264, in _set_choices
+    super()._set_choices(value)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'super' object has no attribute '_set_choices'
+2026-05-22 09:21:40 [ERROR] django.channels.server: [35;1mHTTP GET /api/schema/ 500 [4.65, 127.0.0.1:46706][0m
+2026-05-22 09:21:44 [ERROR] django.request: Internal Server Error: /api/schema/
+Traceback (most recent call last):
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 84, in get
+    return self._get_schema_response(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 92, in _get_schema_response
+    data=generator.get_schema(request=request, public=self.serve_public),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 287, in get_schema
+    paths=self.parse(request, public),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 258, in parse
+    operation = view.schema.get_operation(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 93, in get_operation
+    parameters = self._get_parameters()
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 265, in _get_parameters
+    **dict_helper(self._get_filter_parameters()),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 556, in _get_filter_parameters
+    parameters += filter_extension.get_schema_operation_parameters(self)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 65, in get_schema_operation_parameters
+    result += self.resolve_filter_field(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 90, in resolve_filter_field
+    filter_choices = self._get_explicit_filter_choices(filter_field)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 233, in _get_explicit_filter_choices
+    if filter_field.field.null_label:
+       ^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/filters.py", line 149, in field
+    self._field = self.field_class(label=self.label, **field_kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 278, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 258, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/forms/fields.py", line 888, in __init__
+    self.choices = choices
+    ^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 264, in _set_choices
+    super()._set_choices(value)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'super' object has no attribute '_set_choices'
+2026-05-22 09:21:44 [ERROR] django.channels.server: [35;1mHTTP GET /api/schema/ 500 [3.89, 127.0.0.1:46706][0m
+2026-05-22 09:23:06 [ERROR] django.request: Internal Server Error: /api/schema/
+Traceback (most recent call last):
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 84, in get
+    return self._get_schema_response(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 92, in _get_schema_response
+    data=generator.get_schema(request=request, public=self.serve_public),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 287, in get_schema
+    paths=self.parse(request, public),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 258, in parse
+    operation = view.schema.get_operation(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 93, in get_operation
+    parameters = self._get_parameters()
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 265, in _get_parameters
+    **dict_helper(self._get_filter_parameters()),
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 556, in _get_filter_parameters
+    parameters += filter_extension.get_schema_operation_parameters(self)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 65, in get_schema_operation_parameters
+    result += self.resolve_filter_field(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 90, in resolve_filter_field
+    filter_choices = self._get_explicit_filter_choices(filter_field)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/contrib/django_filters.py", line 233, in _get_explicit_filter_choices
+    if filter_field.field.null_label:
+       ^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/filters.py", line 149, in field
+    self._field = self.field_class(label=self.label, **field_kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 278, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 258, in __init__
+    super().__init__(*args, **kwargs)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/forms/fields.py", line 888, in __init__
+    self.choices = choices
+    ^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django_filters/fields.py", line 264, in _set_choices
+    super()._set_choices(value)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'super' object has no attribute '_set_choices'
+2026-05-22 09:23:06 [ERROR] django.channels.server: [35;1mHTTP GET /api/schema/ 500 [3.41, 127.0.0.1:36622][0m
+2026-05-22 09:24:38 [ERROR] django.request: Internal Server Error: /api/schema/
+Traceback (most recent call last):
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/base.py", line 254, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 84, in get
+    return self._get_schema_response(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 92, in _get_schema_response
+    data=generator.get_schema(request=request, public=self.serve_public),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 287, in get_schema
+    paths=self.parse(request, public),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 258, in parse
+    operation = view.schema.get_operation(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 113, in get_operation
+    operation['responses'] = self._get_response_bodies()
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1407, in _get_response_bodies
+    return {'200': self._get_response_for_code(response_serializers, '200', direction=direction)}
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1463, in _get_response_for_code
+    component = self.resolve_serializer(serializer, direction)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1658, in resolve_serializer
+    component.schema = self._map_serializer(serializer, direction, bypass_extensions)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 959, in _map_serializer
+    schema = self._map_basic_serializer(serializer, direction)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1052, in _map_basic_serializer
+    for field in serializer.fields.values():
+                 ^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/utils/functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/serializers.py", line 375, in fields
+    fields[key] = value
+    ~~~~~~^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/utils/serializer_helpers.py", line 165, in __setitem__
+    field.bind(field_name=key, parent=self.serializer)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/fields.py", line 358, in bind
+    assert self.source != field_name, (
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: It is redundant to specify `source='total_stock'` on field 'DecimalField' in serializer 'ItemSerializer', because it is the same as the field name. Remove the `source` keyword argument.
+2026-05-22 09:24:38 [ERROR] django.channels.server: [35;1mHTTP GET /api/schema/ 500 [17.43, 127.0.0.1:33622][0m
+2026-05-22 09:24:52 [ERROR] django.request: Internal Server Error: /api/schema/
+Traceback (most recent call last):
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/base.py", line 254, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 84, in get
+    return self._get_schema_response(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 92, in _get_schema_response
+    data=generator.get_schema(request=request, public=self.serve_public),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 287, in get_schema
+    paths=self.parse(request, public),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 258, in parse
+    operation = view.schema.get_operation(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 113, in get_operation
+    operation['responses'] = self._get_response_bodies()
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1407, in _get_response_bodies
+    return {'200': self._get_response_for_code(response_serializers, '200', direction=direction)}
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1463, in _get_response_for_code
+    component = self.resolve_serializer(serializer, direction)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1658, in resolve_serializer
+    component.schema = self._map_serializer(serializer, direction, bypass_extensions)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 959, in _map_serializer
+    schema = self._map_basic_serializer(serializer, direction)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1052, in _map_basic_serializer
+    for field in serializer.fields.values():
+                 ^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/utils/functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/serializers.py", line 375, in fields
+    fields[key] = value
+    ~~~~~~^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/utils/serializer_helpers.py", line 165, in __setitem__
+    field.bind(field_name=key, parent=self.serializer)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/fields.py", line 358, in bind
+    assert self.source != field_name, (
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: It is redundant to specify `source='total_stock'` on field 'DecimalField' in serializer 'ItemSerializer', because it is the same as the field name. Remove the `source` keyword argument.
+2026-05-22 09:24:52 [ERROR] django.channels.server: [35;1mHTTP GET /api/schema/ 500 [14.65, 127.0.0.1:33634][0m
+2026-05-22 09:25:08 [ERROR] django.request: Internal Server Error: /api/schema/
+Traceback (most recent call last):
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/core/handlers/base.py", line 254, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/asgiref/sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/views/generic/base.py", line 106, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 84, in get
+    return self._get_schema_response(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/views.py", line 92, in _get_schema_response
+    data=generator.get_schema(request=request, public=self.serve_public),
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 287, in get_schema
+    paths=self.parse(request, public),
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/generators.py", line 258, in parse
+    operation = view.schema.get_operation(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 113, in get_operation
+    operation['responses'] = self._get_response_bodies()
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1407, in _get_response_bodies
+    return {'200': self._get_response_for_code(response_serializers, '200', direction=direction)}
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1463, in _get_response_for_code
+    component = self.resolve_serializer(serializer, direction)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1658, in resolve_serializer
+    component.schema = self._map_serializer(serializer, direction, bypass_extensions)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 959, in _map_serializer
+    schema = self._map_basic_serializer(serializer, direction)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/drf_spectacular/openapi.py", line 1052, in _map_basic_serializer
+    for field in serializer.fields.values():
+                 ^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/django/utils/functional.py", line 47, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ^^^^^^^^^^^^^^^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/serializers.py", line 375, in fields
+    fields[key] = value
+    ~~~~~~^^^^^
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/utils/serializer_helpers.py", line 165, in __setitem__
+    field.bind(field_name=key, parent=self.serializer)
+  File "/home/luther/medwema/env/lib/python3.12/site-packages/rest_framework/fields.py", line 358, in bind
+    assert self.source != field_name, (
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: It is redundant to specify `source='total_stock'` on field 'DecimalField' in serializer 'ItemSerializer', because it is the same as the field name. Remove the `source` keyword argument.
+2026-05-22 09:25:08 [ERROR] django.channels.server: [35;1mHTTP GET /api/schema/ 500 [15.24, 127.0.0.1:33622][0m
+2026-05-22 09:29:02 [ERROR] django.channels.server: [35;1mHTTP GET /api/docs/ 500 [0.20, 127.0.0.1:58312][0m
+2026-05-22 09:29:15 [ERROR] django.channels.server: [35;1mHTTP GET /api/docs/ 500 [0.96, 127.0.0.1:58312][0m

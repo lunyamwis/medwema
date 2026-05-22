@@ -549,17 +549,45 @@
     </a>
     {% endif %}
 
+    {% if user.is_authenticated %}
+    <!-- Settings & Account -->
+    <div class="nav-section-label">Account</div>
+    <a href="{% url 'user_profile' %}" class="nav-item-link {% block nav_profile %}{% endblock %}">
+      <i class="bi bi-person-circle nav-icon"></i>
+      <span class="nav-label">My Profile</span>
+    </a>
+    {% if user.is_staff %}
+    <a href="{% url 'clinic_settings' %}" class="nav-item-link {% block nav_settings %}{% endblock %}">
+      <i class="bi bi-gear-fill nav-icon"></i>
+      <span class="nav-label">Settings</span>
+    </a>
+    <a href="{% url 'api-swagger' %}" target="_blank" class="nav-item-link">
+      <i class="bi bi-code-slash nav-icon"></i>
+      <span class="nav-label">API Docs</span>
+    </a>
+    {% endif %}
+    {% endif %}
+
   </nav>
 
   <div class="sidebar-footer">
     {% if user.is_authenticated %}
-    <a href="{% url 'account_logout' %}" class="user-chip" title="Logout">
+    <a href="{% url 'user_profile' %}" class="user-chip" title="View profile">
+      {% if user.profile_picture %}
+        <img src="{{ user.profile_picture.url }}" alt="avatar"
+             style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+      {% else %}
       <div class="user-avatar">{{ user.first_name|first|upper|default:user.username|first|upper }}</div>
+      {% endif %}
       <div>
         <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
         <div class="user-role">{{ user.get_role_display }}</div>
       </div>
-      <i class="bi bi-box-arrow-right ms-auto" style="font-size:.9rem;opacity:.6"></i>
+      <a href="{% url 'account_logout' %}" class="ms-auto" title="Logout"
+         style="color:#64748b;font-size:.9rem;text-decoration:none;padding:.2rem .3rem;border-radius:.375rem;"
+         onclick="event.stopPropagation()">
+        <i class="bi bi-box-arrow-right"></i>
+      </a>
     </a>
     {% else %}
     <a href="{% url 'account_login' %}" class="nav-item-link">

@@ -1,13 +1,23 @@
 {% extends "account_base.html" %}
-{% load widget_tweaks %}
-{% block title %}Logout - Medwema{% endblock %}
+{% block title %}Sign Out — Medwema{% endblock %}
+
 {% block content %}
-<div class="text-center mt-5">
-  <h4>Are you sure you want to log out?</h4>
-  <form method="POST" action="{% url 'account_logout' %}" class="mt-3">
+<div class="text-center">
+  <div class="mb-3" style="background:#fef3c7;border-radius:50%;width:72px;height:72px;display:flex;align-items:center;justify-content:center;margin:0 auto;">
+    <i class="bi bi-box-arrow-right" style="font-size:2rem;color:#d97706;"></i>
+  </div>
+  <h4 class="fw-bold mb-2" style="color:#0f172a;">Sign out?</h4>
+  <p style="color:#64748b;font-size:.9rem;" class="mb-4">
+    You'll need to sign back in to access your clinic dashboard.
+  </p>
+  <form method="POST" action="{% url 'account_logout' %}">
     {% csrf_token %}
-    <button type="submit" class="btn btn-danger">Logout</button>
-    <a href="/" class="btn btn-outline-secondary">Cancel</a>
+    <button type="submit" class="btn btn-auth-primary w-100 mb-2">
+      <i class="bi bi-box-arrow-right me-2"></i>Yes, Sign Me Out
+    </button>
   </form>
+  <a href="/" class="btn w-100" style="border:1.5px solid #e2e8f0;border-radius:10px;color:#475569;font-weight:500;padding:.7rem 1.5rem;">
+    <i class="bi bi-arrow-left me-2"></i>Cancel
+  </a>
 </div>
 {% endblock %}

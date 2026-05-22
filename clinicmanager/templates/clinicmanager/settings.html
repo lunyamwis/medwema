@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Clinic Settings{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block nav_settings %}active{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="dash-hero mb-4">
+  <div class="dash-hero-left">
+    <div class="dash-hero-eyebrow"><i class="bi bi-gear me-1"></i>Administration</div>
+    <h1 class="dash-hero-title">Clinic Settings</h1>
+    <p class="dash-hero-sub">Manage your clinic's profile, contact details and branding.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'api-swagger' %}" target="_blank" class="btn btn-white btn-sm">
+      <i class="bi bi-code-slash me-1"></i>API Docs
+    </a>
+    <a href="/admin/" class="btn btn-light btn-sm">
+      <i class="bi bi-shield-lock me-1"></i>Admin Panel
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+
+  <!-- Clinic info card -->
+  <div class="col-lg-3">
+    <div class="chart-card p-4 text-center">
+      {% if clinic.logo %}
+        <img src="{{ clinic.logo.url }}" alt="{{ clinic.name }}"
+             style="width:80px;height:80px;border-radius:.75rem;object-fit:cover;border:2px solid #dbeafe;margin-bottom:1rem;">
+      {% else %}
+        <div style="width:80px;height:80px;border-radius:.75rem;background:#eff6ff;color:#2563eb;font-size:2rem;display:grid;place-items:center;margin:0 auto 1rem;">
+          <i class="bi bi-hospital"></i>
+        </div>
+      {% endif %}
+      <div style="font-weight:700;font-size:1rem;color:#0f172a;">{{ clinic.name }}</div>
+      {% if clinic.address %}
+      <div style="font-size:.8125rem;color:#64748b;margin-top:.25rem;">{{ clinic.address }}</div>
+      {% endif %}
+      <hr class="my-3">
+      <div class="d-flex flex-column gap-1 text-start" style="font-size:.8125rem;color:#475569;">
+        {% if clinic.phone_number %}<div><i class="bi bi-telephone me-2 text-muted"></i>{{ clinic.phone_number }}</div>{% endif %}
+        {% if clinic.email %}<div><i class="bi bi-envelope me-2 text-muted"></i>{{ clinic.email }}</div>{% endif %}
+        {% if clinic.website %}<div><i class="bi bi-globe me-2 text-muted"></i>{{ clinic.website }}</div>{% endif %}
+        <div><i class="bi bi-calendar3 me-2 text-muted"></i>Since {{ clinic.date_created|date:"M Y" }}</div>
+      </div>
+    </div>
+
+    <!-- Quick links -->
+    <div class="chart-card mt-3">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Quick Links</div>
+      </div>
+      <div class="chart-card-body p-0">
+        <a href="{% url 'api-swagger' %}" target="_blank" class="settings-link">
+          <i class="bi bi-code-slash"></i>Swagger API Docs
+          <i class="bi bi-box-arrow-up-right ms-auto" style="font-size:.75rem;opacity:.5;"></i>
+        </a>
+        <a href="{% url 'api-redoc' %}" target="_blank" class="settings-link">
+          <i class="bi bi-book"></i>ReDoc API Reference
+          <i class="bi bi-box-arrow-up-right ms-auto" style="font-size:.75rem;opacity:.5;"></i>
+        </a>
+        <a href="{% url 'api-schema' %}" target="_blank" class="settings-link">
+          <i class="bi bi-braces"></i>OpenAPI Schema (JSON)
+          <i class="bi bi-box-arrow-up-right ms-auto" style="font-size:.75rem;opacity:.5;"></i>
+        </a>
+        <a href="/api/v1/" target="_blank" class="settings-link">
+          <i class="bi bi-plug"></i>API Root
+          <i class="bi bi-box-arrow-up-right ms-auto" style="font-size:.75rem;opacity:.5;"></i>
+        </a>
+        <a href="/admin/" class="settings-link">
+          <i class="bi bi-shield-lock"></i>Admin Panel
+          <i class="bi bi-arrow-right ms-auto" style="font-size:.75rem;opacity:.5;"></i>
+        </a>
+        <a href="{% url 'user_profile' %}" class="settings-link">
+          <i class="bi bi-person-circle"></i>My Profile
+          <i class="bi bi-arrow-right ms-auto" style="font-size:.75rem;opacity:.5;"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings form -->
+  <div class="col-lg-9">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-card-title"><i class="bi bi-hospital me-2"></i>Clinic Profile</div>
+          <div class="chart-card-sub">Update your clinic's public information.</div>
+        </div>
+      </div>
+      <div class="chart-card-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Clinic name <span class="text-danger">*</span></label>
+              <input type="text" name="name" class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                     value="{{ form.name.value|default:'' }}" required>
+              {% for e in form.name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Phone number</label>
+              <input type="text" name="phone_number" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}"
+                     value="{{ form.phone_number.value|default:'' }}">
+              {% for e in form.phone_number.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                     value="{{ form.email.value|default:'' }}">
+              {% for e in form.email.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Website</label>
+              <input type="url" name="website" class="form-control {% if form.website.errors %}is-invalid{% endif %}"
+                     value="{{ form.website.value|default:'' }}" placeholder="https://...">
+              {% for e in form.website.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Logo</label>
+              <input type="file" name="logo" class="form-control" accept="image/*">
+              {% if clinic.logo %}
+              <div class="form-text">Current: {{ clinic.logo.name }}</div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Address</label>
+              <textarea name="address" rows="2" class="form-control {% if form.address.errors %}is-invalid{% endif %}">{{ form.address.value|default:'' }}</textarea>
+              {% for e in form.address.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <hr class="my-4">
+          <div class="form-section-title">Paystack Integration</div>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Paystack Subaccount ID</label>
+              <input type="text" class="form-control no-select2" value="{{ clinic.paystack_subaccount_id|default:'' }}" readonly
+                     style="background:#f8fafc;color:#64748b;">
+              <div class="form-text">Managed via the Admin Panel. Contact the system administrator to update.</div>
+            </div>
+          </div>
+
+          <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Save Settings</button>
+            <a href="{% url 'patient_list' %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+.dash-hero { background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 55%,#1d4ed8 100%); border-radius:1rem; padding:1.75rem 2rem; color:#fff; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; position:relative; overflow:hidden; }
+.dash-hero::before { content:""; position:absolute; top:-40px; right:-40px; width:220px; height:220px; border-radius:50%; background:rgba(255,255,255,.07); pointer-events:none; }
+.dash-hero-eyebrow { font-size:.8125rem; font-weight:500; color:rgba(255,255,255,.75); margin-bottom:.35rem; }
+.dash-hero-title { font-size:1.625rem; font-weight:700; margin:0 0 .25rem; line-height:1.2; }
+.dash-hero-sub { font-size:.875rem; color:rgba(255,255,255,.8); margin:0; }
+.btn-white  { background:rgba(255,255,255,.15); color:#fff; border:1px solid rgba(255,255,255,.3); }
+.btn-white:hover { background:rgba(255,255,255,.25); color:#fff; }
+.btn-light  { background:rgba(255,255,255,.92); color:#1e40af; border:none; }
+.btn-light:hover { background:#fff; color:#1e40af; }
+.chart-card { background:#fff; border-radius:.875rem; box-shadow:0 2px 12px rgba(0,0,0,.06); display:flex; flex-direction:column; overflow:hidden; }
+.chart-card-header { display:flex; align-items:flex-start; justify-content:space-between; padding:1.125rem 1.25rem .875rem; border-bottom:1px solid #f1f5f9; gap:.75rem; }
+.chart-card-title { font-weight:600; font-size:.9375rem; color:#0f172a; line-height:1.3; }
+.chart-card-sub { font-size:.8rem; color:#94a3b8; margin-top:.15rem; }
+.chart-card-body { padding:1.25rem; flex:1; }
+.settings-link { display:flex; align-items:center; gap:.75rem; padding:.625rem 1.25rem; font-size:.875rem; color:#475569; text-decoration:none; transition:background .15s,color .15s; border-bottom:1px solid #f1f5f9; }
+.settings-link:last-child { border-bottom:none; }
+.settings-link i:first-child { font-size:1rem; color:#94a3b8; flex-shrink:0; }
+.settings-link:hover { background:#f8fafc; color:#0f172a; }
+</style>
+
+{% endblock %}

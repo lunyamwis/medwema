@@ -18,6 +18,9 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+
+from setup.api_router import router as api_router
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,15 +28,24 @@ urlpatterns = [
     path("patients/", include("patient.urls")),
     path("", include("home.urls")),
     path('emr/', include('emr.urls')),
-    path('chat/',include('chat.urls')),
+    path('chat/', include('chat.urls')),
     path('select2/', include('django_select2.urls')),
     path('inventory/', include('inventory.urls')),
     path('billing/', include('billing.urls')),
     path('prescriptions/', include('prescription.urls')),
     path('webpush/', include('webpush.urls')),
-    path('notifications/',include('notification.urls')),
+    path('notifications/', include('notification.urls')),
     path("specialists/", include("specialists.urls")),
+    path("profile/", include("authentication.urls")),
+    path("settings/", include("clinicmanager.urls")),
 
+    # ── REST API ────────────────────────────────────────────────────────────────
+    path("api/v1/", include(api_router.urls)),
+
+    # ── API Documentation ───────────────────────────────────────────────────────
+    path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-swagger"),
+    path("api/redoc/", SpectacularRedocView.as_view(url_name="api-schema"), name="api-redoc"),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
