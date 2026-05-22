@@ -50,9 +50,11 @@ def _get_clinic(user):
 
 # ─── Speech-to-Consultation ───────────────────────────────────────────────────
 
+@login_required
 @csrf_exempt
 @require_http_methods(["POST"])
 def speech_to_consultation(request, patient_id):
+    clinic = _get_clinic(request.user)
     try:
         data = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
@@ -95,7 +97,7 @@ def speech_to_consultation(request, patient_id):
         logger.error("speech_to_consultation: OpenAI error for patient %s: %s", patient_id, exc, exc_info=True)
         return JsonResponse({"error": str(exc)}, status=500)
 
-    patient = get_object_or_404(Patient, id=patient_id)
+    patient = get_object_or_404(Patient, id=patient_id, clinic=clinic)
     try:
         fields = {}
         fields.update(consultation_data.get("clinical_details") or {})
@@ -270,20 +272,24 @@ def consultation_list_view(request):
 
 @login_required
 def consultation_detail(request, consultation_id):
+    clinic = _get_clinic(request.user)
     consultation = get_object_or_404(
         Consultation.objects.select_related("patient", "doctor")
         .prefetch_related("lab_results__lab_test", "prescriptions__item"),
         id=consultation_id,
+        patient__clinic=clinic,
     )
     return render(request, "patient/consultation_detail.html", {"consultation": consultation})
 
 
 @login_required
 def consultation_pdf(request, consultation_id):
+    clinic = _get_clinic(request.user)
     consultation = get_object_or_404(
         Consultation.objects.select_related("patient", "doctor")
         .prefetch_related("lab_results__lab_test", "prescriptions__item"),
         id=consultation_id,
+        patient__clinic=clinic,
     )
     html_string = render_to_string("patient/consultation_pdf.html", {
         "consultation": consultation,
@@ -308,10 +314,10 @@ def doctor_list_view(request):
 
 @login_required
 def doctor_detail(request, pk):
-    doctor = doctor_get(pk=pk)
     clinic = _get_clinic(request.user)
+    doctor = get_object_or_404(Doctor, pk=pk, clinic=clinic)
     queue = queue_list_active(clinic=clinic, doctor=doctor)
-    lab_tests = LabTest.objects.filter(is_active=True).select_related("lab")
+    lab_tests = LabTest.objects.filter(lab__clinic=clinic, is_active=True).select_related("lab")
     query = request.GET.get("q", "").strip()
     patients = (
         Patient.objects.filter(doctor=doctor, clinic=clinic, is_active=True)
@@ -335,9 +341,9 @@ def doctor_detail(request, pk):
 @login_required
 @require_POST
 def add_to_queue(request, doctor_id, patient_id):
-    doctor = get_object_or_404(Doctor, id=doctor_id)
-    patient = get_object_or_404(Patient, id=patient_id)
     clinic = _get_clinic(request.user)
+    doctor = get_object_or_404(Doctor, id=doctor_id, clinic=clinic)
+    patient = get_object_or_404(Patient, id=patient_id, clinic=clinic)
 
     if Queue.objects.filter(doctor=doctor, patient=patient, status="waiting").exists():
         logger.warning("Patient '%s' already queued for Dr. %s", patient.name, doctor.name)
@@ -355,10 +361,10 @@ def add_to_queue(request, doctor_id, patient_id):
 @login_required
 @require_POST
 def add_to_queue_select(request, patient_id):
-    patient = get_object_or_404(Patient, id=patient_id)
     clinic = _get_clinic(request.user)
+    patient = get_object_or_404(Patient, id=patient_id, clinic=clinic)
     doctor_id = request.POST.get("doctor_id")
-    doctor = get_object_or_404(Doctor, id=doctor_id)
+    doctor = get_object_or_404(Doctor, id=doctor_id, clinic=clinic)
     patient.doctor = doctor
     patient.save(update_fields=["doctor"])
     if Queue.objects.filter(doctor=doctor, patient=patient, status="waiting").exists():
@@ -374,7 +380,8 @@ def add_to_queue_select(request, patient_id):
 @login_required
 @require_POST
 def start_consultation(request, queue_id):
-    queue_item = get_object_or_404(Queue, id=queue_id)
+    clinic = _get_clinic(request.user)
+    queue_item = get_object_or_404(Queue, id=queue_id, clinic=clinic)
     queue_item.start()
     return redirect("new_consultation", patient_id=queue_item.patient.id)
 
@@ -382,12 +389,13 @@ def start_consultation(request, queue_id):
 @login_required
 @require_POST
 def complete_consultation(request, queue_id):
-    queue_item = get_object_or_404(Queue, id=queue_id)
+    clinic = _get_clinic(request.user)
+    queue_item = get_object_or_404(Queue, id=queue_id, clinic=clinic)
     queue_item.complete()
     consultation = queue_item.patient.consultations.first()
     if consultation and consultation.labor_charges:
         try:
-            bill = Bill.objects.filter(patient=queue_item.patient, is_paid=False).latest("created_at")
+            bill = Bill.objects.filter(patient=queue_item.patient, clinic=clinic, is_paid=False).latest("created_at")
             bill.total_amount += consultation.labor_charges
             bill.save(update_fields=["total_amount"])
             logger.info("Labor charges %s added to bill %s for patient '%s'", consultation.labor_charges, bill.id, queue_item.patient.name)

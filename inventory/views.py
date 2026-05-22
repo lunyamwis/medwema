@@ -45,26 +45,38 @@ def _get_clinic(user):
 # ─── REST Viewsets ────────────────────────────────────────────────────────────
 
 class ItemViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Item.objects.all().order_by("name")
     serializer_class = ItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["category__id"]
     search_fields = ["name", "sku", "barcode"]
     ordering_fields = ["name", "reorder_level"]
 
+    def get_queryset(self):
+        clinic = self.request.user.clinics.last()
+        return Item.objects.filter(clinic=clinic).order_by("name")
+
 
 class StockViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Stock.objects.select_related("item", "location").all()
     serializer_class = StockSerializer
+    permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     search_fields = ["item__name", "location__name"]
 
+    def get_queryset(self):
+        clinic = self.request.user.clinics.last()
+        return Stock.objects.filter(item__clinic=clinic).select_related("item", "location")
+
 
 class ConsumptionViewSet(viewsets.ModelViewSet):
-    queryset = ConsumptionRecord.objects.select_related(
-        "item", "from_stock", "consultation"
-    ).all()
     serializer_class = ConsumptionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        clinic = self.request.user.clinics.last()
+        return ConsumptionRecord.objects.filter(item__clinic=clinic).select_related(
+            "item", "from_stock", "consultation"
+        )
 
     def perform_create(self, serializer):
         cr = serializer.save(used_by=self.request.user)

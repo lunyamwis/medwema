@@ -96,9 +96,11 @@ def lab_dashboard(request):
 
 @login_required
 def add_lab_result(request, consultation_id):
+    clinic = _get_clinic(request.user)
     consultation = get_object_or_404(
         Consultation.objects.select_related("patient", "doctor"),
         id=consultation_id,
+        patient__clinic=clinic,
     )
 
     lab_queue_items = (
@@ -163,9 +165,11 @@ def add_lab_result(request, consultation_id):
 
 @login_required
 def edit_lab_results(request, consultation_id):
+    clinic = _get_clinic(request.user)
     consultation = get_object_or_404(
         Consultation.objects.select_related("patient", "doctor"),
         id=consultation_id,
+        patient__clinic=clinic,
     )
     existing_qs = LabResult.objects.filter(consultation=consultation).select_related("lab_test")
 
@@ -210,9 +214,11 @@ def edit_lab_results(request, consultation_id):
 
 @login_required
 def view_lab_results(request, consultation_id):
+    clinic = _get_clinic(request.user)
     consultation = get_object_or_404(
         Consultation.objects.select_related("patient", "doctor"),
         id=consultation_id,
+        patient__clinic=clinic,
     )
     results = (
         LabResult.objects
@@ -232,9 +238,11 @@ def view_lab_results(request, consultation_id):
 
 @login_required
 def print_lab_results(request, consultation_id):
+    clinic = _get_clinic(request.user)
     consultation = get_object_or_404(
         Consultation.objects.select_related("patient", "doctor"),
         id=consultation_id,
+        patient__clinic=clinic,
     )
     results = (
         LabResult.objects
@@ -242,7 +250,6 @@ def print_lab_results(request, consultation_id):
         .select_related("lab_test")
         .order_by("result_date")
     )
-    clinic = _get_clinic(request.user)
     html_string = render_to_string("emr/results_pdf.html", {
         "results":      results,
         "consultation": consultation,
@@ -263,7 +270,8 @@ def print_lab_results(request, consultation_id):
 @login_required
 @require_POST
 def start_lab_test(request, queue_id):
-    queue_item = get_object_or_404(LabQueue, id=queue_id)
+    clinic = _get_clinic(request.user)
+    queue_item = get_object_or_404(LabQueue, id=queue_id, clinic=clinic)
     lab_queue_start(lab_queue=queue_item)
     logger.info("Lab test started for patient '%s' (queue %s) by %s", queue_item.patient.name, queue_id, request.user.username)
     messages.success(request, f"Started test for {queue_item.patient.name}.")
@@ -273,7 +281,8 @@ def start_lab_test(request, queue_id):
 @login_required
 @require_POST
 def complete_lab_test(request, queue_id):
-    queue_item = get_object_or_404(LabQueue, id=queue_id)
+    clinic = _get_clinic(request.user)
+    queue_item = get_object_or_404(LabQueue, id=queue_id, clinic=clinic)
     lab_queue_complete(lab_queue=queue_item)
     logger.info("Lab test completed for patient '%s' (queue %s) by %s", queue_item.patient.name, queue_id, request.user.username)
     messages.success(
@@ -290,8 +299,9 @@ def complete_lab_test(request, queue_id):
 @login_required
 @require_POST
 def send_to_lab_view(request, consultation_id, patient_id):
+    clinic = _get_clinic(request.user)
     if consultation_id == 0:
-        patient = get_object_or_404(Patient, id=patient_id)
+        patient = get_object_or_404(Patient, id=patient_id, clinic=clinic)
         consultation = Consultation.objects.create(
             patient=patient,
             doctor=patient.doctor,
@@ -302,10 +312,9 @@ def send_to_lab_view(request, consultation_id, patient_id):
         consultation = get_object_or_404(
             Consultation.objects.select_related("patient", "doctor"),
             id=consultation_id,
+            patient__clinic=clinic,
         )
         patient = consultation.patient
-
-    clinic = patient.clinic
 
     selected_lab_test_ids = request.POST.getlist("lab_tests")
     if not selected_lab_test_ids:
@@ -347,11 +356,15 @@ def send_to_lab_view(request, consultation_id, patient_id):
 # AJAX / API
 # ---------------------------------------------------------------------------
 
+@login_required
 @require_GET
 def ajax_consultation_search(request):
+    clinic = _get_clinic(request.user)
     q = request.GET.get("q", "").strip()
     if q:
         qs = Consultation.objects.filter(
+            patient__clinic=clinic
+        ).filter(
             Q(patient__name__icontains=q) | Q(id__icontains=q)
         ).select_related("patient")[:20]
     else:
@@ -362,11 +375,13 @@ def ajax_consultation_search(request):
     )
 
 
+@login_required
 @require_GET
 def ajax_labtest_search(request):
+    clinic = _get_clinic(request.user)
     q = request.GET.get("q", "").strip()
     if q:
-        qs = LabTest.objects.filter(name__icontains=q, is_active=True)[:20]
+        qs = LabTest.objects.filter(lab__clinic=clinic, name__icontains=q, is_active=True)[:20]
     else:
         qs = LabTest.objects.none()
     return JsonResponse(
@@ -375,8 +390,10 @@ def ajax_labtest_search(request):
     )
 
 
+@login_required
 def lab_queue_count_api(request):
-    count = LabQueue.objects.filter(status__in=["waiting", "in_progress"]).count()
+    clinic = _get_clinic(request.user)
+    count = LabQueue.objects.filter(clinic=clinic, status__in=["waiting", "in_progress"]).count()
     return JsonResponse({"count": count})
 
 
@@ -394,11 +411,14 @@ def lab_search_dashboard(request):
     return redirect("lab_dashboard")
 
 
+@login_required
 def consultation_search(request):
     """Kept for backward-compat with older templates that hit this endpoint."""
+    clinic = _get_clinic(request.user)
     q = request.GET.get("q", "")
     consultations = (
         Consultation.objects
+        .filter(patient__clinic=clinic)
         .select_related("patient")
         .filter(patient__name__icontains=q)
         .only("id", "date", "patient__name")[:20]
@@ -410,9 +430,11 @@ def consultation_search(request):
     return JsonResponse(data, safe=False)
 
 
+@login_required
 def lab_queue_view(request, lab_id):
     """Legacy view kept for URL compatibility."""
-    lab = get_object_or_404(Lab, id=lab_id)
+    clinic = _get_clinic(request.user)
+    lab = get_object_or_404(Lab, id=lab_id, clinic=clinic)
     queue = LabQueue.objects.filter(
         lab=lab, status__in=["waiting", "in_progress"]
     ).order_by("queue_number")

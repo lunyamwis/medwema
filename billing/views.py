@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from datetime import date, timedelta
 from decimal import Decimal
@@ -43,6 +44,8 @@ def billing_dashboard(request):
 
     unpaid_count = base_qs.filter(is_paid=False).count()
     paid_today_count = base_qs.filter(is_paid=True, updated_at__date=today).count()
+    total_bills = base_qs.count()
+    paid_total = base_qs.filter(is_paid=True).count()
 
     revenue_today = (
         Payment.objects.filter(
@@ -62,11 +65,56 @@ def billing_dashboard(request):
         or Decimal("0.00")
     )
 
+    last_week_start = week_start - timedelta(days=7)
+    revenue_last_week = (
+        Payment.objects.filter(
+            bill__clinic=clinic,
+            status__in=["success", "manual"],
+            paid_at__date__gte=last_week_start,
+            paid_at__date__lt=week_start,
+        ).aggregate(total=Sum("amount"))["total"]
+        or Decimal("0.00")
+    )
+
     recent_bills = (
         base_qs
         .select_related("patient", "consultation")
         .order_by("-created_at")[:10]
     )
+
+    # ── Chart data ──────────────────────────────────────────────────────────
+    last_7 = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
+    daily_rev_rows = (
+        Payment.objects.filter(
+            bill__clinic=clinic,
+            status__in=["success", "manual"],
+            paid_at__date__gte=last_7[0],
+            paid_at__date__lte=today,
+        )
+        .values("paid_at__date")
+        .annotate(total=Sum("amount"))
+    )
+    daily_rev_map = {row["paid_at__date"]: float(row["total"]) for row in daily_rev_rows}
+    revenue_chart_labels = json.dumps([d.strftime("%b %d") for d in last_7])
+    revenue_chart_data = json.dumps([daily_rev_map.get(d, 0) for d in last_7])
+
+    method_rows = (
+        Payment.objects.filter(
+            bill__clinic=clinic,
+            status__in=["success", "manual"],
+        )
+        .values("payment_method")
+        .annotate(total=Sum("amount"))
+        .order_by("-total")
+    )
+    method_labels = json.dumps([r["payment_method"] for r in method_rows])
+    method_data = json.dumps([float(r["total"]) for r in method_rows])
+
+    week_pct_change = 0
+    if revenue_last_week > 0:
+        week_pct_change = round(
+            float((revenue_week - revenue_last_week) / revenue_last_week * 100), 1
+        )
 
     return render(
         request,
@@ -74,9 +122,17 @@ def billing_dashboard(request):
         {
             "unpaid_count": unpaid_count,
             "paid_today_count": paid_today_count,
+            "total_bills": total_bills,
+            "paid_total": paid_total,
             "revenue_today": revenue_today,
             "revenue_week": revenue_week,
+            "revenue_last_week": revenue_last_week,
+            "week_pct_change": week_pct_change,
             "recent_bills": recent_bills,
+            "revenue_chart_labels": revenue_chart_labels,
+            "revenue_chart_data": revenue_chart_data,
+            "method_labels": method_labels,
+            "method_data": method_data,
         },
     )
 
@@ -121,10 +177,12 @@ def billing_list(request):
 
 @login_required
 def bill_detail(request, pk):
+    clinic = _get_clinic(request.user)
     bill = get_object_or_404(
         Bill.objects.select_related("patient", "consultation", "clinic")
         .prefetch_related("items", "payments"),
         pk=pk,
+        clinic=clinic,
     )
     return render(request, "billing/bill_detail.html", {"bill": bill})
 
@@ -133,7 +191,8 @@ def bill_detail(request, pk):
 
 @login_required
 def bill_edit(request, pk):
-    bill = get_object_or_404(Bill, pk=pk)
+    clinic = _get_clinic(request.user)
+    bill = get_object_or_404(Bill, pk=pk, clinic=clinic)
 
     if bill.is_paid:
         logger.warning("Attempt to edit paid bill #%s by %s", bill.id, request.user.username)
@@ -161,7 +220,8 @@ def bill_edit(request, pk):
 @login_required
 @require_POST
 def mark_bill_paid(request, pk):
-    bill = get_object_or_404(Bill, pk=pk)
+    clinic = _get_clinic(request.user)
+    bill = get_object_or_404(Bill, pk=pk, clinic=clinic)
     payment_method = request.POST.get("payment_method", "CASH")
 
     payment_mark_manual(
@@ -180,10 +240,12 @@ def mark_bill_paid(request, pk):
 
 @login_required
 def print_receipt(request, pk):
+    clinic = _get_clinic(request.user)
     bill = get_object_or_404(
         Bill.objects.select_related("patient", "consultation", "clinic")
         .prefetch_related("items", "payments"),
         pk=pk,
+        clinic=clinic,
     )
     return render(request, "billing/receipt.html", {"bill": bill})
 
@@ -263,7 +325,8 @@ def revenue_report(request):
 
 @login_required
 def initiate_payment(request, bill_id):
-    bill = get_object_or_404(Bill, pk=bill_id)
+    clinic = _get_clinic(request.user)
+    bill = get_object_or_404(Bill, pk=bill_id, clinic=clinic)
     headers = {"Authorization": f"Bearer {settings.PAYSTACK_SECRET_KEY}"}
     data = {
         "email": bill.patient.email,
